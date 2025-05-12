@@ -1,3 +1,4 @@
+from window_manager import get_focused_window_title, press_f10,pyqt, change_type
 from flask import Flask, request, jsonify,send_from_directory
 from werkzeug.utils import secure_filename
 from flask_cors import CORS, cross_origin
@@ -5,14 +6,16 @@ from tkinter import filedialog
 from threading import Thread
 from copy import deepcopy
 import tkinter as tk
-import webbrowser
 import shutil
 import json
 import time
 import os
+import webbrowser
 
 init_load=False
 app = Flask(__name__)
+update=False
+webview=None
 cors=CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 default={
@@ -58,8 +61,17 @@ default={
 		{ "name": "\\NPCs", "icon": "https://images.gamebanana.com/img/ico/ModCategory/66e0d90771ac5.png" },
 		{ "name": "\\Other", "icon": "https://images.gamebanana.com/img/ico/ModCategory/6692c90cba314.png" },
 		{ "name": "\\UI", "icon": "https://images.gamebanana.com/img/ico/ModCategory/6692c913ddf00.png" }
-]
+],
+"settings":{
+    "hot_keys":[],
+    "hot_reload":True,
+    "toggle":1,
+    "open":0,
+    "opacity":1,
+    "type":0,
+    "list_type":0
 
+}
 }
 data=deepcopy(default)
 running = True
@@ -250,6 +262,7 @@ try:
         data["dir"] = file["dir"]
         data["categories"]=file["categories"]
         data["list"]=file["list"]
+        data["settings"]=file["settings"]
         if(file["presets"]):
             data["presets"]=file["presets"]
 except:
@@ -305,8 +318,6 @@ def try_combinations(path):
     else:
         return None
 
-
-
 @app.route("/files/<path:subpath>") # Get the preview image of a file
 @cross_origin()
 def get_files(subpath):
@@ -348,7 +359,6 @@ def list():
             init_load=False
         return jsonify(rsp)
     elif(req=="dir"):
-        print("dir",data_get)
         cwd=os.path.join(data["dir"],data_get["path"])
         if not os.path.isdir(cwd):
             cwd=try_combinations(data_get["path"])
@@ -368,11 +378,12 @@ def set_presets():
     data["presets"]=data_get["presets"]
     if save_congif():
         log("Save preset")
+        global update
+        update=True
         return jsonify({"status":"ok"})
     else:
         return jsonify({"status":"err"})
     
-
 @app.route("/toggle/<path:subpath>")
 @cross_origin()
 def toggle(subpath):
@@ -403,12 +414,11 @@ def toggle(subpath):
                 data["list"][i]["enabled"]=not data["list"][i]["enabled"]
                 save_congif()
                 break
+        global update
+        update=True
         return jsonify({"status":"ok","name":os.path.join(path,new)})
     except:
         return jsonify({"status":"err","message":"Not a valid directory"})
-    
-        
-
 
 @app.route('/rename') # Rename a file or directory
 @cross_origin()
@@ -432,7 +442,6 @@ def rename():
         return jsonify({"status":"err","message":"No change"})
     if(not os.path.isdir(os.path.join(cwd,frm)) and not os.path.isfile(os.path.join(cwd,frm))):
         prefix="DISABLED_"
-    
     try:
         os.rename(os.path.join(cwd,prefix+frm),os.path.join(cwd,prefix+to))
         cwd=cwd.replace(data["dir"]+"/","/")
@@ -442,12 +451,12 @@ def rename():
                 data["list"][i]["name"]=to
                 save_congif()
                 break
+        global update
+        update=True
         return jsonify({"status":"ok"})
     except:
-        return jsonify({"status":"err","message":"Not a valid directory"})
+        return jsonify({"status":"err","message":"Not a valid directory"})  
     
-    
-
 @app.route("/set/<type>",methods=["POST"]) # Set a property of a file or directory (description or link)
 @cross_origin()
 def set_link(type):
@@ -465,7 +474,6 @@ def set_link(type):
     return jsonify({"status":"ok"})
 
 #----------------------------------------------------------------------------------------
-
 
 @app.route("/reset", methods=['GET']) # Reset the configuration to default values
 @cross_origin()
@@ -516,6 +524,8 @@ def apply_content(i):
                    os.rename(os.path.join(data["dir"],dt["name"]),os.path.join(data["dir"],secure_filename("DISABLED_"+dt["name"]))) 
                 except:
                     pass
+        global update
+        update=True
         return jsonify({"status":"ok","list":refresh_dir()})
     except:
         log("Apply preset err")
@@ -526,39 +536,58 @@ def apply_content(i):
 @cross_origin()
 def change_preview_content():
     data_get=request.get_json(force=True)
-   
     frm=ask_file()
     if(frm):
         to=data_get["to"]
         path=os.path.join(*to)
         exts=["png","jpg","jpeg","webp","gif"]
         ext="png"
-        print("try1",[path])
         if(not os.path.isdir(path)):
-            print("try2",path)
             path=try_combinations(path)
-            print(path)
             if not path or not os.path.isdir(path):                
                 return jsonify({"status":"cannot set preview to a file"})
-        
         files_list=os.listdir(path)
-        print("try3",files_list)
         for i in exts:
             ext=i
             if ("preview."+ext )in files_list:
                 os.remove(os.path.join(path,"preview."+ext))
-        print("try4",path)
         to=path.split("/")
         to.append("preview."+frm.split(".")[-1])
         to="/".join(to)
-        print("frm",frm)
-        print("to",to)
         shutil.copyfile(frm, to)
         log("Save preview "+frm+" to "+to)
     return jsonify({"status":"ok"})
 
-    return jsonify({"status":"err"})
-
+@app.route('/savesettings', methods=['POST']) # Save the configuration to a file
+@cross_origin()
+def save_settings():
+    global data
+    data_get=request.get_json(force=True)
+    try:
+        if(data_get["settings"]["type"]!=data["settings"]["type"]):
+            change_type(data_get["settings"]["type"])
+    except:
+        pass
+    data["settings"]=data_get["settings"]
+    if save_congif():
+        log("Save settings")
+        global update
+        update=True
+        return jsonify({"status":"ok"})
+    else:
+        return jsonify({"status":"err"})
+    
+@app.route('/openlink', methods=['GET'])
+@cross_origin()
+def open_link():
+    link=request.args.get('link')
+    if(link):
+        webbrowser.open(link)
+        log("Open link "+link)
+        return jsonify({"status":"ok"})
+    else:
+        return jsonify({"status":"err","message":"No link"})
+    
 @app.route('/quit', methods=['GET']) # Used to stop the server after 2 seconds on closing the tab
 @cross_origin()
 def quit_app():
@@ -573,20 +602,41 @@ def run_flask():
     print("Server started at ", "http://127.0.0.1:2110/")
     # app.run(host='0.0.0.0', port=2110, threaded=True)
     serve(app, port=2110)
+
+# import keyboard
+# def focus_webview():
+    
+#     activate_window("")
+
+# keyboard.add_hotkey('ctrl+9', focus_webview)
+
+
 def runner():
+    global update
     while running:
-        time.sleep(5)
-        save_log()
+        window=get_focused_window_title()
+        if(str(window).strip().lower()=="wuthering waves") and update and data["settings"]["hot_reload"]:
+            update=False
+            press_f10()
+        time.sleep(1)
+
 if __name__ == '__main__':
     # Start the Flask app in a separate thread
     flask_thread = Thread(target=run_flask,daemon=True)
     flask_thread.start()
-    webbrowser.open("http://127.0.0.1:2110/", new=0, autoraise=True)
-    try:
-        while(running):
-            runner()
-            time.sleep(2)
+    event_thread = Thread(target=runner,daemon=True)
 
+    try:
+
+        if(data["settings"]["open"]==1):
+            webbrowser.open("http://127.0.0.1:2110/", new=0, autoraise=True)
+            runner()
+        else:
+            event_thread.start()
+            pyqt(data["settings"]["type"],data["settings"]["opacity"])
+
+        # webview.create_window("WWMM Launcher", "http://127.0.1:2110/", width=1200, height=800, resizable=True,on_top=True)
+        # webview.start()
         raise KeyboardInterrupt
     
     except KeyboardInterrupt:
