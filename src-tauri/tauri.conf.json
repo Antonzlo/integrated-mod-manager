@@ -1,0 +1,60 @@
+{
+	"$schema": "https://schema.tauri.app/config/2",
+	"productName": "Wuwa Mod Manager (WWMM)",
+	"version": "2.0.0",
+	"identifier": "jp.bhatt.wwmm",
+
+	"build": {
+		"beforeDevCommand": "npm run dev",
+		"devUrl": "http://localhost:1420",
+		"beforeBuildCommand": "npm run build",
+		"frontendDist": "../dist"
+	},
+	"app": {
+		"trayIcon": {
+			"iconPath": "icons/icon128.ico",
+			"iconAsTemplate": false
+		},
+		"windows": [
+			{
+				"title": "wuwa-mod-manager",
+				"width": 1280,
+				"height": 720,
+				"resizable": true,
+				"fullscreen": false,
+				"transparent": true,
+				"minWidth": 1200,
+				"minHeight": 720
+			}
+		],
+
+		"security": {
+			"csp": null,
+			"assetProtocol": {
+				"enable": true,
+				"scope": ["**"]
+			}
+		},
+		"withGlobalTauri": false
+	},
+	"bundle": {
+		"createUpdaterArtifacts": true,
+		"active": true,
+		"targets": "all",
+		"icon": ["icons/128x128.png", "icons/icon.icns", "icons/icon64.ico"],
+		"windows": {
+			"nsis": {
+				"installerIcon": "icons/icon64.ico"
+			}
+		}
+	},
+	"plugins": {
+		"updater": {
+			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVDNDVCOEZFQzIyMkJDMjkKUldRcHZDTEMvcmhGWEhGdWNGcFJzN1hYR05YVXZPMXlzcVc3b2xrMzA5M25SdTZkMldtOUFWbzcK",
+			"endpoints": ["https://github.com/jpbhatt21/wuwa-mod-manager/releases/latest/download/latest.json"],
+			"windows": {
+				"installMode": "passive"
+			}
+		}
+	}
+}

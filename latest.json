@@ -1,0 +1,11 @@
+{
+  "version": "2.0.0",
+  "notes": "{\"major\":[\"Complete Revamp\",\"Initial v2.X.X update\"]}",
+  "pub_date": "2025-10-03T18:40:00Z",
+  "platforms": {
+    "windows-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRcHZDTEMvcmhGWE5UYmhaRjdMNEQyS2hlaFI0Q1NZRHR1ZzJvY2dwRCtncSt3ZGtvV2YvcHd1VnBhZld4eXEwUFZXeEx4ZVFEQkZqMkE0Nk5Sc3FjdGp3aFh2d0JRamdZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzU5NTE2NjQwCWZpbGU6V3V3YSBNb2QgTWFuYWdlciAoV1dNTSlfMi4wLjBfeDY0LXNldHVwLmV4ZQpKY2cwLy9YVkV6QXFmbzh5UXE2ZUNTOGtBa3pjeDk0TXNJSFFkSjJPZytUK0JyeXQyY0cza3NNajhuNjJMMTVBU0Uxc2c5dU94TzFzMGJuTXFSbEZDUT09Cg==",
+      "url": "https://github.com/jpbhatt21/wuwa-mod-manager/releases/latest/download/Wuwa.Mod.Manager.WWMM._2.0.0_x64-setup.exe"
+    }
+  }
+}
