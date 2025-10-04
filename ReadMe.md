@@ -126,7 +126,7 @@ Tauri is built with Rust and requires it for development.
 Clone the repository using `git`:
 
 ```sh
-git clone [https://github.com/jpbhatt21/wuwa-mod-manager.git](https://github.com/jpbhatt21/wuwa-mod-manager.git)
+git clone https://github.com/jpbhatt21/wuwa-mod-manager.git
 ```
 
 ### Install
