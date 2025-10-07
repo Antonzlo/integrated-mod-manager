@@ -24,11 +24,8 @@ import { registerGlobalHotkeys } from "./hotkeyUtils";
 import { invoke } from "@tauri-apps/api/core";
 import { executeWWMI } from "./processUtils";
 import { Settings, OnlineMod } from "./types";
-import { HEALTH_CHECK } from "./consts";
+import { HEALTH_CHECK, VERSION } from "./consts";
 export const window = getCurrentWebviewWindow();
-currentMonitor().then((x) => {
-	if (x?.size) window.setSize(new PhysicalSize(x.size.width * 0.8, x.size.height * 0.8));
-});
 invoke("get_username");
 export const RESTORE = "DISABLED_RESTORE";
 export const IGNORE = "IGNORE";
@@ -37,9 +34,15 @@ export function setWindowType(type: number) {
 	if (type == 0) {
 		window.setFullscreen(false);
 		window.setDecorations(true);
+		currentMonitor().then((x) => {
+			if (x?.size) window.setSize(new PhysicalSize(x.size.width * 0.8, x.size.height * 0.8));
+		});
 	} else if (type == 1) {
 		window.setFullscreen(false);
 		window.setDecorations(false);
+		currentMonitor().then((x) => {
+			if (x?.size) window.setSize(new PhysicalSize(x.size.width * 0.8, x.size.height * 0.8));
+		});
 	} else if (type == 2) {
 		window.setFullscreen(true);
 	}
@@ -164,10 +167,20 @@ export async function main() {
 	}
 
 	if (update) {
+		let lang = config.settings.lang;
+		let parsedBody = {};
+		if (update.body) {
+			try {
+				parsedBody = JSON.parse(update.body);
+				parsedBody = parsedBody[lang as keyof typeof parsedBody] || parsedBody;
+			} catch (e) {
+				parsedBody = {};
+			}
+		}
 		store.set(updateWWMMAtom, {
 			version: update.version,
 			date: update.date || "",
-			body: update.body || "{}",
+			body: JSON.stringify(parsedBody) || "{}",
 			status: "available",
 			raw: update,
 		});
@@ -184,24 +197,25 @@ export async function main() {
 	}
 
 	store.set(onlineTypeAtom, config.settings.onlineType ?? "Mod");
-	//optional health check 
-	if (config.settings.clientDate) fetch(`${HEALTH_CHECK}/${config.settings.clientDate}`);
-	else {
-		fetch(`${HEALTH_CHECK}/_${Date.now()}`)
-			.then((res) => res.json())
-			.then((data) => {
-				if (data.client) {
-					config.settings.clientDate = data.client;
-					store.set(settingsDataAtom, config.settings as Settings);
-					saveConfig();
-				}
-			});
+	if (!firstLoad) {
+		if (config.settings.clientDate) fetch(`${HEALTH_CHECK}/${VERSION||"2.0.1"}/${config.settings.clientDate}`);
+		else {
+			fetch(`${HEALTH_CHECK}/${VERSION||"2.0.1"}/_${Date.now()}`)
+				.then((res) => res.json())
+				.then((data) => {
+					if (data.client) {
+						config.settings.clientDate = data.client;
+						store.set(settingsDataAtom, config.settings as Settings);
+						saveConfig();
+					}
+				});
+		}
 	}
 	updateInfo("Getting directory info...");
 	if (!firstLoad) {
 		getDirResructurePlan();
 	}
-	updateInfo("Initialization complete.");
+	updateInfo("Initialization complete.", 2000);
 
 	setupImageServerListeners();
 

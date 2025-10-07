@@ -1,4 +1,4 @@
-import { refreshAppIdAtom, localModListAtom, localPresetListAtom, settingsDataAtom, categoryListAtom, localDataAtom, consentOverlayDataAtom, progressOverlayDataAtom, modRootDirAtom, store } from "@/utils/vars";
+import { refreshAppIdAtom, localModListAtom, localPresetListAtom, settingsDataAtom, categoryListAtom, localDataAtom, consentOverlayDataAtom, progressOverlayDataAtom, modRootDirAtom, store  } from "@/utils/vars";
 import { readDir, readTextFile, writeTextFile, rename, exists, mkdir, remove, copyFile, DirEntry } from "@tauri-apps/plugin-fs";
 import { open } from "@tauri-apps/plugin-dialog";
 import { IGNORE, RESTORE, UNCATEGORIZED } from "@/utils/init";
@@ -11,6 +11,16 @@ let canceled = false;
 let result = "Ok";
 const PRIORITY_KEYS = ["Alt", "Ctrl", "Shift", "Capslock", "Tab", "Up", "Down", "Left", "Right"];
 const PRIORITY_SET = new Set(PRIORITY_KEYS);
+const textMSG={
+	rem:"Removing current files",
+	disc:"Discovering files",
+	file:"File"
+}
+export function setTextMSG(val:{rem:string,disc:string,file:string}){
+	textMSG.rem=val.rem;
+	textMSG.disc=val.disc;
+	textMSG.file=val.file;
+}
 export function keySort(keys: string[]): string[] {
 	
 	const regularKeys = keys.filter((key) => !PRIORITY_SET.has(key));
@@ -136,7 +146,7 @@ async function copyDirWithProgress(source: string, destination: string, progress
 					const percentage = ((completedFiles / totalFiles) * 100).toFixed(2);
 					progressBar.style.width = percentage + "%";
 					progressPerct.innerText = percentage + "%";
-					progressMessage.innerText = `File ${completedFiles} of ${totalFiles}: ${entry.name} in ${source}`;
+					progressMessage.innerText = `${textMSG.file} ${completedFiles}/${totalFiles}: ${entry.name} in ${source}`;
 				}
 			}
 		}
@@ -171,7 +181,7 @@ async function countFilesInDir(path: string, messageBox: HTMLElement | null = nu
 		} else {
 			totalFiles++;
 			if (messageBox) {
-				messageBox.innerText = "Discovering files ( " + totalFiles + " / ? )";
+				messageBox.innerText = textMSG.disc+ " ( " + totalFiles + " / ? )";
 			}
 		}
 	}
@@ -388,7 +398,10 @@ export async function validateModDownload(path: string) {
 			}
 			if (!ini && dirs.length == 1) {
 				await copyDir(path + "\\" + dirs[0], path);
-				await removeDirRecursive(path + "\\" + dirs[0]);
+				await removeDirRecursive(path + "\\" + dirs[0]+"\\"+path);
+				try{
+					await remove(path + "\\" + dirs[0]);
+				}catch{}
 			}
 		}
 	} catch {}
@@ -583,7 +596,7 @@ export async function createRestorePoint(prefix = "") {
 		progressMessage = progressMessage || document.querySelector("#restore-progress-message");
 		progressPerct = progressPerct || document.querySelector("#restore-progress-percentage");
 	}
-	progressMessage.innerText = "Discovering files";
+	progressMessage.innerText = textMSG.disc;
 	completedFiles = 0;
 	totalFiles = 0;
 	canceled = false;
@@ -627,7 +640,7 @@ export async function restoreFromPoint(name: string) {
 		progressMessage = progressMessage || document.querySelector("#restore-progress-message");
 		progressPerct = progressPerct || document.querySelector("#restore-progress-percentage");
 	}
-	progressMessage.innerText = "Removing current files";
+	progressMessage.innerText = textMSG.rem;
 	let entries = (await readDir(root)).filter((item) => item.name != RESTORE && item.name != IGNORE);
 	for (let entry of entries) {
 		try {
@@ -638,7 +651,7 @@ export async function restoreFromPoint(name: string) {
 			} catch {}
 		}
 	}
-	progressMessage.innerText = "Discovering files";
+	progressMessage.innerText = textMSG.disc;
 	completedFiles = 0;
 	totalFiles = 0;
 	canceled = false;

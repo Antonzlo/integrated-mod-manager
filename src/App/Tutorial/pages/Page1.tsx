@@ -1,4 +1,8 @@
+import { useAtomValue } from "jotai";
+import { textDataAtom } from "@/utils/vars";
+
 function Page1({ setPage }: { setPage: (page: number) => void }) {
+	const text = useAtomValue(textDataAtom);
 	const wuwaText = "WuWa";
 	const modManagerText = "Mod Manager";
 	return (
@@ -10,7 +14,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 					setPage(1);
 				}}
 				>
-					<div className="mb-4 text-3xl">Welcome to</div>
+					<div className="mb-4 text-3xl">{text._Tutorial.p1.Welcome}</div>
 				<div className="text-8xl text-foreground flex">
 					{wuwaText.split('').map((letter, index) => (
 						<span
@@ -37,7 +41,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 						</span>
 					))}
 				</div>
-				<div className="text-muted-foreground/50 mt-16">Click anywhere to start the tutorial</div>
+				<div className="text-muted-foreground/50 mt-16">{text._Tutorial.p1.Start}</div>
 			</div>
 		</>
 	);

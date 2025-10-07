@@ -1,11 +1,11 @@
 {
-  "version": "2.0.1",
+  "version": "2.0.2",
   "notes": "{\"patch\":[\"Fix rendering issues in the 'Latest Update' section in online mode\",\"Add server-client health check\"]}",
   "pub_date": "2025-10-04T11:55:00Z",
   "platforms": {
     "windows-x86_64": {
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRcHZDTEMvcmhGWEhLY3JObjhDRGdWcnFyVTFHREVTVWJuV2JaZzBCUGx1VVo5cHkyVlhMMTZOeXMrVitoTFRMdDM3K1VoOXZqZ1EveC9iNG1GMWNsWlY2emFJQTljaHc0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzU5NTc3Mzg3CWZpbGU6V3V3YSBNb2QgTWFuYWdlciAoV1dNTSlfMi4wLjFfeDY0LXNldHVwLmV4ZQpJUTNodmNLMGxrNzlORUczTGRSZnNrZ3ZWdXZhQ0lwcENPQ1oxdmNmblFzYlJMSzB4ZzU0M29mTDJOMWsweS85S2YxVkYrRXNxQzFuMzlBNTZFNmhBdz09Cg==",
-      "url": "https://github.com/jpbhatt21/wuwa-mod-manager/releases/latest/download/Wuwa.Mod.Manager.WWMM._2.0.1_x64-setup.exe"
+      "url": "https://github.com/jpbhatt21/wuwa-mod-manager/releases/latest/download/Wuwa.Mod.Manager.WWMM._2.0.2_x64-setup.exe"
     }
   }
 }
