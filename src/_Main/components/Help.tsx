@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { GAME, HELP_OPEN, TEXT_DATA } from "@/utils/vars";
 import { useAtom, useAtomValue } from "jotai";
 import { ChevronLeft, ChevronRight, HelpCircle } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CarouselTut from "./CarouselTut";
 import { AnimatePresence, motion } from "motion/react";
 
@@ -13,6 +13,10 @@ function Help() {
 	const keys = Object.keys(data);
 	const [helpOpen, setHelpOpen] = useAtom(HELP_OPEN);
 	const [selectedItem, setSelectedItem] = useState(-1);
+	const [subIndex, setSubIndex] = useState(0);
+	useEffect(() => {
+		setSubIndex(0);
+	}, [selectedItem]);
 	const game = useAtomValue(GAME);
 	return (
 		<Dialog open={helpOpen} onOpenChange={setHelpOpen}>
@@ -62,7 +66,7 @@ function Help() {
 									exit={{ opacity: 0, scale: 1.05 }}
 									className="h-full justify-center  flex-col flex w-full"
 								>
-									<CarouselTut data={data[keys[selectedItem] as keyof typeof data]?.content} title={keys[selectedItem]} />
+									<CarouselTut subIndex={subIndex} setSubIndex={setSubIndex} data={data[keys[selectedItem] as keyof typeof data]?.content} title={keys[selectedItem]} />
 								</motion.div>
 							) : (
 								<>
@@ -84,10 +88,25 @@ function Help() {
 				<div className="flex w-full -mt-12 h-10">
 					<div className="min-w-94" />
 					<div className="w-full flex justify-between">
-						<Button className=" min-w-28" disabled={selectedItem <= 0} onClick={() => setSelectedItem((prev) => (prev - 1 ))}>
+						<Button className=" min-w-28" disabled={selectedItem <= 0 && subIndex === 0} onClick={() => {
+							if(subIndex === 0){
+								setSelectedItem((prev) => (prev - 1 ));
+							}
+							else{
+								setSubIndex((prev) => prev - 1);
+							}
+						}}>
 							<ChevronLeft className="-ml-2" /> {textData.Prev}
 						</Button>
-						<Button className="min-w-28" disabled={selectedItem === keys.length - 1} onClick={() => setSelectedItem((prev) => (prev + 1 ))}>
+						<Button className="min-w-28" disabled={(selectedItem === keys.length - 1) && (data[keys[selectedItem] as keyof typeof data]?.content.length - 1 === subIndex)} onClick={() => {
+							if(selectedItem<0 || data[keys[selectedItem] as keyof typeof data]?.content.length - 1 === subIndex){
+								setSelectedItem((prev) => (prev + 1 ));
+								setSubIndex(0);
+							}
+							else{
+								setSubIndex((prev) => prev + 1);
+							}
+						}}>
 							{textData.Next} <ChevronRight className="-mr-2"/>
 						</Button>
 					</div>

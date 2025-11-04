@@ -139,6 +139,9 @@ export const TEXT = {
 		_Checklist: {
 			Greeting: "Hello, ",
 			Configure: "Let's configure some basic settings",
+			AutoMigration:"If you are coming from WWMM, auto-migration should have loaded your presets and mods.",
+			MigrationFailed:"If migration failed, import the config file from \\AppData\\Local\\Wuwa Mod Manager (WWMM).",
+			AfterVerify:"After you have verified everything, you can uninstall WWMM.",
 			Continue: "Click Anywhere To Continue",
 			ConfirmDir: "Confirm Your Mod Directory",
 			NotFound: "We couldn't find your Mod Directory",
@@ -508,6 +511,9 @@ export const TEXT = {
 		_Checklist: {
 			Greeting: "你好，",
 			Configure: "让我们配置一些基本设置",
+			AutoMigration: "如果您从 WWMM 迁移，自动迁移应该已经加载了您的预设和模组。",
+			MigrationFailed: "如果迁移失败，请从 \\AppData\\Local\\Wuwa Mod Manager (WWMM) 导入配置文件。",
+			AfterVerify: "在您验证完所有内容后，您可以卸载 WWMM。",
 			Continue: "点击任意处继续",
 			ConfirmDir: "确认您的模组目录",
 			NotFound: "我们找不到您的模组目录",
@@ -877,6 +883,9 @@ export const TEXT = {
 		_Checklist: {
 			Greeting: "Привет, ",
 			Configure: "Давайте настроим основные параметры",
+			AutoMigration: "Если вы переходите с WWMM, автоматическая миграция должна была загрузить ваши пресеты и моды.",
+			MigrationFailed: "Если миграция не удалась, импортируйте файл конфигурации из \\AppData\\Local\\Wuwa Mod Manager (WWMM).",
+			AfterVerify: "После того, как вы все проверили, вы можете удалить WWMM.",
 			Continue: "Нажмите в любом месте для продолжения",
 			ConfirmDir: "Подтвердите каталог модов",
 			NotFound: "Мы не смогли найти ваш каталог модов",
@@ -1246,6 +1255,9 @@ export const TEXT = {
 		_Checklist: {
 			Greeting: "こんにちは、",
 			Configure: "基本設定を行いましょう",
+			AutoMigration: "WWMMから移行する場合、自動移行によりプリセットとModが読み込まれているはずです。",
+			MigrationFailed: "移行が失敗した場合は、\\AppData\\Local\\Wuwa Mod Manager (WWMM) から設定ファイルをインポートしてください。",
+			AfterVerify: "すべてを確認した後、WWMMをアンインストールできます。",
 			Continue: "どこかをクリックして続行",
 			ConfirmDir: "Modディレクトリを確認",
 			NotFound: "Modディレクトリが見つかりませんでした",
@@ -1615,6 +1627,9 @@ export const TEXT = {
 		_Checklist: {
 			Greeting: "안녕하세요, ",
 			Configure: "기본 설정을 구성해 봅시다",
+			AutoMigration: "WWMM에서 전환하는 경우, 자동 마이그레이션이 프리셋과 모드를 로드했을 것입니다.",
+			MigrationFailed: "마이그레이션이 실패한 경우, \\AppData\\Local\\Wuwa Mod Manager (WWMM)에서 설정 파일을 가져오세요.",
+			AfterVerify: "모든 것을 확인한 후 WWMM을 제거할 수 있습니다.",
 			Continue: "아무 곳이나 클릭하여 계속",
 			ConfirmDir: "모드 디렉토리 확인",
 			NotFound: "모드 디렉토리를 찾을 수 없습니다",

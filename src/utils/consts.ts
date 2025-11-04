@@ -98,6 +98,7 @@ export const DEFAULTS = {
 		downloading: {} as DownloadItem | null,
 		completed: [] as DownloadItem[],
 	},
+	ONLINE: false,
 	CURRENT_PRESET: -1,
 	MOD_LIST: [] as Mod[],
 	SELECTED: "",
@@ -110,5 +111,4 @@ export const DEFAULTS = {
 	ONLINE_SORT: "",
 	ONLINE_PATH: "home&type=Mod",
 	ONLINE_SELECTED: "",
-	ONLINE: false,
 };

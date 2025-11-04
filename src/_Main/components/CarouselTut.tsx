@@ -3,19 +3,25 @@ import { Carousel as CarouselCN, CarouselContent, CarouselItem } from "@/compone
 // import { OnlineModImage } from "@/utils/types";
 import type { EmblaCarouselType } from "embla-carousel";
 
-function CarouselTut({ title, data }: { title: string; data: any[] }) {
-	const [current, setCurrent] = useState(0);
+function CarouselTut({ title, data, subIndex, setSubIndex }: { title: string; data: any[]; subIndex: number; setSubIndex: (index: number) => void }) {
+	
 	const [api, setApi] = useState<EmblaCarouselType | undefined>();
 	useEffect(() => {
 		if (!api) return;
 		const onSelect = () => {
-			setCurrent(api.selectedScrollSnap());
+			setSubIndex(api.selectedScrollSnap());
 		};
 		api.on("select", onSelect);
 		return () => {
 			api.off("select", onSelect);
 		};
 	}, [api]);
+	useEffect(() => {
+		if (api && subIndex >= 0) {
+			console.log("Scrolling to ", subIndex);
+			api.scrollTo(subIndex);
+		}
+	}, [subIndex, api]);
 	return (
 		<>
 			<CarouselCN
@@ -53,23 +59,23 @@ function CarouselTut({ title, data }: { title: string; data: any[] }) {
 						</CarouselItem>
 					))}
 				</CarouselContent>
-				
 			</CarouselCN>
 			<div className="flex flex-wrap abs items-center w-[668px]  justify-center min-h-fit gap-0.5 rounded-lg pointer-events-none">
-				{data.length>1 && data.map((_, index) => (
-					<div
-						className={
-							"h-1/3 min-h-2.5 aspect-square pointer-events-auto rounded-full border duration-200 " +
-							(index == current ? "bg-accent bgaccent   border-accent" : " hover:bg-border")
-						}
-						onClick={(e) => {
-							e.stopPropagation();
-							if (api) {
-								api.scrollTo(index);
+				{data.length > 1 &&
+					data.map((_, index) => (
+						<div
+							className={
+								"h-1/3 min-h-2.5 aspect-square z-100 pointer-events-auto rounded-full border duration-200 " +
+								(index == subIndex ? "bg-accent bgaccent   border-accent" : " hover:bg-border")
 							}
-						}}
-					></div>
-				))}
+							onClick={(e) => {
+								e.stopPropagation();
+								if (api) {
+									api.scrollTo(index);
+								}
+							}}
+						></div>
+					))}
 			</div>
 		</>
 	);

@@ -43,9 +43,9 @@ function Page3({ setPage }: { setPage: (page: number) => void }) {
 			</div>
 			{game == "WW" && (
 				<div className="fixed z-30 opacity-70 flex flex-col items-center bottom-5 text-sm ">
-					<label>If you are coming from WWMM, auto-migration should have loaded your presets and mods.</label>
-					<label>If migration failed, import the config file from \AppData\Local\Wuwa Mod Manager (WWMM).</label>
-					<label>After you have verified everything, you can uninstall WWMM.</label>
+					<label>{textData._Checklist.AutoMigration}</label>
+					<label>{textData._Checklist.MigrationFailed}</label>
+					<label>{textData._Checklist.AfterVerify}</label>
 				</div>
 			)}
 		</div>
