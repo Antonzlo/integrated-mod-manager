@@ -4,8 +4,8 @@
 	"pub_date": "2025-10-08T11:00:00Z",
 	"platforms": {
 		"windows-x86_64": {
-			"signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRcHZDTEMvcmhGWEZJWGpNSEZ4ZnRHVDZwc0YyQkhDcjdBWmE0YVBvQ2t1dUpUUUFaeGIxRUtraGszSGo5NGsrTGZjWVBsc1lHbDVMR0k3bmpvaEEwWnlYcWYxeHBTK3djPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzU5OTIwODk3CWZpbGU6V3V3YSBNb2QgTWFuYWdlciAoV1dNTSlfMi4wLjNfeDY0LXNldHVwLmV4ZQpndlRVeWxCQVlGcVk2dTRaOWJRalpzTzBGeDhCaVNJZzZhREdJV2s2ZFRpVDh3dFcvRkxZamllR1ZMbW0zTlBMZU9hN3I2TFpPeG9jK0hxR1ptUlpBQT09Cg==",
-			"url": "https://github.com/jpbhatt21/wuwa-mod-manager/releases/latest/download/Wuwa.Mod.Manager.WWMM._2.0.3_x64-setup.exe"
+			"signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRcHZDTEMvcmhGWENHWGV0Z1M2ZUxQVm5rbG1pLzNVTndxTjBJMVE5VWE2NHRmUE8zMXhDbTZIdlRjL3NzZlVMU3RpKzJoSG1RS1dRYnlXajBLS1RGOFRDQkVTQjllbkFvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwOTY5NTkwCWZpbGU6SW50ZWdyYXRlZCBNb2QgTWFuYWdlciAoSU1NKV8yLjEuMF94NjQtc2V0dXAuZXhlCm1Ia3FkUFVRQTI3ZHNpSGUvVnpuaEM0eU5zcWwxbjhoUll5OWNNYlYzTnRMNzg3RGpkZG5ZVC8wR3REL2hWeVlqUU9MY1dSOEdTNU1YZ2tPelFmbkRnPT0K",
+			"url": "https://github.com/jpbhatt21/integrated-mod-manager-temp/releases/latest/download/Integrated.Mod.Manager.IMM._2.1.0_x64-setup.exe"
 		}
 	}
 }

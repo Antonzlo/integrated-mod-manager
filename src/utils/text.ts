@@ -48,7 +48,7 @@ export const TEXT = {
 			ErrOcc: "An error occurred.",
 			ImgSaved: "Preview image saved!",
 			PresetApplied: "Preset applied!",
-			NewUpdates: "<new/> new updates available!",
+			NewUpdates: "<new/> new update(s) available!",
 		},
 		_Help: {
 			SwitchGames: {
@@ -786,7 +786,7 @@ export const TEXT = {
 			ErrOcc: "Произошла ошибка.",
 			ImgSaved: "Превью изображение сохранено!",
 			PresetApplied: "Пресет применен!",
-			NewUpdates: "<new/> новых обновлений доступно!",
+			NewUpdates: "<new/> новое(-ых) обновление(-й) доступно!",
 		},
 		_Help: {
 			SwitchGames: {

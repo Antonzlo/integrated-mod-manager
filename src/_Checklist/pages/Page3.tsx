@@ -1,5 +1,5 @@
 import { verifyDirStruct } from "@/utils/filesys";
-import { CHANGES, SOURCE, TARGET, TEXT_DATA } from "@/utils/vars";
+import { CHANGES, GAME, SOURCE, TARGET, TEXT_DATA } from "@/utils/vars";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useEffect, useState } from "react";
@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 function Page3({ setPage }: { setPage: (page: number) => void }) {
 	const tgt = useAtomValue(TARGET);
 	const src = useAtomValue(SOURCE);
+	const game = useAtomValue(GAME);
 	const [user, setUser] = useState("User");
 	const textData = useAtomValue(TEXT_DATA);
 	const setChanges = useSetAtom(CHANGES);
@@ -16,7 +17,7 @@ function Page3({ setPage }: { setPage: (page: number) => void }) {
 			// setTgt(tgt);
 			// setSrc(src);
 			setPage(4);
-			setChanges((await verifyDirStruct()));
+			setChanges(await verifyDirStruct());
 		}
 		if (src && tgt) {
 			skip();
@@ -40,6 +41,13 @@ function Page3({ setPage }: { setPage: (page: number) => void }) {
 				<div className="text-accent opacity-75 my-2 text-2xl">{textData._Checklist.Configure}</div>
 				<div className=" mt-5 opacity-50">{textData._Checklist.Continue}</div>
 			</div>
+			{game == "WW" && (
+				<div className="fixed z-30 opacity-70 flex flex-col items-center bottom-5 text-sm ">
+					<label>If you are coming from WWMM, auto-migration should have loaded your presets and mods.</label>
+					<label>If migration failed, import the config file from \AppData\Local\Wuwa Mod Manager (WWMM).</label>
+					<label>After you have verified everything, you can uninstall WWMM.</label>
+				</div>
+			)}
 		</div>
 	);
 }

@@ -71,7 +71,9 @@ invoke<string>("get_image_server_url").then((url) => {
 	setImageServer(url + "/preview");
 });
 export async function updateConfig(oconfig = null as any) {
+
 	if (!oconfig) oconfig = JSON.parse(await readTextFile("config.json"));
+	console.log("Updating config from version:", oconfig);
 	if (oconfig.version >= "2.1.0") return oconfig;
 	let config = {
 		version: VERSION,
@@ -206,6 +208,14 @@ async function initHelpers() {
 
 	registerGlobalHotkeys();
 }
+export async function checkWWMM(){
+	const wwmmPath = join(await path.localDataDir(), "Wuwa Mod Manager (WWMM)","config.json");
+	if(await exists(wwmmPath)){
+		console.log('exists')
+		return  await readTextFile(wwmmPath) || null;
+	}
+	return null
+}
 export async function main() {
 	invoke("get_username");
 	resetAtoms();
@@ -215,14 +225,15 @@ export async function main() {
 	const exeXXMI = `${appData}\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe`;
 	if (!(await exists("config.json"))) {
 		await writeTextFile("config.json", JSON.stringify(defConfig, null, 2));
-		store.set(FIRST_LOAD, true);
 	}
 	config = safeLoadJson(defConfig, JSON.parse(await readTextFile("config.json")));
-	if(config.lang=="")
 	apiClient.setClient(config.clientDate || "");
 	if (config.game) apiClient.setGame(config.game);
-	//Get config files
-
+	if(!config.exeXXMI && !config.game && !config.lang){
+		store.set(FIRST_LOAD, true);
+		const temp = await checkWWMM();
+		if(temp)await updateConfig(JSON.parse(temp));
+	}
 	if (config.version < "2.1.0") {
 		config = await updateConfig();
 	}

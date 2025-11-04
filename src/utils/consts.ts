@@ -12,7 +12,7 @@ import {
 	OnlineData,
 	Preset,
 } from "./types";
-export const IMAGE_SERVER = "http://127.0.0.1:5000/preview";
+export const IMAGE_SERVER = "http://127.0.0.1:1469/preview";
 export const OLD_RESTORE = "DISABLED_RESTORE";
 export const RESTORE = "RESTORE";
 export const IGNORE = "IGNORE";

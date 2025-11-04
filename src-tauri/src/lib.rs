@@ -15,7 +15,7 @@ mod image_server;
 
 const PROGRESS_UPDATE_THRESHOLD: u64 = 1024;
 const BUFFER_SIZE: usize = 8192;
-const IMAGE_SERVER_PORT: u16 = 5000;
+const IMAGE_SERVER_PORT: u16 = 1469;
 
 /// Check if a directory is empty
 fn is_directory_empty(path: &Path) -> Result<bool, std::io::Error> {

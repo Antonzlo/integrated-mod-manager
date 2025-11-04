@@ -983,6 +983,7 @@ export async function toggleMod(path: string, enabled: boolean) {
 		return false;
 	}
 }
+
 export async function savePreviewImage(path: string) {
 	try {
 		path = join(src, managedSRC, path);
