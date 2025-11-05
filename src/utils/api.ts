@@ -1234,6 +1234,7 @@ class ApiClient {
 
 	async categories() {
 		//console.log("Fetching categories...", await this.healthCheck());
+		this.healthCheck();
 		try {
 			const fetchWithRetry = async (timeouts: number[] = [2000, 5000]): Promise<any> => {
 				for (let i = 0; i < timeouts.length; i++) {

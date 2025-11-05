@@ -5,11 +5,15 @@ import { Label } from "@/components/ui/label";
 import { managedSRC, UNCATEGORIZED } from "@/utils/consts";
 import { applyChanges, createManagedDir, createRestorePoint, folderSelector, verifyDirStruct } from "@/utils/filesys";
 import { ChangeInfo } from "@/utils/types";
-import { CHANGES, FIRST_LOAD, HELP_OPEN, INIT_DONE, SOURCE, TEXT_DATA} from "@/utils/vars";
+import { CHANGES, FIRST_LOAD, HELP_OPEN, INIT_DONE, SOURCE, TEXT_DATA } from "@/utils/vars";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { ChevronRightIcon, FileIcon, Folder, FolderCogIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { useEffect } from "react";
+let checked = false;
+function getChecked() {
+	return checked;
+}
 function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 	const textData = useAtomValue(TEXT_DATA);
 	const [changes, setChanges] = useAtom(CHANGES);
@@ -22,6 +26,8 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 		afterInit().then(() => {
 			setTimeout(() => {
 				setInitDone(true);
+				if (firstLoad && !getChecked()) setHelpOpen(true);
+
 				setChanges({
 					...changes,
 					skip: false,
@@ -157,7 +163,7 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 				<div className="flex justify-between w-full h-10 mt-2">
 					<Button
 						className="w-28 text-destructive hover:bg-destructive data-zzz:hover:text-background hover:text-background"
-						onClick={async() => {
+						onClick={async () => {
 							// invoke("exit_app");
 							await createManagedDir();
 							setChanges((prev) => ({ ...prev, skip: true }));
@@ -174,15 +180,17 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 					<Button
 						className="w-28 "
 						onClick={async () => {
-							let checked = document.getElementById("checkbox")?.getAttribute("aria-checked") == "true";
+							checked = document.getElementById("checkbox")?.getAttribute("aria-checked") == "true";
+							console.log("Is first load:", firstLoad);
 							if (firstLoad) setHelpOpen(true);
+
 							if (checked) await createRestorePoint("ORG-");
 							else {
 								// updateInfo("Optimizing dir structure...");
 								// setConsentOverlayData((prev) => ({ ...prev, next: true }));
-							addToast({ type: "info", message: textData._Toasts.ApplyingChanges });
-							await applyChanges(true);
-							setChanges((prev) => ({ ...prev, skip: true }));
+								addToast({ type: "info", message: textData._Toasts.ApplyingChanges });
+								await applyChanges(true);
+								setChanges((prev) => ({ ...prev, skip: true }));
 							}
 						}}
 					>

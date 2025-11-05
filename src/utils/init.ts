@@ -16,6 +16,7 @@ import {
 	NOTICE,
 	UPDATER_OPEN,
 	FIRST_LOAD,
+	ONLINE_DATA,
 } from "./vars";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 
@@ -131,6 +132,7 @@ export async function updateConfig(oconfig = null as any) {
 	return config;
 }
 export async function initGame(game: string) {
+	store.set(ONLINE_DATA, {});
 	if (await exists(`config${game}.json`)) {
 		configXX = JSON.parse(await readTextFile(`config${game}.json`));
 	} else configXX = { ...defConfigXX };
@@ -219,6 +221,7 @@ export async function checkWWMM(){
 export async function main() {
 	invoke("get_username");
 	resetAtoms();
+	console.log("Initializing application...");
 	removeHelpers();
 	appData = await path.dataDir();
 	dataDir = `${appData}\\XXMI Launcher\\__MI`;
@@ -227,13 +230,13 @@ export async function main() {
 		await writeTextFile("config.json", JSON.stringify(defConfig, null, 2));
 	}
 	config = safeLoadJson(defConfig, JSON.parse(await readTextFile("config.json")));
-	apiClient.setClient(config.clientDate || "");
-	if (config.game) apiClient.setGame(config.game);
 	if(!config.exeXXMI && !config.game && !config.lang){
 		store.set(FIRST_LOAD, true);
 		const temp = await checkWWMM();
-		if(temp)await updateConfig(JSON.parse(temp));
+		if(temp)config = await updateConfig(JSON.parse(temp));
 	}
+	apiClient.setClient(config.clientDate || "");
+	if (config.game) apiClient.setGame(config.game);
 	if (config.version < "2.1.0") {
 		config = await updateConfig();
 	}
