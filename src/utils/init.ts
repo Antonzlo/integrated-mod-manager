@@ -179,12 +179,11 @@ async function setCategories(game?: string) {
 		//console.log("Fetched categories:", categories);
 		if (!categories || categories.length == 0) throw "No categories found, please verify the directories again";
 	} catch (e) {
-		try {
-			// if (config.game) configXX = await initGame(config.game);
-		} finally {
-			categories = configXX.categories || apiClient.categoryList;
-		}
+	
+			categories = configXX.categories && configXX.categories.length>0?configXX.categories:  apiClient.categoryList;
+		
 	} finally {
+		console.log("Using categories:", categories,apiClient.categoryList,configXX.categories);
 		if (!categories || categories.length == 0) return;
 		store.set(CATEGORIES, categories);
 	}
