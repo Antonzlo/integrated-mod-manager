@@ -4,8 +4,8 @@
 	"pub_date": "2025-11-05T09:30:00Z",
 	"platforms": {
 		"windows-x86_64": {
-			"signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRcHZDTEMvcmhGWElCcWQ4N2QybW8waGp0Y2w5aXV4aG9XZmZ2UnVUbXRTNnhKWlk3ZGZKVXNhS3dVWm1LWkhNaWFxQ1JaaDU1UkhGMXpzRzJCdkQyb3h4cXpoSnZ3ZGdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYyMzM4MDE5CWZpbGU6SW50ZWdyYXRlZCBNb2QgTWFuYWdlciAoSU1NKV8yLjEuMF94NjQtc2V0dXAuZXhlCmR6OWZSSXBJZjRmM1h6K2ZPVlBZemJxeFNMNTRwQWk1a1ZpNWxJTlUvbXU4SVNHSVNzRjQ5OWdpL0E1czl3MW4vVHlRVVBiSFN4US9CdG9CQzJEb0FRPT0K",
-			"url": "https://github.com/jpbhatt21/integrated-mod-manager-temp/releases/latest/download/Integrated.Mod.Manager.IMM._2.1.0_x64-setup.exe"
+			"signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRcHZDTEMvcmhGWExBeVNhNHNVYWxESjY3VGpVd056THU0eXJVZUYram9WeEI0MjJCOXpvNHdoYysxSUpya3NRakVaa1dzajJKL1oxdlhLMnRXZ2d1Z2xZeVc3V0ZFaFE0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYyMzQzMDI0CWZpbGU6SW50ZWdyYXRlZCBNb2QgTWFuYWdlciAoSU1NKV8yLjEuMF94NjQtc2V0dXAuZXhlClRNZUwrODJtc0lYKzhkalJKdDNraS9KUG5sKzgxai9OOEZqWjdXNU5RYjdOSzB5UVpWMitMUzZjSExHMjFiU0ZlR28xU2ZEdzBXSThBWWh6b3hzakNBPT0K",
+			"url": "https://github.com/jpbhatt21/integrated-mod-manager/releases/latest/download/Integrated.Mod.Manager.IMM._2.1.0_x64-setup.exe"
 		}
 	}
 }
