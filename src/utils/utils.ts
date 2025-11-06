@@ -66,7 +66,7 @@ export function handleImageError(event: React.SyntheticEvent<HTMLImageElement, E
 		target.style.opacity = "0";
 		target.classList.remove("fadein");
 	}
-	target.src = `/${store.get(GAME)||"WW"}mm.png`;
+	target.src = `/${store.get(GAME) || "WW"}mm.png`;
 }
 export function preventContextMenu(event: React.MouseEvent): void {
 	event.preventDefault();
@@ -152,12 +152,17 @@ export function modRouteFromURL(url: string): string {
 	let modId = url?.split("mods/").pop()?.split("/")[0] || "";
 	return modId ? "Mod/" + modId : "";
 }
+export function isOlderThanOneDay(dateStr: string) {
+	const updateAgeMs = Date.now() - (dateStr ? new Date(dateStr).getTime() : 0);
+	return Number.isFinite(updateAgeMs) && updateAgeMs > 86_400_000;
+}
 let initialCheck = true;
 export function useInstalledItemsManager() {
 	const [installedItems, setInstalledItems] = useAtom(INSTALLED_ITEMS);
 	const localData = useAtomValue(DATA);
 	const onlineData = useAtomValue(ONLINE_DATA);
 	async function checkModStatus(item: any) {
+		console.log("[IMM] Checking mod status for", item.name);
 		let modStatus = 0;
 		if (onlineData[item.name]) {
 			modStatus = item.updated < onlineData[item.name] ? (item.viewed < onlineData[item.name] ? 2 : 1) : 0;
@@ -176,6 +181,7 @@ export function useInstalledItemsManager() {
 				return 0;
 			}
 		}
+		console.log("[IMM] Final mod status for", item.name, "is", modStatus);
 		return modStatus;
 	}
 	async function updateInstalledItems(localDataSnapshot: any) {
@@ -199,7 +205,7 @@ export function useInstalledItemsManager() {
 		// const pendingCount = processedItems.filter((item) => item.modStatus === 1).length;
 
 		if (initialCheck) {
-			// //console.log("Showing toast for new updates");
+			//console.log("Showing toast for new updates");
 			initialCheck = false;
 			setTimeout(() => {
 				if (newCount > 0)

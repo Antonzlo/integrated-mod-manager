@@ -51,7 +51,7 @@ function MainLocal() {
 	useEffect(() => {
 		if (!searchDB && modList.length > 0) {
 			searchDB = new MiniSearch({
-				idField: "name",
+				idField: "path",
 				fields: ["name", "parent", "path"],
 				storeFields: Object.keys(modList[0]),
 				searchOptions: { prefix: true, fuzzy: 0.2 },
@@ -186,15 +186,7 @@ function MainLocal() {
 				}}
 			>
 				<label>{textData._Main._MainLocal.NoMods}</label>
-				<label
-					className="text-center hover:text-accent cursor-pointerx duration-200"
-					onClick={() => {
-						openPath(join(source, managedSRC));
-					}}
-				>
-					{" "}
-					{source}\{managedSRC}
-				</label>
+				
 			</div>
 		);
 	}, [modList, source]);
@@ -207,7 +199,12 @@ function MainLocal() {
 				className="flex flex-col  overflow-x-hidden items-center h-screen w-full  overflow-y-auto duration-300"
 			>
 				{" "}
-				<label className="text-muted -mb-2">{filteredList.length} {textData.Items} </label>
+				<label className="text-muted flex flex-col gap-1 items-center z-200">{filteredList.length} {textData.Items}
+					<label className="text-xs">in <label onClick={()=>{
+						openPath(join(source, managedSRC));
+
+					}} className="text-blue-300 opacity-50 duration-200 hover:opacity-75 pointer-events-auto">{source.split("\\").slice(-2).join("\\")}\{managedSRC}</label></label>
+				</label>
 				{noItems}
 				<AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
 					<AlertDialogContent>
@@ -284,6 +281,7 @@ function MainLocal() {
 						})}
 					</motion.div>
 				</AnimatePresence>
+
 			</div>
 		</>
 	);

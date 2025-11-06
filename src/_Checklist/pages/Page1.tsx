@@ -1,16 +1,18 @@
 import { Button } from "@/components/ui/button";
 import { LANG_LIST } from "@/utils/consts";
+import { resetWithBackup } from "@/utils/filesys";
 import { TEXT } from "@/utils/text";
 import { LANG, SETTINGS } from "@/utils/vars";
 import { useAtom, useAtomValue } from "jotai";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 let interval="" as  NodeJS.Timeout | "";
 let loadTime = null as number | null;
 let timer = null as NodeJS.Timeout | null;
 function Page1({ setPage }: { setPage: (page: number) => void }) {
 	const [selectedIndex, setSelectedIndex] = useState(-1);
 	const [currentLangIndex, setCurrentLangIndex] = useState(-1);
+	const escPressRef = useRef({ count: 0, lastTime: 0 });
 	const lang = useAtomValue(LANG);
 	const [settings, setSettings] = useAtom(SETTINGS);
 	const languageKeys = ["en", "cn", "ru", "jp", "kr"] as const;
@@ -32,6 +34,25 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 		}, 2000);
 
 		return () => clearInterval(interval);
+	}, []);
+
+	useEffect(() => {
+		const handleKeyDown = (event: KeyboardEvent) => {
+			if (event.key !== "Escape") return;
+			const now = Date.now();
+			const state = escPressRef.current;
+			if (now - state.lastTime <= 300) state.count += 1;
+			else state.count = 1;
+			state.lastTime = now;
+			if (state.count >= 3) {
+				resetWithBackup();
+				state.count = 0;
+				state.lastTime = 0;
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, []);
 	return (
 		<div className="text-muted-foreground  gap-2 fixed flex flex-col items-center justify-center w-screen h-screen">

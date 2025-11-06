@@ -39,6 +39,7 @@ const SETTINGS = atom<Settings>({
 		exeXXMI: "",
 		lang: "",
 		game: "",
+		preReleases: false,
 	},
 	game: {
 		launch: 0,
@@ -83,7 +84,7 @@ const TEXT_DATA = atom(TEXT["en"]);
 const PROGRESS_OVERLAY = atom<ProgressData>({ title: "", open: false, finished: false, button: "", name:"" });
 export interface UpdateInfo {
 	version: string;
-	status: "available" | "downloading" | "ready" | "error" | "installed";
+	status: "available" | "downloading" | "ready" | "error" | "installed" | "ignored";
 	date: string;
 	body: string;
 	raw: any | null;
@@ -95,7 +96,7 @@ const NOTICE = atom({
 	subheading: "",
 	ignoreable: 2,
 	timer: 10,
-	ver: "2.1.0",
+	ver: "2.1.1",
 	id: 0,
 } as any);
 const HELP_OPEN = atom(false);

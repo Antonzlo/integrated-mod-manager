@@ -36,7 +36,7 @@ import { join, setHotreload, stopWindowMonitoring } from "./hotreload";
 import { registerGlobalHotkeys } from "./hotkeyUtils";
 import { TEXT } from "./text";
 import { unregisterAll } from "@tauri-apps/plugin-global-shortcut";
-import { safeLoadJson, setImageServer } from "./utils";
+import { isOlderThanOneDay, safeLoadJson, setImageServer } from "./utils";
 import { addToast } from "@/_Toaster/ToastProvider";
 import { Category, Preset, Settings } from "./types";
 import { resetPageCounts } from "@/_Main/MainOnline";
@@ -74,7 +74,7 @@ invoke<string>("get_image_server_url").then((url) => {
 export async function updateConfig(oconfig = null as any) {
 
 	if (!oconfig) oconfig = JSON.parse(await readTextFile("config.json"));
-	console.log("Updating config from version:", oconfig);
+	console.log("[IMM] Updating config from:", oconfig);
 	if (oconfig.version >= "2.1.0") return oconfig;
 	let config = {
 		version: VERSION,
@@ -132,6 +132,7 @@ export async function updateConfig(oconfig = null as any) {
 	return config;
 }
 export async function initGame(game: string) {
+	console.log(`[IMM] Initializing game: ${game}...`);
 	store.set(ONLINE_DATA, {});
 	if (await exists(`config${game}.json`)) {
 		configXX = JSON.parse(await readTextFile(`config${game}.json`));
@@ -139,12 +140,16 @@ export async function initGame(game: string) {
 	configXX.game = game;
 	switchGameTheme(game == "ZZ" ? "zzz" : "wuwa");
 	dataDir = `${appData}\\XXMI Launcher\\${game}MI`;
+	if(!exists(dataDir)){
+		dataDir="";
+	}
 	writeTextFile(`config${game}.json`, JSON.stringify(configXX, null, 2));
 	apiClient.setGame(game as any);
 	await setCategories(game);
 	// Validate source and target dirs
 	if (configXX.sourceDir && !(await exists(join(configXX.sourceDir, managedSRC)))) configXX.sourceDir = "";
 	if (configXX.targetDir && !(await exists(join(configXX.targetDir, "Mods")))) configXX.targetDir = "";
+	console.log("[IMM] Validating source and target directories...", configXX.sourceDir, configXX.targetDir);
 	store.set(SOURCE, configXX.sourceDir || "");
 	store.set(TARGET, configXX.targetDir || "");
 	store.set(
@@ -173,18 +178,20 @@ store.sub(SETTINGS, async () => {
 	}
 });
 async function setCategories(game?: string) {
+	console.log("[IMM] Setting categories...");
 	if (!game) return;
 	try {
 		categories = await apiClient.categories();
 		//console.log("Fetched categories:", categories);
 		if (!categories || categories.length == 0) throw "No categories found, please verify the directories again";
 	} catch (e) {
-	
+		console.log("[IMM] Failed to fetch categories from API, using local config if available.", e);
 			categories = configXX.categories && configXX.categories.length>0?configXX.categories:  apiClient.categoryList;
 		
 	} finally {
-		console.log("Using categories:", categories,apiClient.categoryList,configXX.categories);
+		//console.log("Using categories:", categories,apiClient.categoryList,configXX.categories);
 		if (!categories || categories.length == 0) return;
+		console.log("[IMM] Finalized categories:", categories);
 		store.set(CATEGORIES, categories);
 	}
 }
@@ -194,6 +201,7 @@ function removeHelpers() {
 	resetPageCounts();
 }
 async function initHelpers() {
+	console.log("[IMM] Initializing helpers...");
 	if (configXX.settings.launch && (await exists(config.exeXXMI)) && ["WW", "ZZ", "GI", "SR"].includes(config.game)) {
 		isGameProcessRunning(config.game).then((running) => {
 			if (!running) {
@@ -210,26 +218,30 @@ async function initHelpers() {
 	registerGlobalHotkeys();
 }
 export async function checkWWMM(){
+	console.log("[IMM] Checking for WWMM config...");
 	const wwmmPath = join(await path.localDataDir(), "Wuwa Mod Manager (WWMM)","config.json");
 	if(await exists(wwmmPath)){
-		console.log('exists')
+		//console.log('exists')
 		return  await readTextFile(wwmmPath) || null;
 	}
 	return null
 }
 export async function main() {
+	console.log("[IMM] Initializing application...");
 	invoke("get_username");
 	resetAtoms();
-	console.log("Initializing application...");
 	removeHelpers();
 	appData = await path.dataDir();
 	dataDir = `${appData}\\XXMI Launcher\\__MI`;
 	const exeXXMI = `${appData}\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe`;
 	if (!(await exists("config.json"))) {
+		console.log("[IMM] Creating default config.json...");
 		await writeTextFile("config.json", JSON.stringify(defConfig, null, 2));
 	}
 	config = safeLoadJson(defConfig, JSON.parse(await readTextFile("config.json")));
+	console.log("[IMM] Loaded config:", config);
 	if(!config.exeXXMI && !config.game && !config.lang){
+		console.log("[IMM] First time setup detected, checking for WWMM...");
 		store.set(FIRST_LOAD, true);
 		const temp = await checkWWMM();
 		if(temp)config = await updateConfig(JSON.parse(temp));
@@ -242,14 +254,16 @@ export async function main() {
 	if (config.version < "2.1.0") {
 		config = await updateConfig();
 	}
+	console.log("[IMM] Saving config...");
 	writeTextFile("config.json", JSON.stringify(config, null, 2));
+	console.log("[IMM] Initializing game...");
 	if (config.game) configXX = await initGame(config.game);
-
+	console.log("[IMM] Setting window type...");
 	setWindowType(config.winType);
-
 	const bg = document.querySelector("body");
 	if (bg)
 		bg.style.backgroundColor = "color-mix(in oklab, var(--background) " + config.bgOpacity * 100 + "%, transparent)";
+
 	if (config.game && (configXX.targetDir == "" || configXX.sourceDir == "")) {
 		if (await exists(dataDir)) {
 			configXX.targetDir = dataDir;
@@ -296,14 +310,16 @@ export async function main() {
 				store.set(NOTICE_OPEN, noticeOpen);
 			}
 		}
+		
+		const show = config.preReleases || isOlderThanOneDay(update.date || "")
 		store.set(IMM_UPDATE, {
 			version: update.version,
 			date: update.date || "",
 			body: JSON.stringify(parsedBody) || "{}",
-			status: "available",
+			status: show ? "available" : "ignored",
 			raw: update,
 		});
-		if (!noticeOpen && update.version > config.ignore) {
+		if (!noticeOpen && update.version > config.ignore && show) {
 			store.set(UPDATER_OPEN, true);
 		}
 		store.set(SETTINGS, (prev) => ({

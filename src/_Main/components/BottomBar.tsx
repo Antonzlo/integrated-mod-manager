@@ -95,7 +95,7 @@ function BottomBar() {
 											src={cat._sIconUrl || "err"}
 										/>
 									)}
-									<span className="ctrs">{cat._sName.split(" ")[0]}</span>
+									<span className="ctrs">{cat._sName}</span>
 								</Button>
 							</motion.div>
 						))}

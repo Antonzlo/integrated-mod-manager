@@ -181,7 +181,7 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 						className="w-28 "
 						onClick={async () => {
 							checked = document.getElementById("checkbox")?.getAttribute("aria-checked") == "true";
-							console.log("Is first load:", firstLoad);
+							//console.log("Is first load:", firstLoad);
 							if (firstLoad) setHelpOpen(true);
 
 							if (checked) await createRestorePoint("ORG-");

@@ -26,6 +26,7 @@ export const TEXT = {
 		Change: "Change language to ",
 		SelectLang: "Select a language",
 		BFR: "Report bugs or request a feature",
+		
 		Languages: {
 			cn: "Chinese (Simplified)",
 			en: "English",
@@ -139,11 +140,11 @@ export const TEXT = {
 		_Checklist: {
 			Greeting: "Hello, ",
 			Configure: "Let's configure some basic settings",
-			AutoMigration:"If you are coming from WWMM, auto-migration should have loaded your presets and mods.",
-			MigrationFailed:"If migration failed, import the config file from \\AppData\\Local\\Wuwa Mod Manager (WWMM).",
-			AfterVerify:"After you have verified everything, you can uninstall WWMM.",
+			AutoMigration: "If you are coming from WWMM, auto-migration should have loaded your presets and mods.",
+			MigrationFailed: "If migration failed, import the config file from \\AppData\\Local\\Wuwa Mod Manager (WWMM).",
+			AfterVerify: "After you have verified everything, you can uninstall WWMM.",
 			Continue: "Click Anywhere To Continue",
-			ConfirmDir: "Confirm Your Mod Directory",
+			ConfirmDir: "Confirm Your WWMI & Mod Directory",
 			NotFound: "We couldn't find your Mod Directory",
 			ModsIn: "Mods are stored in {game}MI\\Mods",
 		},
@@ -205,7 +206,12 @@ export const TEXT = {
 					},
 					Folders: "<game> and Mods Folder",
 					LaunchGame: "Launch Game",
-					_LaunchGame: { LaunchMsg1: "Launches the game via XXMI", LaunchMsg2: "when you start IMM" },
+					_LaunchGame: {
+						LaunchMsg1: "Launches the game via XXMI when you start IMM",
+						LaunchMsg2: "Make sure the XXMI executable path is set below",
+						LaunchMsg3: "(usually ...\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe)",
+						Placeholder: "XXMI Executable Path",
+					},
 					HotKey: "Hotkey",
 					_HotKey: {
 						HKMsg1: "Works only when auto-reload is",
@@ -270,6 +276,7 @@ export const TEXT = {
 					Soon: "Update will be installed soon",
 					In: "Update will be installed in <time>s",
 					Use: "You can use the app while updates are being downloaded.",
+
 				},
 			},
 			_MainLocal: {
@@ -441,11 +448,7 @@ export const TEXT = {
 			},
 			ChangeImg: {
 				title: "更改预览图片",
-				content: [
-					"选择一个模组，点击右侧边栏中的编辑图标。",
-					"选择一张图片作为模组的预览图片。",
-					"完成！",
-				],
+				content: ["选择一个模组，点击右侧边栏中的编辑图标。", "选择一张图片作为模组的预览图片。", "完成！"],
 			},
 			OpenExp: {
 				title: "在资源管理器中打开模组",
@@ -465,11 +468,7 @@ export const TEXT = {
 			},
 			UsingPresets: {
 				title: "使用预设",
-				content: [
-					"启用您想要包含在预设中的模组。",
-					"点击左侧边栏中的'＋ 新建'按钮。",
-					"只需点击即可更改预设！",
-				],
+				content: ["启用您想要包含在预设中的模组。", "点击左侧边栏中的'＋ 新建'按钮。", "只需点击即可更改预设！"],
 			},
 			SearchMods: {
 				title: "搜索模组",
@@ -493,11 +492,7 @@ export const TEXT = {
 			},
 			Settings: {
 				title: "设置",
-				content: [
-					"更改全局/IMM 设置。",
-					"配置特定游戏设置：WuWa",
-					"配置特定游戏设置：Z·Z·Z",
-				],
+				content: ["更改全局/IMM 设置。", "配置特定游戏设置：WuWa", "配置特定游戏设置：Z·Z·Z"],
 			},
 			Updater: {
 				title: "IMM 更新器",
@@ -515,7 +510,7 @@ export const TEXT = {
 			MigrationFailed: "如果迁移失败，请从 \\AppData\\Local\\Wuwa Mod Manager (WWMM) 导入配置文件。",
 			AfterVerify: "在您验证完所有内容后，您可以卸载 WWMM。",
 			Continue: "点击任意处继续",
-			ConfirmDir: "确认您的模组目录",
+			ConfirmDir: "确认您的 WWMI 和模组目录",
 			NotFound: "我们找不到您的模组目录",
 			ModsIn: "模组存储在 {game}MI\\Mods",
 		},
@@ -577,7 +572,12 @@ export const TEXT = {
 					},
 					Folders: "<game> 和模组文件夹",
 					LaunchGame: "启动游戏",
-					_LaunchGame: { LaunchMsg1: "通过 XXMI 启动游戏", LaunchMsg2: "当您启动 IMM 时" },
+					_LaunchGame: {
+						LaunchMsg1: "在启动 IMM 时通过 XXMI 启动游戏",
+						LaunchMsg2: "请确保已在下方设置 XXMI 可执行文件路径",
+						LaunchMsg3: "(通常为 ...\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe)",
+						Placeholder: "XXMI 可执行文件路径",
+					},
 					HotKey: "热键",
 					_HotKey: {
 						HKMsg1: "仅在自动重载设置为",
@@ -825,7 +825,11 @@ export const TEXT = {
 			},
 			PasteLink: {
 				title: "Вставить и открыть ссылку",
-				content: ["Скопируйте ссылку на мод с Gamebanana", "Вставьте ссылку в любом месте.", "Мод открывается в онлайн режиме!"],
+				content: [
+					"Скопируйте ссылку на мод с Gamebanana",
+					"Вставьте ссылку в любом месте.",
+					"Мод открывается в онлайн режиме!",
+				],
 			},
 			OpenLink: {
 				title: "Открыть ссылку из деталей мода",
@@ -833,7 +837,9 @@ export const TEXT = {
 			},
 			OnlineMode: {
 				title: "Переключение в онлайн режим",
-				content: ["Переключайтесь между онлайн и установленными режимами с помощью переключателя на левой боковой панели."],
+				content: [
+					"Переключайтесь между онлайн и установленными режимами с помощью переключателя на левой боковой панели.",
+				],
 			},
 			UsingPresets: {
 				title: "Использование пресетов",
@@ -845,7 +851,9 @@ export const TEXT = {
 			},
 			SearchMods: {
 				title: "Поиск модов",
-				content: ["Начните вводить в любом месте для поиска модов. Работает как в онлайн, так и в установленном режиме."],
+				content: [
+					"Начните вводить в любом месте для поиска модов. Работает как в онлайн, так и в установленном режиме.",
+				],
 			},
 			DLMods: {
 				title: "Загрузка и установка модов",
@@ -861,7 +869,10 @@ export const TEXT = {
 			},
 			Restore: {
 				title: "Точки восстановления",
-				content: ["Создавайте и управляйте точками восстановления (резервными копиями).", "Восстанавливайте ваши моды из сохраненной точки."],
+				content: [
+					"Создавайте и управляйте точками восстановления (резервными копиями).",
+					"Восстанавливайте ваши моды из сохраненной точки.",
+				],
 			},
 			Settings: {
 				title: "Настройки",
@@ -884,10 +895,11 @@ export const TEXT = {
 			Greeting: "Привет, ",
 			Configure: "Давайте настроим основные параметры",
 			AutoMigration: "Если вы переходите с WWMM, автоматическая миграция должна была загрузить ваши пресеты и моды.",
-			MigrationFailed: "Если миграция не удалась, импортируйте файл конфигурации из \\AppData\\Local\\Wuwa Mod Manager (WWMM).",
+			MigrationFailed:
+				"Если миграция не удалась, импортируйте файл конфигурации из \\AppData\\Local\\Wuwa Mod Manager (WWMM).",
 			AfterVerify: "После того, как вы все проверили, вы можете удалить WWMM.",
 			Continue: "Нажмите в любом месте для продолжения",
-			ConfirmDir: "Подтвердите каталог модов",
+			ConfirmDir: "Подтвердите каталоги WWMI и модов",
 			NotFound: "Мы не смогли найти ваш каталог модов",
 			ModsIn: "Моды хранятся в {game}MI\\Mods",
 		},
@@ -949,7 +961,12 @@ export const TEXT = {
 					},
 					Folders: "<game> и папка модов",
 					LaunchGame: "Запустить игру",
-					_LaunchGame: { LaunchMsg1: "Запускает игру через XXMI", LaunchMsg2: "при запуске IMM" },
+					_LaunchGame: {
+						LaunchMsg1: "Запускает игру через XXMI при старте IMM",
+						LaunchMsg2: "Убедитесь, что путь к исполняемому файлу XXMI указан ниже",
+						LaunchMsg3: "(обычно ...\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe)",
+						Placeholder: "Путь к исполняемому файлу XXMI",
+					},
 					HotKey: "Горячая клавиша",
 					_HotKey: {
 						HKMsg1: "Работает только при автоперезагрузке",
@@ -1197,7 +1214,11 @@ export const TEXT = {
 			},
 			PasteLink: {
 				title: "リンクを貼り付けて開く",
-				content: ["GamebananaからModリンクをコピー", "リンクをどこかに貼り付けます。", "Modがオンラインモードで開きます！"],
+				content: [
+					"GamebananaからModリンクをコピー",
+					"リンクをどこかに貼り付けます。",
+					"Modがオンラインモードで開きます！",
+				],
 			},
 			OpenLink: {
 				title: "Mod詳細からリンクを開く",
@@ -1217,7 +1238,9 @@ export const TEXT = {
 			},
 			SearchMods: {
 				title: "Modの検索",
-				content: ["どこかで入力を開始してModを検索します。オンラインモードとインストール済みモードの両方で機能します。"],
+				content: [
+					"どこかで入力を開始してModを検索します。オンラインモードとインストール済みモードの両方で機能します。",
+				],
 			},
 			DLMods: {
 				title: "Modのダウンロードとインストール",
@@ -1237,11 +1260,7 @@ export const TEXT = {
 			},
 			Settings: {
 				title: "設定",
-				content: [
-					"グローバル/IMM設定を変更します。",
-					"ゲーム固有の設定を構成：WuWa",
-					"ゲーム固有の設定を構成：Z·Z·Z",
-				],
+				content: ["グローバル/IMM設定を変更します。", "ゲーム固有の設定を構成：WuWa", "ゲーム固有の設定を構成：Z·Z·Z"],
 			},
 			Updater: {
 				title: "IMMアップデーター",
@@ -1256,10 +1275,11 @@ export const TEXT = {
 			Greeting: "こんにちは、",
 			Configure: "基本設定を行いましょう",
 			AutoMigration: "WWMMから移行する場合、自動移行によりプリセットとModが読み込まれているはずです。",
-			MigrationFailed: "移行が失敗した場合は、\\AppData\\Local\\Wuwa Mod Manager (WWMM) から設定ファイルをインポートしてください。",
+			MigrationFailed:
+				"移行が失敗した場合は、\\AppData\\Local\\Wuwa Mod Manager (WWMM) から設定ファイルをインポートしてください。",
 			AfterVerify: "すべてを確認した後、WWMMをアンインストールできます。",
 			Continue: "どこかをクリックして続行",
-			ConfirmDir: "Modディレクトリを確認",
+			ConfirmDir: "WWMIとModディレクトリを確認",
 			NotFound: "Modディレクトリが見つかりませんでした",
 			ModsIn: "Modは{game}MI\\Modsに保存されます",
 		},
@@ -1321,7 +1341,12 @@ export const TEXT = {
 					},
 					Folders: "<game> とModフォルダ",
 					LaunchGame: "ゲーム起動",
-					_LaunchGame: { LaunchMsg1: "XXMIを介してゲームを起動", LaunchMsg2: "IMMを起動する時" },
+					_LaunchGame: {
+						LaunchMsg1: "IMM を起動したときに XXMI 経由でゲームを起動します",
+						LaunchMsg2: "下の XXMI 実行ファイルのパスが設定されていることを確認してください",
+						LaunchMsg3: "(通常は ...\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe)",
+						Placeholder: "XXMI 実行ファイルのパス",
+					},
 					HotKey: "ホットキー",
 					_HotKey: {
 						HKMsg1: "自動リロードが",
@@ -1569,7 +1594,11 @@ export const TEXT = {
 			},
 			PasteLink: {
 				title: "링크 붙여넣기 및 열기",
-				content: ["Gamebanana에서 모드 링크 복사", "링크를 아무 곳에나 붙여넣습니다.", "모드가 온라인 모드에서 열립니다!"],
+				content: [
+					"Gamebanana에서 모드 링크 복사",
+					"링크를 아무 곳에나 붙여넣습니다.",
+					"모드가 온라인 모드에서 열립니다!",
+				],
 			},
 			OpenLink: {
 				title: "모드 세부 정보에서 링크 열기",
@@ -1609,11 +1638,7 @@ export const TEXT = {
 			},
 			Settings: {
 				title: "설정",
-				content: [
-					"글로벌/IMM 설정을 변경합니다.",
-					"게임별 설정 구성: WuWa",
-					"게임별 설정 구성: Z·Z·Z",
-				],
+				content: ["글로벌/IMM 설정을 변경합니다.", "게임별 설정 구성: WuWa", "게임별 설정 구성: Z·Z·Z"],
 			},
 			Updater: {
 				title: "IMM 업데이터",
@@ -1628,10 +1653,11 @@ export const TEXT = {
 			Greeting: "안녕하세요, ",
 			Configure: "기본 설정을 구성해 봅시다",
 			AutoMigration: "WWMM에서 전환하는 경우, 자동 마이그레이션이 프리셋과 모드를 로드했을 것입니다.",
-			MigrationFailed: "마이그레이션이 실패한 경우, \\AppData\\Local\\Wuwa Mod Manager (WWMM)에서 설정 파일을 가져오세요.",
+			MigrationFailed:
+				"마이그레이션이 실패한 경우, \\AppData\\Local\\Wuwa Mod Manager (WWMM)에서 설정 파일을 가져오세요.",
 			AfterVerify: "모든 것을 확인한 후 WWMM을 제거할 수 있습니다.",
 			Continue: "아무 곳이나 클릭하여 계속",
-			ConfirmDir: "모드 디렉토리 확인",
+			ConfirmDir: "WWMI 및 모드 디렉터리를 확인",
 			NotFound: "모드 디렉토리를 찾을 수 없습니다",
 			ModsIn: "모드는 {game}MI\\Mods에 저장됩니다",
 		},
@@ -1693,7 +1719,12 @@ export const TEXT = {
 					},
 					Folders: "<game> 및 모드 폴더",
 					LaunchGame: "게임 실행",
-					_LaunchGame: { LaunchMsg1: "XXMI를 통해 게임 실행", LaunchMsg2: "IMM을 시작할 때" },
+					_LaunchGame: {
+						LaunchMsg1: "IMM을 시작하면 XXMI를 통해 게임을 실행합니다",
+						LaunchMsg2: "아래에 XXMI 실행 파일 경로가 설정되어 있는지 확인하세요",
+						LaunchMsg3: "(보통 ...\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe)",
+						Placeholder: "XXMI 실행 파일 경로",
+					},
 					HotKey: "단축키",
 					_HotKey: {
 						HKMsg1: "자동 새로고침이",

@@ -22,6 +22,7 @@ export interface GlobalSettings {
 	version?: string;
 	updatedAt?: string;
 	notice?: number;	
+	preReleases: boolean;
 }
 export interface GameSettings {
 	launch: 0 | 1;

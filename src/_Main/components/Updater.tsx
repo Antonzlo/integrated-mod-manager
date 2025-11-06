@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
-import { VERSION } from "@/utils/consts"
-import { getTimeDifference } from "@/utils/utils";
-import { IMM_UPDATE, TEXT_DATA, UPDATER_OPEN } from "@/utils/vars";
+import { VERSION } from "@/utils/consts";
+import { getTimeDifference, isOlderThanOneDay } from "@/utils/utils";
+import { IMM_UPDATE, SETTINGS, TEXT_DATA, UPDATER_OPEN } from "@/utils/vars";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAtom, useAtomValue } from "jotai";
 import { CircleAlert, DownloadIcon, Loader2Icon, UploadIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { saveConfigs } from "@/utils/filesys";
 let prev = 0;
 let counter = 3000;
 function Updater() {
@@ -17,6 +19,8 @@ function Updater() {
 	const ref2 = useRef<HTMLDivElement>(null);
 	const ref3 = useRef<HTMLDivElement>(null);
 	const [updaterOpen, setUpdaterOpen] = useAtom(UPDATER_OPEN);
+	const [settings, setSettings] = useAtom(SETTINGS);
+	const preReleases = settings.global.preReleases;
 	useEffect(() => {
 		let interval: ReturnType<typeof setInterval>;
 		if (update?.status === "ready" && counter == 3000)
@@ -48,7 +52,7 @@ function Updater() {
 		<Dialog open={updaterOpen} onOpenChange={setUpdaterOpen}>
 			<DialogTrigger asChild>
 				<Button className="max-w-32 text-ellipsis bg-sidebar p-0 flex flex-col w-full h-full overflow-hidden text-xs">
-					{update
+					{update && update.status !== "ignored"
 						? {
 								available: (
 									<div className="min-w-24 min-h-12 text-accent flex items-center justify-center w-full gap-1 pointer-events-none">
@@ -110,10 +114,35 @@ function Updater() {
 			</DialogTrigger>
 			<DialogContent className="game-font">
 				<div className="min-h-fit text-accent mt-6 text-3xl">{textData._Main._components._Updater.Updater}</div>
-				<div className="min-h-fit mb-6 text-muted-foreground">
-					{textData._Main._components._Updater.CurVer}: v{VERSION}
+				<div className="min-h-fit -mt-4 text-muted-foreground">v{VERSION}</div>
+				<div className="flex flex-col -mt-4 mb-6 items-center justify-center w-full">
+					<div className=" flex items-center gap-2">
+						<Checkbox
+							id="checkbox"
+							className=" checked:bg-accent bgaccent"
+							onCheckedChange={(checked) => {
+								setSettings((prev) => ({
+									...prev,
+									global: {
+										...prev.global,
+										preReleases: checked ? true : false,
+									},
+								}));
+								saveConfigs();
+								setUpdate(
+									(prev) =>
+										prev && {
+											...prev,
+											status: checked || isOlderThanOneDay(prev.date || "") ? "available" : "ignored",
+										}
+								);
+							}}
+							checked={preReleases}
+						/>
+						<label className="text-muted-foreground text-sm">Get pre-releases</label>
+					</div>
 				</div>
-				{update && (
+				{update && update.status !== "ignored" && (
 					<>
 						<div className="min-h-2 text-xl text-accent w-full ">
 							Version {update.version}{" "}
@@ -126,7 +155,7 @@ function Updater() {
 					</>
 				)}
 				<div className="flex flex-col px-4 overflow-y-auto overflow-x-hidden  w-full h-82 max-h-82">
-					{update ? (
+					{update && update.status !== "ignored" ? (
 						<>
 							{maj.length > 0 && <div className="min-h-6 text-accent">{textData._Main._components._Updater.Maj}:</div>}
 							{maj.map((item: string, index: number) => (
@@ -157,11 +186,35 @@ function Updater() {
 					) : (
 						<div className="h-full w-full items-center justify-center flex flex-col text-muted-foreground">
 							{textData._Main._components._Updater.Lat}
-							<a href="https://gamebanana.com/mods/593490" target="_blank" className="absolute opacity-40 mt-124">{textData.BFR}</a>
+							<div className="absolute flex items-center gap-2  mt-124">
+								<label className="opacity-40">{textData.BFR}</label>
+								<label>:</label>
+								<a
+									href="https://gamebanana.com/mods/593490"
+									target="_blank"
+									className="flex gap-1 items-center text-xs opacity-50 hover:opacity-100 duration-200"
+								>
+									{" "}
+									<img className="h-4" src="https://images.gamebanana.com/static/img/favicon/32x32.png" />{" "}
+									<img className="h-3" src="https://images.gamebanana.com/static/img/logo.png" />
+								</a>
+								|
+								<a
+									href="https://discord.gg/QGkKzNapXZ"
+									target="_blank"
+									className="flex gap-1 items-center text-xs  opacity-50 hover:opacity-100 duration-200"
+								>
+									{" "}
+									<img
+										className="h-6"
+										src="https://cdn.prod.website-files.com/6257adef93867e50d84d30e2/67ece93be2524af5cf14dc1c_Logo-black-bg.svg"
+									/>
+								</a>
+							</div>
 						</div>
 					)}
 				</div>
-				{update && (
+				{update && update.status !== "ignored" && (
 					<div className="flex items-center justify-end w-full h-10 mt-2">
 						<div ref={ref3} className="text-muted-foreground text-xs w-full">
 							{update.status == "ready" ? (

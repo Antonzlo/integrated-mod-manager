@@ -1,5 +1,5 @@
 {
-	"version": "2.1.0",
+	"version": "2.1.1",
 	"updatedAt": 0,
 	"bgOpacity": 1,
 	"winOpacity": 1,
@@ -8,10 +8,11 @@
 	"listType": 0,
 	"nsfw": 1,
     "toggleClick": 2,
-	"ignore": "2.0.3",
+	"ignore": "2.1.0",
 	"notice": 0,
 	"clientDate": "",
 	"exeXXMI": "",
 	"lang": "",
-	"game":""
+	"game":"",
+	"preReleases": false
 }

@@ -469,6 +469,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 														<div className="flex flex-col items-center gap-1">
 															<div>{textData._LeftSideBar._components._Settings._LaunchGame.LaunchMsg1}</div>
 															<div>{textData._LeftSideBar._components._Settings._LaunchGame.LaunchMsg2}</div>
+															<div>{textData._LeftSideBar._components._Settings._LaunchGame.LaunchMsg3}</div>
 														</div>
 													</TooltipContent>
 												</Tooltip>
@@ -520,7 +521,8 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 													disabled={settings.game.launch == 0}
 													type="text"
 													className="w-72 overflow-hidden border-border/0 bg-input/50 cursor-default duration-200 text-ellipsis h-8"
-													value={settings.global.exeXXMI ?? "-"}
+													value={settings.global.exeXXMI ?? ""}
+													placeholder={textData._LeftSideBar._components._Settings._LaunchGame.Placeholder}
 													style={{
 														width: leftSidebarOpen ? "" : "0px",
 														opacity: leftSidebarOpen ? "" : "0",

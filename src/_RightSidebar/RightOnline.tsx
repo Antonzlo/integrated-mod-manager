@@ -70,7 +70,7 @@ function RightOnline({ open }: { open: boolean }) {
 			controller.abort();
 		};
 	}, [selected]);
-	console.log(item)
+	//console.log(item)
 	useEffect(() => {
 		if (type != "Install" && item?._sProfileUrl) {
 			installedItem && setData((prev: any) => {

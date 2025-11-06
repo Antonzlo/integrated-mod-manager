@@ -49,6 +49,9 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 								className="w-32"
 								onClick={async () => {
 									let path = ((await folderSelector(tgt)) as string) || tgt || "";
+									if (path.endsWith("\\Mods")) {
+										path = path.slice(0, -5);
+									}
 									setTgt(path);
 									if (checked) {
 										setSrc(path+"\\Mods");
@@ -103,7 +106,6 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 								applyPreset([])
 								setChanges(await verifyDirStruct());
 								setPage(4);
-
 							}}
 						>
 							{textData.Confirm}

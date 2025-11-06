@@ -18,7 +18,7 @@ function CarouselTut({ title, data, subIndex, setSubIndex }: { title: string; da
 	}, [api]);
 	useEffect(() => {
 		if (api && subIndex >= 0) {
-			console.log("Scrolling to ", subIndex);
+			//console.log("Scrolling to ", subIndex);
 			api.scrollTo(subIndex);
 		}
 	}, [subIndex, api]);

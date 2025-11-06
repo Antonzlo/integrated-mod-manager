@@ -31,7 +31,7 @@ function Downloads() {
 	const downloadRef2 = useRef<HTMLDivElement>(null);
 	const downloadRef3 = useRef<HTMLDivElement>(null);
 	const downloadFile = async (item:DownloadItem) => {
-		// //console.log(item);
+		//console.log(item);
 		// return;
 		if (item.category == "Other/Misc") item.category = "Other";
 		item.name = sanitizeFileName(item.name);

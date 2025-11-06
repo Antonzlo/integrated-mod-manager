@@ -67,8 +67,10 @@ store.sub(TARGET, () => {
 });
 
 export async function setConfig(config: any) {
+	console.log("[IMM] Setting config...");
 	if (!config) return;
 	if (config.version && config.version < "2.1.0") {
+		console.log("[IMM] Old config version, migrating...");
 		await updateConfig(config);
 		addToast({ type: "success", message: textData._Toasts.SuccessPort });
 		main();
@@ -104,6 +106,7 @@ export function getConfig(settings: Settings) {
 	return { config, gameConfig };
 }
 export async function saveConfigs(skip = false, settings = store.get(SETTINGS)) {
+	console.log("[IMM] Saving configs...");
 	try {
 		const { config, gameConfig } = getConfig(settings);
 		const promises: Promise<void>[] = [];
@@ -227,9 +230,11 @@ async function countFilesInDir(path: string) {
 	}
 }
 export function cancelRestore() {
+	console.log("[IMM] Cancelling restore operation...");
 	canceled = true;
 }
 export async function getRestorePoints(): Promise<string[]> {
+	console.log("[IMM] Getting restore points...");
 	try {
 		const restoreDir = join(modRoot, RESTORE);
 		if (!(await exists(restoreDir))) return [];
@@ -244,7 +249,18 @@ export async function getRestorePoints(): Promise<string[]> {
 		return [];
 	}
 }
+export async function resetWithBackup() {
+	console.log("[IMM] Resetting with backup...");
+	const configs = ["", "WW", "ZZ"];
+	for (let cfg of configs) {
+		try {
+			await rename(`config${cfg}.json`, `config${cfg}_BACKUP_${Date.now()}.json`);
+		} catch {}
+	}
+	window.location.reload();
+}
 export async function previewRestorePoint(point: string) {
+	console.log("[IMM] Previewing restore point:", point);
 	let path = join(modRoot, RESTORE, point);
 	if (!(await exists(path))) return [];
 	let entries = await readDirRecr(path, "", 2);
@@ -257,6 +273,7 @@ export async function previewRestorePoint(point: string) {
 	});
 }
 export async function restoreFromPoint(point: string) {
+	console.log("[IMM] Restoring from point:", point);
 	let path = join(modRoot, RESTORE, point);
 	if (!(await exists(path))) return null;
 	store.set(PROGRESS_OVERLAY, {
@@ -304,6 +321,7 @@ export async function restoreFromPoint(point: string) {
 	return null;
 }
 export async function createRestorePoint(prefix = "") {
+	console.log("[IMM] Creating restore point with prefix:", prefix);
 	store.set(PROGRESS_OVERLAY, {
 		title: "Creating Restore Point",
 		button: "Cancel",
@@ -372,6 +390,7 @@ export async function checkOldVerDirs(src: string) {
 	}
 }
 export async function categorizeDir(src: string, skipRestore = false) {
+	console.log("[IMM] Categorizing directory:", src, "Skip restore:", skipRestore);
 	try {
 		const categories = [...store.get(CATEGORIES), { _sName: UNCATEGORIZED }].map((cat) => cat._sName);
 		const reqCategories: Record<string, Array<{ name: string; isDirectory: boolean }>> = {};
@@ -391,7 +410,10 @@ export async function categorizeDir(src: string, skipRestore = false) {
 				}
 				continue;
 			}
-
+			if (categories.includes(item.name)) {
+				reqCategories[item.name] = [];
+				continue;
+			}
 			const category =
 				categories.find((cat: string) =>
 					cat
@@ -468,6 +490,11 @@ export async function verifyDirStruct() {
 		const reqCategories: Record<string, DirEntry> = {};
 
 		const srcEntries = await readDir(src);
+		if (srcEntries.length === 0) {
+			status.skip = true;
+			await mkdir(modDir, { recursive: true });
+			throw new Error("Source directory is empty");
+		}
 		status.before = srcEntries
 			.map((item) => ({
 				name: item.name,
@@ -610,10 +637,12 @@ export async function verifyDirStruct() {
 	} catch (e) {
 		//console.log(e);
 	} finally {
+		console.log("[IMM] Directory structure verified:", status);
 		return status;
 	}
 }
 export async function createManagedDir() {
+	console.log("[IMM] Creating managed directories...");
 	try {
 		if (!src) return false;
 		await mkdir(join(src, managedSRC), { recursive: true });
@@ -621,28 +650,31 @@ export async function createManagedDir() {
 		await mkdir(join(tgt, "Mods", managedTGT), { recursive: true });
 		return true;
 	} catch (error) {
-		//console.error("Error creating managed directories:", error);
+		console.error("[IMM] Error creating managed directories:", error);
 		throw error;
 	}
 }
 export async function applyChanges(isMigration = false) {
+	console.log("[IMM] Applying changes, isMigration:", isMigration);
 	try {
 		if (!src || !tgt) return false;
 
 		let map: Record<string, DirEntry> = {};
+		console.log("[IMM] Verifying directory structure before applying changes...");
 		if (!isMigration) {
 			map = (await verifyDirStruct()).map;
 		}
-
+		console.log("[IMM] Directory structure verified. Proceeding with applying changes...");
 		const target = join(tgt, "Mods", managedTGT);
 		if (!target) return true;
-
+		console.log("[IMM] Target exists, creating managed directories...");
 		await mkdir(join(src, managedSRC), { recursive: true });
 		await mkdir(join(tgt, "Mods", managedTGT), { recursive: true });
 		await categorizeDir(src, isMigration);
 
 		const entries = isMigration ? (await readDir(src)).map((item) => item.name) : Object.keys(map);
 
+		console.log("[IMM] Processing entries:", entries);
 		// Batch process entries
 		for (const key of entries) {
 			if (key === IGNORE || key === managedSRC || key === managedTGT) continue;
@@ -698,7 +730,7 @@ export async function applyChanges(isMigration = false) {
 		}
 		return true;
 	} catch (error) {
-		//console.error("Error applying changes:", error);
+		console.error("[IMM] Error applying changes:", error);
 		throw error;
 	}
 }
@@ -797,6 +829,7 @@ async function detectHotkeys(entries: Mod[], data: ModDataObj, src: string): Pro
 	return [entries, hotkeyData];
 }
 export async function refreshModList() {
+	console.log("[IMM] Refreshing mod list...");
 	try {
 		const data = store.get(DATA);
 		const modSrc = join(src, managedSRC);
@@ -846,11 +879,12 @@ export async function refreshModList() {
 			entry.enabled = enabled;
 		}
 		//console.log(recentlyDownloaded);
+		console.log("[IMM] Mod list refreshed:", entries);
 		return entries
 			.filter((entry) => recentlyDownloaded.includes(entry.path))
 			.concat(entries.filter((entry) => !recentlyDownloaded.includes(entry.path)));
 	} catch (error) {
-		//console.error("Error refreshing mod list:", error);
+		console.error("[IMM] Error refreshing mod list:", error);
 		throw error;
 	}
 }
@@ -862,7 +896,7 @@ export async function createModDownloadDir(cat: string, dir: string) {
 		await mkdir(path, { recursive: true });
 		return path;
 	} catch (error) {
-		//console.error("Error creating mod download directory:", error);
+		console.error("[IMM] Error creating mod download directory:", error);
 		throw error;
 	}
 }
@@ -890,7 +924,7 @@ export async function validateModDownload(path: string) {
 					await copyDir(tempPath, path);
 					await remove(tempPath, { recursive: true });
 				} catch (error) {
-					//console.error("Error flattening mod directory structure:", error);
+					console.error("[IMM] Error flattening mod directory structure:", error);
 				}
 			}
 		}
@@ -900,7 +934,7 @@ export async function validateModDownload(path: string) {
 		addToast({ type: "success", message: `${textData._Toasts.DownloadComplete} (${completed}/${total})` });
 	} catch (error) {
 		addToast({ type: "error", message: textData._Toasts.ErrDownload });
-		//console.error("Error validating mod download:", error);
+		console.error("[IMM] Error validating mod download:", error);
 	}
 	return true;
 }
@@ -913,7 +947,7 @@ export async function changeModName(path: string, newPath: string) {
 		// addToast({ type: "success", message: "Mod renamed successfully!" });
 		return newPath;
 	} catch (error) {
-		//console.error("Error changing mod name:", error);
+		console.error("[IMM] Error changing mod name:", error);
 		// addToast({ type: "error", message: "Error changing mod name." });
 		throw error;
 	}
@@ -925,7 +959,7 @@ export async function deleteRestorePoint(point: string) {
 		addToast({ type: "success", message: textData._Toasts.Deleted });
 		return true;
 	} catch (error) {
-		//console.error("Error deleting restore point:", error);
+		console.error("[IMM] Error deleting restore point:", error);
 		addToast({ type: "error", message: textData._Toasts.ErrOcc });
 		return false;
 	}
@@ -937,14 +971,14 @@ export async function deleteMod(path: string) {
 	try {
 		await remove(modTgt);
 	} catch (error) {
-		//console.error("Error removing mod target:", error);
+		console.error("[IMM] Error removing mod target:", error);
 	}
 
 	try {
 		await remove(modSrc, { recursive: true });
 		addToast({ type: "success", message: textData._Toasts.Deleted });
 	} catch (error) {
-		//console.error("Error removing mod source:", error);
+		console.error("[IMM] Error removing mod source:", error);
 		addToast({ type: "error", message: textData._Toasts.ErrOcc });
 		throw error;
 	}
@@ -965,7 +999,7 @@ export async function toggleMod(path: string, enabled: boolean) {
 						targetPath: modSrc,
 					});
 				} catch (error) {
-					//console.error("Error creating symlink:", error);
+					console.error("[IMM] Error creating symlink:", error);
 					return false;
 				}
 			}
@@ -973,13 +1007,13 @@ export async function toggleMod(path: string, enabled: boolean) {
 			try {
 				await remove(modTgt);
 			} catch (error) {
-				//console.error("Error removing mod:", error);
+				console.error("[IMM] Error removing mod:", error);
 				return false;
 			}
 		}
 		return true;
 	} catch (error) {
-		//console.error("Error toggling mod:", error);
+		console.error("[IMM] Error toggling mod:", error);
 		return false;
 	}
 }
@@ -1026,8 +1060,8 @@ export async function applyPreset(data: string[], name = "") {
 			const batch = data.slice(i, i + batchSize);
 			await Promise.all(
 				batch.map((mod) =>
-					toggleMod(mod, true).catch(() => {
-						//console.error(`Error toggling mod ${mod}:`, error);
+					toggleMod(mod, true).catch((error="unknown") => {
+						console.error(`[IMM] Error toggling mod ${mod}:`, error);
 					})
 				)
 			);
@@ -1036,7 +1070,7 @@ export async function applyPreset(data: string[], name = "") {
 			addToast({ type: "success", message: textData._Toasts.PresetApplied });
 		}
 	} catch (error) {
-		//console.error("Error applying preset:", error);
+		console.error("[IMM] Error applying preset:", error);
 		if (name) addToast({ type: "error", message: textData._Toasts.ErrOcc });
 		throw error;
 	}
