@@ -1,6 +1,7 @@
 import { saveConfigs } from "@/utils/filesys";
-import { initGame, main } from "@/utils/init";
+import { getPrevGame, initGame, main } from "@/utils/init";
 import { switchGameTheme } from "@/utils/theme";
+import { Games } from "@/utils/types";
 import { GAME, INIT_DONE, SETTINGS, TEXT_DATA } from "@/utils/vars";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect } from "react";
@@ -10,9 +11,35 @@ function Page2({ setPage }: { setPage: (page: number) => void }) {
 	const game = useAtomValue(GAME);
 	const setInitDone = useSetAtom(INIT_DONE);
 	const [settings, setSettings] = useAtom(SETTINGS);
+	async function switchGame(gameCode: Games) {
+		if(!gameCode) return;
+		setInitDone(false);
+		setSettings((prev) => ({ ...prev, global: { ...prev.global, game: gameCode } }));
+		await saveConfigs(true);
+		setTimeout(() => {
+			switchGameTheme({ WW: "wuwa", ZZ: "zzz"}[gameCode] as "wuwa" | "zzz");
+		}, 100);
+
+		setPage(0);
+		setTimeout(() => {
+			main();
+		}, 100);
+	}
 	useEffect(() => {
 		if (game) setPage(2);
 	}, [game]);
+	useEffect(() => {
+		function checkEscape(event: KeyboardEvent) {
+			if (event.key === "Escape") {
+				const prevGame = getPrevGame();
+				if (prevGame && !game) {
+					switchGame(prevGame as Games);
+				}
+			}
+		}
+		window.addEventListener("keydown", checkEscape);
+		return () => window.removeEventListener("keydown", checkEscape);
+	}, []);
 	return (
 		<div className="text-muted-foreground gap-4 fixed flex flex-col items-center justify-center w-screen h-screen">
 			<div className="mb-4 text-3xl">
@@ -33,23 +60,7 @@ function Page2({ setPage }: { setPage: (page: number) => void }) {
 					onClick={async () => {
 						if (!settings.global.game) initGame("WW");
 						else {
-							setInitDone(false);
-							setSettings((prev) => ({ ...prev, global: { ...prev.global, game: "WW" } }));
-							await saveConfigs(true);
-							// setSettings((prev) => ({ ...prev, global: { ...prev.global, lang: "" } }));
-							// setLang("en");
-							setTimeout(() => {
-								switchGameTheme("wuwa");
-								// addToast({ type: "info", message: text.Loading+" WWMM" });
-
-								// addToast({ type: "info", message: "Loading Config..." });
-							}, 100);
-
-							setPage(0);
-							// window.location.reload();
-							setTimeout(() => {
-								main();
-							}, 100);
+							switchGame("WW");
 						}
 					}}
 					className="flex duration-200 border-2 border-wuwa-accent/30 hover:shadow-lg hover:-mt-2 active:scale-90 shadow-wuwa-accent bg-wuwa-accent/7 p-6 rounded-md aspect-square flex-col items-center wuwa-font"
@@ -61,21 +72,7 @@ function Page2({ setPage }: { setPage: (page: number) => void }) {
 					onClick={async () => {
 						if (!settings.global.game) initGame("ZZ");
 						else {
-							setInitDone(false);
-							setSettings((prev) => ({ ...prev, global: { ...prev.global, game: "ZZ" } }));
-							await saveConfigs(true);
-							// setSettings((prev) => ({ ...prev, global: { ...prev.global, lang: "" } }));
-							// setLang("en");
-							setTimeout(() => {
-								switchGameTheme("zzz");
-								// addToast({ type: "info", message: text.Loading+" ZZMM" });
-							}, 100);
-
-							setPage(0);
-							// window.location.reload();
-							setTimeout(() => {
-								main();
-							}, 100);
+							switchGame("ZZ");
 						}
 					}}
 					className="flex duration-200 border-2 border-zzz-accent-2/30 hover:shadow-lg hover:-mt-2 active:scale-90 shadow-zzz-accent-2 bg-zzz-accent-2/7 p-6 rounded-md min-w-56 flex-col items-center zzz-font"

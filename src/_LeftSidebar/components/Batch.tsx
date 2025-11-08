@@ -128,7 +128,7 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 		});
 	}, [checked]);
 	useEffect(() => {
-		if (checked.size === 0) {
+		if (checked.size === 0 && curSelectedIndices.length >0 ) {
 			setCurSelectedIndices([]);
 			prevSelectedIndices = [];
 		} else {
@@ -594,7 +594,7 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 									pointerEvents: moveValid ? "auto" : "none",
 									opacity: moveValid ? "" : 0.5,
 								}}
-								className="overflow-hidden border-accent/25 active:border-border pointer-events-auto text-ellipsis select-none border-2 active:text-background active:bg-accent/80 active:scale-90 whitespace-nowrap rounded-full font-medium transition-all px-3 py-2 text-sm bg-sidebar text-accent shadow-xs hover:brightness-120  duration-300 h-full flex items-center min-w-fit"
+								className="w-41 item h-10 overflow-hidden border-accent/25 active:border-border pointer-events-auto text-ellipsis select-none data-zzz:border-2 active:text-background active:bg-accent/80 active:scale-90 whitespace-nowrap rounded-md data-zzz:rounded-full font-medium transition-all px-3 py-2 text-sm bg-button text-accent shadow-xs hover:brightness-120  duration-300 flex items-center justify-center"
 							>
 								<Settings2Icon className=" h-5 mr-1" /> Set Category
 							</div>

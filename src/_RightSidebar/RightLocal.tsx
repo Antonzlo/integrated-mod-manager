@@ -1,15 +1,26 @@
 import { Input } from "@/components/ui/input";
-import { CATEGORIES, DATA, LAST_UPDATED, MOD_LIST, ONLINE, ONLINE_SELECTED, RIGHT_SLIDEOVER_OPEN, SELECTED, SOURCE, TEXT_DATA } from "@/utils/vars";
+import {
+	CATEGORIES,
+	DATA,
+	LAST_UPDATED,
+	MOD_LIST,
+	ONLINE,
+	ONLINE_SELECTED,
+	RIGHT_SLIDEOVER_OPEN,
+	SELECTED,
+	SOURCE,
+	TEXT_DATA,
+} from "@/utils/vars";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
 	ArrowUpRightFromSquareIcon,
 	CheckIcon,
 	ChevronDownIcon,
-	CircleSlashIcon,
 	EditIcon,
 	FileIcon,
 	FolderIcon,
 	LinkIcon,
+	Settings2Icon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { openPath } from "@tauri-apps/plugin-opener";
@@ -24,13 +35,16 @@ import { cn } from "@/lib/utils";
 import { changeModName, saveConfigs, savePreviewImage } from "@/utils/filesys";
 import { Label } from "@/components/ui/label";
 import { Mod } from "@/utils/types";
+import ManageCategories from "./components/ManageCategories";
+import { Dialog } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 function RightLocal() {
 	const setOnline = useSetAtom(ONLINE);
 	const setOnlineSelected = useSetAtom(ONLINE_SELECTED);
 	const setRightSlideOverOpen = useSetAtom(RIGHT_SLIDEOVER_OPEN);
 	function handleInAppLink(url: string) {
-		if(!url.startsWith("http")) return;	
+		if (!url.startsWith("http")) return;
 		let mod = modRouteFromURL(url);
 		if (mod) {
 			setOnline(true);
@@ -60,7 +74,21 @@ function RightLocal() {
 	const textData = useAtomValue(TEXT_DATA);
 	const setData = useSetAtom(DATA);
 	const [item, setItem] = useState<Mod | undefined>();
+	const [dialogOpen, setDialogOpen] = useState(false);
 	const [popoverOpen, setPopoverOpen] = useState(false);
+	function manageCategoriesButton({ title = "Manage Categories" }: any) {
+		return (
+			<Button
+				onClick={() => {
+					setPopoverOpen(false);
+					setDialogOpen(true);
+			}}
+			className="my-1 w-full mx-2">
+				<Settings2Icon className="h-4 w-4" />
+				{title}
+			</Button>
+		);
+	}
 	const [category, setCategory] = useState({ name: "-1", icon: "" });
 	const lastUpdated = useAtomValue(LAST_UPDATED);
 	function renameMod(path: string, newPath: string) {
@@ -75,14 +103,16 @@ function RightLocal() {
 				});
 				saveConfigs();
 				const name = newPath.split("\\").pop();
-				name && newPath && setModList((prev) => {
-					return prev.map((m) => {
-						if (m.path == path) {
-							return { ...m, path: newPath, name, parent: newPath.split("\\")[0] };
-						}
-						return m;
+				name &&
+					newPath &&
+					setModList((prev) => {
+						return prev.map((m) => {
+							if (m.path == path) {
+								return { ...m, path: newPath, name, parent: newPath.split("\\")[0] };
+							}
+							return m;
+						});
 					});
-				});
 				setSelected(newPath);
 			}
 		});
@@ -103,6 +133,9 @@ function RightLocal() {
 	}, [item, modList]);
 	return (
 		<Sidebar side="right" className="bg-sidebar duration-300">
+			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+				<ManageCategories />
+			</Dialog>
 			<SidebarContent className="flex polka duration-300 flex-row w-full h-full gap-0 p-0 overflow-hidden border border-l-0">
 				<div className="flex flex-col items-center h-full min-w-full overflow-y-hidden " key={item?.path || "no-item"}>
 					<div className="min-w-full text-accent flex items-center justify-center h-16 gap-3 px-3 border-b">
@@ -188,7 +221,6 @@ function RightLocal() {
 										<PopoverContent className="w-80 p-0 my-2 mr-2 border rounded-lg">
 											<Command>
 												<CommandInput placeholder={textData.Search} className="h-12" />
-
 												<CommandList>
 													<CommandEmpty>{textData._RightSideBar._RightLocal.NoCat}</CommandEmpty>
 													<CommandGroup>
@@ -220,13 +252,13 @@ function RightLocal() {
 														))}
 													</CommandGroup>
 												</CommandList>
+
+												{manageCategoriesButton({})}
 											</Command>
 										</PopoverContent>
 									</Popover>
 								) : (
-									<div className="w-48.5 min-w-48.5 text-accent flex items-center justify-center">
-										<CircleSlashIcon />
-									</div>
+									<div className="w-48.5 flex items-center pr-2">{manageCategoriesButton({title:"Manage"})}</div>
 								)}
 							</div>
 							<div className="bg-pat1 flex justify-between w-full p-1 rounded-lg">

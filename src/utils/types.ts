@@ -28,11 +28,18 @@ export interface GameSettings {
 	launch: 0 | 1;
 	hotReload: 0 | 1 | 2;
 	onlineType: string;
+	customCategories: { [key: string]: CustomCategory };
+	
 }
 export interface Settings {
 	global: GlobalSettings;
 	game: GameSettings;
 }
+export interface CustomCategory{
+	_sIconUrl:string;
+	_sAltIconUrl?:string;
+}
+
 export interface Category {
 	_idRow: number;
 	_sName: string;
@@ -40,6 +47,7 @@ export interface Category {
 	_nCategoryCount: number;
 	_sUrl: string;
 	_sIconUrl: string;
+	_sAltIconUrl?: string;
 	_special?: boolean;
 }
 export interface ModData {

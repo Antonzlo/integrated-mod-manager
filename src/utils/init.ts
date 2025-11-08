@@ -49,7 +49,12 @@ export function getDataDir() {
 	return dataDir;
 }
 let appData = "";
+let prevGame="";
+export function getPrevGame(){
+	return prevGame;
+}
 let categories: Category[] = [];
+let isInitialized = false;
 export const window = getCurrentWebviewWindow();
 export function setWindowType(type: number) {
 	if (type == 0) {
@@ -72,7 +77,6 @@ invoke<string>("get_image_server_url").then((url) => {
 	setImageServer(url + "/preview");
 });
 export async function updateConfig(oconfig = null as any) {
-
 	if (!oconfig) oconfig = JSON.parse(await readTextFile("config.json"));
 	console.log("[IMM] Updating config from:", oconfig);
 	if (oconfig.version >= "2.1.0") return oconfig;
@@ -140,8 +144,8 @@ export async function initGame(game: string) {
 	configXX.game = game;
 	switchGameTheme(game == "ZZ" ? "zzz" : "wuwa");
 	dataDir = `${appData}\\XXMI Launcher\\${game}MI`;
-	if(!exists(dataDir)){
-		dataDir="";
+	if (!exists(dataDir)) {
+		dataDir = "";
 	}
 	writeTextFile(`config${game}.json`, JSON.stringify(configXX, null, 2));
 	apiClient.setGame(game as any);
@@ -163,6 +167,11 @@ export async function initGame(game: string) {
 }
 store.sub(SETTINGS, async () => {
 	const settings = store.get(SETTINGS);
+	if(isInitialized){
+
+		config = { ...config, ...settings.global };
+		configXX = { ...configXX, settings: { ...configXX.settings, ...settings.game } };
+	}
 	const compare = {
 		src: [settings.global.game, settings.global.lang],
 		to: [GAME, LANG],
@@ -177,21 +186,30 @@ store.sub(SETTINGS, async () => {
 		}
 	}
 });
-async function setCategories(game?: string) {
+export async function setCategories(game=prevGame) {
 	console.log("[IMM] Setting categories...");
 	if (!game) return;
+	prevGame=game;
 	try {
 		categories = await apiClient.categories();
 		//console.log("Fetched categories:", categories);
 		if (!categories || categories.length == 0) throw "No categories found, please verify the directories again";
 	} catch (e) {
 		console.log("[IMM] Failed to fetch categories from API, using local config if available.", e);
-			categories = configXX.categories && configXX.categories.length>0?configXX.categories:  apiClient.categoryList;
-		
+		categories = configXX.categories && configXX.categories.length > 0 ? configXX.categories : apiClient.categoryList;
 	} finally {
 		//console.log("Using categories:", categories,apiClient.categoryList,configXX.categories);
 		if (!categories || categories.length == 0) return;
 		console.log("[IMM] Finalized categories:", categories);
+		const catObj: { [key: string]: Category } = {};
+		categories.forEach((cat) => {
+			catObj[cat._sName] = cat;
+		});
+		const customCats = configXX.settings.customCategories || {};
+		for (let key of Object.keys(customCats)) {
+			catObj[key] = { ...catObj[key], _sName: key, ...customCats[key] };
+		}
+		categories = Object.values(catObj).map((cat) => ({...cat,_sIconUrl:cat._sIconUrl||"/who.jpg"}));
 		store.set(CATEGORIES, categories);
 	}
 }
@@ -217,22 +235,24 @@ async function initHelpers() {
 
 	registerGlobalHotkeys();
 }
-export async function checkWWMM(){
+export async function checkWWMM() {
 	console.log("[IMM] Checking for WWMM config...");
-	const wwmmPath = join(await path.localDataDir(), "Wuwa Mod Manager (WWMM)","config.json");
-	if(await exists(wwmmPath)){
+	const wwmmPath = join(await path.localDataDir(), "Wuwa Mod Manager (WWMM)", "config.json");
+	if (await exists(wwmmPath)) {
 		//console.log('exists')
-		return  await readTextFile(wwmmPath) || null;
+		return (await readTextFile(wwmmPath)) || null;
 	}
-	return null
+	return null;
 }
 export async function main() {
+	isInitialized = false;
 	console.log("[IMM] Initializing application...");
 	invoke("get_username");
 	resetAtoms();
 	removeHelpers();
 	appData = await path.dataDir();
 	dataDir = `${appData}\\XXMI Launcher\\__MI`;
+	
 	const exeXXMI = `${appData}\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe`;
 	if (!(await exists("config.json"))) {
 		console.log("[IMM] Creating default config.json...");
@@ -240,13 +260,12 @@ export async function main() {
 	}
 	config = safeLoadJson(defConfig, JSON.parse(await readTextFile("config.json")));
 	console.log("[IMM] Loaded config:", config);
-	if(!config.exeXXMI && !config.game && !config.lang){
+	if (!config.exeXXMI && !config.game && !config.lang) {
 		console.log("[IMM] First time setup detected, checking for WWMM...");
 		store.set(FIRST_LOAD, true);
 		const temp = await checkWWMM();
-		if(temp)config = await updateConfig(JSON.parse(temp));
-	}
-	else{
+		if (temp) config = await updateConfig(JSON.parse(temp));
+	} else {
 		store.set(FIRST_LOAD, false);
 	}
 	apiClient.setClient(config.clientDate || "");
@@ -310,8 +329,8 @@ export async function main() {
 				store.set(NOTICE_OPEN, noticeOpen);
 			}
 		}
-		
-		const show = config.preReleases || isOlderThanOneDay(update.date || "")
+
+		const show = config.preReleases || isOlderThanOneDay(update.date || "");
 		store.set(IMM_UPDATE, {
 			version: update.version,
 			date: update.date || "",
@@ -331,7 +350,7 @@ export async function main() {
 			},
 		}));
 	}
-
+	isInitialized = true;
 	// store.set(settingsDataAtom, config.settings as Settings);
 	// if(config.clientDate){
 	// 	//console.log("Client date exists:", config.clientDate);

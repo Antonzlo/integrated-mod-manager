@@ -8,9 +8,9 @@ import { getDataDir } from "@/utils/init";
 import { CHANGES, GAME, SOURCE, TARGET, TEXT_DATA } from "@/utils/vars";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useState } from "react";
-
+const dataDir = getDataDir();
 function Page4({ setPage }: { setPage: (page: number) => void }) {
-	const [tgt, setTgt] = useState(getDataDir());
+	const [tgt, setTgt] = useState(dataDir);
 	const [src, setSrc] = useState(tgt+"\\Mods");
 	const [checked, setChecked] = useState(true);
 	const setSource = useSetAtom(SOURCE);

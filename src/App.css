@@ -490,7 +490,23 @@ a {
 		@apply bg-background text-foreground;
 	}
 }
-
+.showAfterDelay {
+	opacity: 0;
+	animation: showAfterDelay 3s ease-in forwards;
+}
+@keyframes showAfterDelay {
+	0% {
+		opacity: 0;
+		pointer-events: none;
+	}
+	90% {
+		opacity: 0;
+		pointer-events: none;
+	}
+	100% {
+		opacity: 1;
+	}
+}
 .label {
 	width: 100%;
 	border-width: 0;

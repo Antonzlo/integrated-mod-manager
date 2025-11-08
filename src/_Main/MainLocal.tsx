@@ -27,6 +27,7 @@ import { Mod } from "@/utils/types";
 let searchDB: any = null;
 let prev = "prev";
 let prevEnabled = "noData";
+let filterChangeCount = 0;
 function MainLocal() {
 	const initDone = useAtomValue(INIT_DONE);
 	const [alertOpen, setAlertOpen] = useState(false);
@@ -77,7 +78,10 @@ function MainLocal() {
 		}
 	}, [modList]);
 	useEffect(() => {
-		keyRef.current = `${filter}-${category}-${search}-${modList.length}`;
+		filterChangeCount += 1;
+	}, [filter, category, search]);
+	useEffect(() => {
+		keyRef.current = `${filter}-${category}-${search}-${modList.length}-${filterChangeCount}`;
 		if (prev !== keyRef.current) {
 			if (containerRef.current) {
 				containerRef.current.scrollTo({ top: 0 });
@@ -94,35 +98,34 @@ function MainLocal() {
 			newList = newList.filter((mod) => mod.parent == category);
 		}
 		setFilteredList(newList);
-	}, [modList, filter, category, search]);
+	}, [modList, filter, category, search, filterChangeCount]);
 
-	const handleClick = useCallback(
-		(e: MouseEvent, mod: Mod) => {
-			const click = e.button;
-			let tag = (e.target as HTMLElement).tagName.toLowerCase();
-			if (tag == "button") {
-				if (!mod) return;
-				setDeleteItemData((prev) => {
-					if (prev) return prev;
-					setAlertOpen(true);
-					return mod;
+	console.log(keyRef.current);
+	const handleClick = (e: MouseEvent, mod: Mod) => {
+		console.log(mod);
+		const click = e.button;
+		let tag = (e.target as HTMLElement).tagName.toLowerCase();
+		if (tag == "button") {
+			if (!mod) return;
+			setDeleteItemData((prev) => {
+				if (prev) return prev;
+				setAlertOpen(true);
+				return mod;
+			});
+			return setSelected(mod.path);
+		}
+		if (click == toggleOn) {
+			toggleMod(mod.path, !mod.enabled);
+			setModList((prev) => {
+				return prev.map((m) => {
+					if (m.path == mod.path) {
+						return { ...m, enabled: !m.enabled };
+					}
+					return m;
 				});
-				return setSelected(mod.path);
-			}
-			if (click == toggleOn) {
-				toggleMod(mod.path, !mod.enabled);
-				setModList((prev) => {
-					return prev.map((m) => {
-						if (m.path == mod.path) {
-							return { ...m, enabled: !m.enabled };
-						}
-						return m;
-					});
-				});
-			} else setSelected(mod.path == selected ? "" : mod.path);
-		},
-		[selected, setSelected, toggleOn, setModList, containerRef]
-	);
+			});
+		} else setSelected(mod.path == selected ? "" : mod.path);
+	};
 	const handleScroll = useCallback(() => {
 		if (initial) {
 			setInitial(false);
@@ -186,7 +189,6 @@ function MainLocal() {
 				}}
 			>
 				<label>{textData._Main._MainLocal.NoMods}</label>
-				
 			</div>
 		);
 	}, [modList, source]);
@@ -199,11 +201,19 @@ function MainLocal() {
 				className="flex flex-col  overflow-x-hidden items-center h-screen w-full  overflow-y-auto duration-300"
 			>
 				{" "}
-				<label className="text-muted flex flex-col gap-1 items-center z-200">{filteredList.length} {textData.Items}
-					<label className="text-xs">in <label onClick={()=>{
-						openPath(join(source, managedSRC));
-
-					}} className="text-blue-300 opacity-50 duration-200 hover:opacity-75 pointer-events-auto">{source.split("\\").slice(-2).join("\\")}\{managedSRC}</label></label>
+				<label className="text-muted flex flex-col gap-1 items-center z-200">
+					{filteredList.length} {textData.Items}
+					<label className="text-xs">
+						in{" "}
+						<label
+							onClick={() => {
+								openPath(join(source, managedSRC));
+							}}
+							className="text-blue-300 opacity-50 duration-200 hover:opacity-75 pointer-events-auto"
+						>
+							{source.split("\\").slice(-2).join("\\")}\{managedSRC}
+						</label>
+					</label>
 				</label>
 				{noItems}
 				<AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
@@ -251,9 +261,9 @@ function MainLocal() {
 						layout
 						className="min-h-fit grid justify-center w-full py-4 card-grid"
 						key={keyRef.current}
-						initial={{ opacity: 0 }}
-						animate={{ opacity: 1 }}
-						exit={{ opacity: 0 }}
+						initial={{ opacity: 0,pointerEvents: "none" }}
+						animate={{ opacity: 1,pointerEvents: "auto" }}
+						exit={{ opacity: 0, pointerEvents: "none" }}
 						transition={{ ...transitionConfig(0) }}
 					>
 						{filteredList.map((mod, index) => {
@@ -281,7 +291,6 @@ function MainLocal() {
 						})}
 					</motion.div>
 				</AnimatePresence>
-
 			</div>
 		</>
 	);

@@ -45,6 +45,7 @@ const SETTINGS = atom<Settings>({
 		launch: 0,
 		hotReload: 1,
 		onlineType: "Mod",
+		customCategories: {},
 	},
 });
 const SOURCE = atom<string>("");

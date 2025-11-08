@@ -1,5 +1,5 @@
 import { Sidebar, SidebarContent, SidebarFooter, SidebarGroupLabel } from "@/components/ui/sidebar";
-import { Globe, HardDriveDownload } from "lucide-react";
+import { Globe, HardDriveDownload, PlayIcon } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -7,7 +7,6 @@ import { GAME, LEFT_SIDEBAR_OPEN, ONLINE, SETTINGS, TEXT_DATA } from "@/utils/va
 import { AnimatePresence, motion } from "motion/react";
 import LeftOnline from "./LeftOnline";
 import LeftLocal from "./LeftLocal";
-import Restore from "./components/Restore";
 import Settings from "./components/Settings";
 import { ONLINE_TRANSITION } from "@/utils/consts";
 import { useInstalledItemsManager } from "@/utils/utils";
@@ -45,6 +44,27 @@ function LeftSidebar() {
 							<label className="min-w-fit text-accent opacity-75 textaccent text-sm">Mod Manager</label>
 						</div>
 					</div>
+
+					<div className="duration-200 px-0 w-full mt-2.5">
+						<SidebarGroupLabel>Launch Game</SidebarGroupLabel>
+						<div className="min-h-fit grid grid-cols-1 justify-between px-2 w-full gap-2 overflow-hidden">
+							<Button
+								className="text-ellipsis min-h-12 max-h-12 min-w -80 px-0 flex items-center w-full overflow-hidden"
+								style={{ width: leftSidebarOpen ? "" : "3rem" }}
+							>
+								<PlayIcon className="w-6 h-6" />
+								{leftSidebarOpen && `Start Game with ${game}MI`}
+							</Button>
+						</div>
+					</div>
+					<Separator
+						className="w-full ease-linear duration-200 min-h-[1px] my-2.5 bg-border"
+						style={{
+							opacity: leftSidebarOpen ? "0" : "",
+							height: leftSidebarOpen ? "0px" : "",
+							marginBlock: leftSidebarOpen ? "4px" : "",
+						}}
+					/>
 					<div className="duration-200 px-0 w-full mt-2.5">
 						<SidebarGroupLabel>{textData._LeftSideBar._Left.Mode}</SidebarGroupLabel>
 						<div
@@ -79,7 +99,6 @@ function LeftSidebar() {
 							</Button>
 						</div>
 					</div>
-
 					<Separator
 						className="w-full ease-linear duration-200 min-h-[1px] my-2.5 bg-border"
 						style={{

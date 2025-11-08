@@ -12,7 +12,7 @@ function Checklist() {
 		<Page2 setPage={setPage} />,
 		<Page3 setPage={setPage} />,
 		<Page4 setPage={setPage} />,
-		<Page5/>
+		<Page5 setPage={setPage} />
 	];
 	return (
 		<motion.div
@@ -20,7 +20,7 @@ function Checklist() {
 			initial={{ opacity: page !== 0 ? 1 : 0, filter: "blur(6px)", pointerEvents: "none" }}
 			animate={{ opacity: 1, filter: "blur(0px)", pointerEvents: "auto" }}
 			exit={{ opacity: 0, filter: "blur(6px)", pointerEvents: "none" }}
-			className="z-10 bg-background/50 backdrop-blur-md fixed w-screen h-screen"
+			className="z-10 bg-background/50  backdrop-blur-md fixed w-screen h-screen"
 		>
 			<AnimatePresence mode="wait">
 				<motion.div

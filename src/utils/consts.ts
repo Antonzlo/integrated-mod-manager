@@ -1,4 +1,4 @@
-import { Settings } from "http2";
+
 import { TEXT } from "./text";
 import {
 	Category,
@@ -10,6 +10,7 @@ import {
 	Mod,
 	ModDataObj,
 	OnlineData,
+	Settings,
 	Preset,
 } from "./types";
 export const IMAGE_SERVER = "http://127.0.0.1:1469/preview";
@@ -84,6 +85,7 @@ export const DEFAULTS = {
 			launch: 0,
 			hotReload: 1,
 			onlineType: "Mod",
+			customCategories: {},
 		},
 	} as Settings,
 	SOURCE: "",

@@ -6,8 +6,9 @@
 	"settings": {
 		"launch": 0,
 		"hotReload": 1,
-		"onlineType": "Mod"
-	},	
+		"onlineType": "Mod",
+		"customCategories": {}
+	},
 	"data": {},
 	"presets": [],
 	"categories": [],

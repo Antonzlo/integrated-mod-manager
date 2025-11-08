@@ -101,6 +101,7 @@ export function getConfig(settings: Settings) {
 		data: store.get(DATA) || {},
 		presets: store.get(PRESETS) || [],
 		updatedAt: new Date().toISOString(),
+
 		categories: store.get(CATEGORIES) || [],
 	};
 	return { config, gameConfig };
@@ -131,8 +132,8 @@ export async function selectPath(
 ) {
 	return await open(options);
 }
-export function folderSelector(path = "",title:string | undefined=undefined) {
-	return selectPath({ directory: true, ...(path ? { defaultPath: path } : {}),...(title ? { title } : {}) });
+export function folderSelector(path = "", title: string | undefined = undefined) {
+	return selectPath({ directory: true, ...(path ? { defaultPath: path } : {}), ...(title ? { title } : {}) });
 }
 function replaceDisabled(name: string) {
 	return name.replace("DISABLED_", "").replace("DISABLED", "").trim();
@@ -989,6 +990,16 @@ export async function changeModName(path: string, newPath: string, add = false) 
 		console.error("[IMM] Error changing mod name:", error);
 		// addToast({ type: "error", message: "Error changing mod name." });
 		throw error;
+	}
+}
+export async function deleteCategory(cat: string) {
+	const path = join(src, managedSRC, cat);
+	try {
+		await remove(path);
+		return true;
+	} catch (error) {
+		console.error("[IMM] Error deleting category:", error);
+		return false;
 	}
 }
 export async function deleteRestorePoint(point: string) {
