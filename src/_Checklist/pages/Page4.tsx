@@ -30,7 +30,7 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 			<div className="fixed z-20 flex flex-col items-center justify-center w-full duration-200">
 				{
 					<div className="text-accent flex flex-col items-center gap-5 my-2 text-2xl">
-						{textData._Checklist.Confirm} {textData._Checklist[checked ? "CustomDir" : "XXMILDir"]}
+						{textData._Checklist._Help.Select} {textData._Checklist[checked ? "CustomDir" : "XXMILDir"]}
 						<div
 							className="flex items-center gap-2"
 							style={{
