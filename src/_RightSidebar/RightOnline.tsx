@@ -49,7 +49,7 @@ function RightOnline({ open }: { open: boolean }) {
 	const [updateOpen, setUpdateOpen] = useState(false);
 	const [popoverOpen, setPopoverOpen] = useState(false);
 	const [altPopoverOpen, setAltPopoverOpen] = useState(false);
-	const game = useAtomValue(GAME)
+	const game = useAtomValue(GAME);
 	const setDownloadList = useSetAtom(DOWNLOAD_LIST);
 	const installedItems = useAtomValue(INSTALLED_ITEMS);
 	const item = onlineData[selected] as any;
@@ -75,12 +75,13 @@ function RightOnline({ open }: { open: boolean }) {
 	//console.log(item)
 	useEffect(() => {
 		if (type != "Install" && item?._sProfileUrl) {
-			installedItem && setData((prev: any) => {
-				if (installedItem.name) {
-					prev[installedItem.name] = { ...prev[installedItem.name], viewedAt: now * 1000 };
-				}
-				return { ...prev };
-			});
+			installedItem &&
+				setData((prev: any) => {
+					if (installedItem.name) {
+						prev[installedItem.name] = { ...prev[installedItem.name], viewedAt: now * 1000 };
+					}
+					return { ...prev };
+				});
 			refreshModList().then((list) => {
 				setModList(list);
 			});
@@ -89,9 +90,9 @@ function RightOnline({ open }: { open: boolean }) {
 	}, [selected]);
 	const popoverContent = item?._aFiles?.map((file: any) => (
 		<Button
-			className="min-h-fit  data-wuwa:p-2  flex items-center justify-center min-w-full gap-1 p-4 overflow-hidden"
+			className="min-h-fit data-wuwa:p-2 flex items-center justify-center min-w-full gap-1 p-4 overflow-hidden"
 			style={{
-				borderRadius:game=="GI"?"4px":""
+				borderRadius: game == "GI" ? "4px" : "",
 			}}
 			onClick={() => {
 				setDownloadList((prev: any) => {
@@ -102,7 +103,7 @@ function RightOnline({ open }: { open: boolean }) {
 							item._aPreviewMedia && item._aPreviewMedia._aImages && item._aPreviewMedia._aImages.length > 0
 								? item._aPreviewMedia._aImages[0]._sBaseUrl + "/" + item._aPreviewMedia._aImages[0]._sFile
 								: "",
-						category: item._aCategory?._sName.replaceAll("Skins",UNCATEGORIZED) || UNCATEGORIZED,
+						category: item._aCategory?._sName.replaceAll("Skins", UNCATEGORIZED) || UNCATEGORIZED,
 						source: item._sProfileUrl || "",
 						file: file._sDownloadUrl,
 						updated: file._tsDateAdded,
@@ -132,31 +133,31 @@ function RightOnline({ open }: { open: boolean }) {
 			}}
 		>
 			<div className="w-[calc(100%-6rem)] text-start flex flex-col gap-1">
-				<p className=" text-ellipsis  wrap-break-word overflow-hidden text-base resize-none">{file._sFile}</p>
+				<p className=" text-ellipsis wrap-break-word overflow-hidden text-base resize-none">{file._sFile}</p>
 				<div className=" min-w-fit text-background flex flex-wrap w-full gap-1 text-xs">
 					{file._aAnalysisWarnings?.contains_exe ? (
-						<div className=" w-12 px-1  text-center bg-destructive rounded-lg flex item justify-center">Exe</div>
+						<div className=" bg-destructive item flex justify-center w-12 px-1 text-center rounded-lg">Exe</div>
 					) : (
 						""
 					)}
 					{file._sAnalysisState == "done" ? (
 						<>
-							{file._sAvState == "done" && file._sAvResult=="clean" ? (
-								<div className=" w-16 px-1 text-center bg-success rounded-lg">Clean</div>
+							{file._sAvState == "done" && file._sAvResult == "clean" ? (
+								<div className=" bg-success w-16 px-1 text-center rounded-lg">Clean</div>
 							) : (
-								<div className=" w-16 px-1 text-center bg-destructive rounded-lg">Dangerous</div>
+								<div className=" bg-destructive w-16 px-1 text-center rounded-lg">Dangerous</div>
 							)}
 							{/* {file._sClamAvResult == "clean" ? (
-								<div className=" w-16 px-1 text-center bg-success rounded-lg">ClamAV</div>
+								<div className=" bg-success w-16 px-1 text-center rounded-lg">ClamAV</div>
 							) : (
-								<div className=" w-16 px-1 text-center bg-destructive rounded-lg">ClamAV</div>
+								<div className=" bg-destructive w-16 px-1 text-center rounded-lg">ClamAV</div>
 							)} */}
 						</>
 					) : (
-						<div className=" w-12 px-1 text-center bg-warn rounded-lg">pending</div>
+						<div className=" bg-warn w-12 px-1 text-center rounded-lg">pending</div>
 					)}
 				</div>
-				<p className="w-52  text-ellipsis brightness-75 wrap-break-word overflow-hidden text-xs resize-none">
+				<p className="w-52 text-ellipsis brightness-75 wrap-break-word overflow-hidden text-xs resize-none">
 					{file._sDescription}
 				</p>
 			</div>
@@ -164,7 +165,7 @@ function RightOnline({ open }: { open: boolean }) {
 				<div className="flex gap-1">
 					{" "}
 					<LoaderIcon />
-				{getTimeDifference(now, file._tsDateAdded)}
+					{getTimeDifference(now, file._tsDateAdded)}
 				</div>
 				<div className="flex gap-1">
 					{" "}
@@ -187,7 +188,7 @@ function RightOnline({ open }: { open: boolean }) {
 					animate={{ translateX: "0%", opacity: 1 }}
 					exit={{ translateX: "100%", opacity: 0 }}
 					transition={{ duration: 0.3, ease: "linear" }}
-					className="bg-sidebar polka fixed overflow-hidden h-full z-10 flex flex-col items-center justify-center border-l right-0"
+					className="bg-sidebar polka fixed right-0 z-10 flex flex-col items-center justify-center h-full overflow-hidden border-l"
 					style={{
 						maxWidth: "42vw",
 						width: "50rem",
@@ -203,7 +204,7 @@ function RightOnline({ open }: { open: boolean }) {
 								exit={{ opacity: 0 }}
 								transition={{ duration: 0.2 }}
 								key="no-selection"
-								className="h-full flex items-center justify-center text-accent p-4"
+								className="text-accent flex items-center justify-center h-full p-4"
 							>
 								{textData._RightSideBar._RightOnline.NoItem}
 							</motion.div>
@@ -214,7 +215,7 @@ function RightOnline({ open }: { open: boolean }) {
 								exit={{ opacity: 0 }}
 								transition={{ duration: 0.2 }}
 								key="loading"
-								className="h-full flex items-center justify-center text-accent p-4"
+								className="text-accent flex items-center justify-center h-full p-4"
 							>
 								<LoaderIcon className="animate-spin" />
 							</motion.div>
@@ -228,9 +229,9 @@ function RightOnline({ open }: { open: boolean }) {
 								className="flex flex-col items-center w-full h-full overflow-hidden duration-300"
 							>
 								<div className="text-accent min-h-16 flex items-center justify-start w-full gap-3 px-3 border-b">
-									<div className="min-w-fit trs bg-button p-2 rounded-md zzz-border flex items-center gap-2">
+									<div className="min-w-fit trs bg-button zzz-border flex items-center gap-2 p-2 rounded-md">
 										<img
-											className="aspect-square min-w-6 max-w-6 scale-120 h-full ctrs rounded-full pointer-events-none"
+											className="aspect-square min-w-6 max-w-6 scale-120 ctrs h-full rounded-full pointer-events-none"
 											onError={(e) => {
 												e.currentTarget.src = "/who.jpg";
 											}}
@@ -243,28 +244,31 @@ function RightOnline({ open }: { open: boolean }) {
 									<Label key={item._sName} className="w-full text-xl text-center">
 										{item._sName}
 									</Label>
-									<Button onClick={() => {
-										navigator.clipboard.writeText(item._sProfileUrl || "");
-										addToast({ type: "success", message: textData._RightSideBar._RightOnline.LinkCopied });
-									}} className="min-w-fit aspect-square bg-button p-2 rounded-md zzz-border flex items-center gap-2">
-										<LinkIcon/>
+									<Button
+										onClick={() => {
+											navigator.clipboard.writeText(item._sProfileUrl || "");
+											addToast({ type: "success", message: textData._RightSideBar._RightOnline.LinkCopied });
+										}}
+										className="min-w-fit aspect-square bg-button zzz-border flex items-center gap-2 p-2 rounded-md"
+									>
+										<LinkIcon />
 									</Button>
-									<div className="min-w-fit trs bg-button p-2 rounded-md zzz-border flex items-center gap-2">
-											<img
-												className="aspect-square min-w-6 max-w-6 scale-120 h-full ctrs rounded-full pointer-events-none"
-												onError={(e) => {
-													e.currentTarget.src = "/who.jpg";
-												}}
-												src={item._aSubmitter._sAvatarUrl || "err"}
-											/>
+									<div className="min-w-fit trs bg-button zzz-border flex items-center gap-2 p-2 rounded-md">
+										<img
+											className="aspect-square min-w-6 max-w-6 scale-120 ctrs h-full rounded-full pointer-events-none"
+											onError={(e) => {
+												e.currentTarget.src = "/who.jpg";
+											}}
+											src={item._aSubmitter._sAvatarUrl || "err"}
+										/>
 
-											<span className="ctrs">{item._aSubmitter?._sName}</span>
-										</div>
+										<span className="ctrs">{item._aSubmitter?._sName}</span>
+									</div>
 								</div>
 								<div className="flex flex-col w-full pb-2 mb-24 overflow-hidden overflow-y-scroll">
 									<div
 										key={item._sName + "pix"}
-										className="min-h-fit px-2 mt-2 mb-3  flex flex-col items-center w-full max-h-full gap-1 overflow-hidden pointer-events-none"
+										className="min-h-fit flex flex-col items-center w-full max-h-full gap-1 px-2 mt-2 mb-3 overflow-hidden pointer-events-none"
 									>
 										{item._aPreviewMedia && item._aPreviewMedia._aImages && item._aPreviewMedia._aImages.length > 0 && (
 											<Carousel data={item._aPreviewMedia._aImages} />
@@ -337,7 +341,7 @@ function RightOnline({ open }: { open: boolean }) {
 														item._aUpdateChangeLog.map((changeItem: any, index: number) => (
 															<div key={index} className="flex items-center gap-2">
 																<div className="min-w-2 min-h-2 self-start mt-1.75 bg-accent bgaccent   rounded-full" />
-																<label className=" text-cyan-50 text-sm font-sans">
+																<label className=" text-cyan-50 font-sans text-sm">
 																	{changeItem.text}- [{changeItem.cat}]
 																</label>
 															</div>
@@ -350,8 +354,8 @@ function RightOnline({ open }: { open: boolean }) {
 										</Collapsible>
 									)}
 								</div>
-								<div className="text-accent min-h-24 h-24 min-w-full absolute bottom-0 flex items-center justify-evenly gap-1 px-1 border-t">
-									<div className="grid grid-cols-3 gap-2 min-w-40 w-40 text-xs">
+								<div className="text-accent min-h-24 justify-evenly absolute bottom-0 flex items-center h-24 min-w-full gap-1 px-1 border-t">
+									<div className="min-w-40 grid w-40 grid-cols-3 gap-2 text-xs">
 										{[
 											<>
 												<PlusIcon className="min-h-4 h-4" />
@@ -379,13 +383,13 @@ function RightOnline({ open }: { open: boolean }) {
 												{item._nViewCount || "0"}
 											</>,
 										].map((children) => (
-											<label className="flex flex-col items-center justify-center  zzz-fg-text text-accent ">
+											<label className="zzz-fg-text text-accent flex flex-col items-center justify-center">
 												{children}
 											</label>
 										))}
 									</div>
-									<Separator className="min-w-0 border-l min-h-full" />
-									<div className="flex min-w-fit items-center justify-center w-full gap-1">
+									<Separator className="min-w-0 min-h-full border-l" />
+									<div className="min-w-fit flex items-center justify-center w-full gap-1">
 										<Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
 											<PopoverTrigger
 												style={{ width: `${type == "Install" ? "19.5rem" : "16.5rem"}` }}
@@ -418,7 +422,7 @@ function RightOnline({ open }: { open: boolean }) {
 													<EllipsisVerticalIcon />
 												</PopoverTrigger>
 												<PopoverContent className="w-152 max-w-[calc(42vw-11.625rem)] mr-2 max-h-[75vh] mb-2 overflow-auto gap-1 bg-sidebar p-1 flex flex-col">
-													<Label className="w-full flex items-center justify-center text-lg bg-accent/25 data-zzz:bg-zzz-accent-2/25 data-zzz:text-zzz-accent-2 text-accent rounded-md h-12">
+													<Label className="bg-accent/25 data-zzz:bg-zzz-accent-2/25 data-zzz:text-zzz-accent-2 text-accent flex items-center justify-center w-full h-12 text-lg rounded-md">
 														{textData._RightSideBar._RightOnline.Sep}
 													</Label>
 													{popoverContent}

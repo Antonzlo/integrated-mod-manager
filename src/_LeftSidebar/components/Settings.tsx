@@ -1,3 +1,4 @@
+import { skipPage } from "@/_Checklist/pages/Page3";
 import { addToast } from "@/_Toaster/ToastProvider";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
@@ -7,13 +8,13 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { LANG_LIST } from "@/utils/consts";
-import { getConfig, saveConfigs, selectPath, setConfig } from "@/utils/filesys";
+import { getConfig, saveConfigs, setConfig } from "@/utils/filesys";
 import { encodeHotkeyForStorage, formatHotkeyDisplay, processHotkeyCode } from "@/utils/hotkeyUtils";
 import { setHotreload } from "@/utils/hotreload";
 import { setWindowType } from "@/utils/init";
-import { TEXT } from "@/utils/text";
+import  TEXT  from "@/textData.json";
 import { keySort } from "@/utils/utils";
-import { INIT_DONE, PRESETS, SETTINGS, SOURCE, store, TARGET, TEXT_DATA } from "@/utils/vars";
+import { INIT_DONE, PRESETS, SETTINGS, SOURCE, store, TARGET, TEXT_DATA, XXMI_MODE } from "@/utils/vars";
 import { Separator } from "@radix-ui/react-separator";
 import { save } from "@tauri-apps/plugin-dialog";
 import {  writeTextFile } from "@tauri-apps/plugin-fs";
@@ -27,7 +28,6 @@ import {
 	EyeIcon,
 	EyeOffIcon,
 	FocusIcon,
-	FolderIcon,
 	Globe2,
 	InfoIcon,
 	Maximize2Icon,
@@ -48,6 +48,7 @@ let keys = [] as any[];
 let keysdown = [] as any[];
 function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 	const textData = useAtomValue(TEXT_DATA);
+	const customMode = useAtomValue(XXMI_MODE)
 	const [presets, setPresets] = useAtom(PRESETS);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [_, setSource] = useAtom(SOURCE);
@@ -110,11 +111,6 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 			<DialogTrigger asChild>
 				<Button
 					onClick={() => {
-						// setProgress &&
-						// 	setProgress((prev: number[]) => {
-						// 		prev[1] = 1;
-						// 		return [...prev];
-						// 	});
 					}}
 					className="w-38.75 text-ellipsis peer h-12 overflow-hidden"
 					style={{ width: leftSidebarOpen ? "" : "3rem" ,borderRadius: leftSidebarOpen ? "" : "999px"}}
@@ -125,9 +121,9 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 			</DialogTrigger>
 			<DialogContent className="min-h-fit">
 				<AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
-					<AlertDialogContent className="  game-font bg-background/50 backdrop-blur-xs border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg">
+					<AlertDialogContent className=" game-font bg-background/50 backdrop-blur-xs border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg">
 						<div className=" flex flex-col items-center gap-6 mt-6 text-center">
-							<div className="text-xl flex gap-2 flex-col items-center justify-center text-gray-200">
+							<div className="flex flex-col items-center justify-center gap-2 text-xl text-gray-200">
 								{TEXT[langAlertData.prev].Change + TEXT[langAlertData.prev].Languages[langAlertData.new]}
 								?
 								<Separator />
@@ -135,7 +131,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							</div>
 
 							{langAlertData.new !== "en" && (
-								<div className="max-w-96 text-accent gap-4 text-sm flex flex-col	">
+								<div className="max-w-96 text-accent flex flex-col gap-4 text-sm">
 									<span>
 										{TEXT[langAlertData.prev].Warning1 + " "}
 										{TEXT[langAlertData.prev].Warning2}
@@ -186,7 +182,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 						</TabsTrigger>
 						<TabsTrigger value="game" className="w-1/2 h-10">
 							<div
-								className="height-2 aspect-square duration-300 logo min-h-4"
+								className="height-2 aspect-square logo min-h-4 duration-300"
 								style={{
 									filter: !globalPage ? "invert(1) hue-rotate(180deg)" : "",
 								}}
@@ -201,7 +197,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							animate={{ opacity: 1, x: 0 }}
 							exit={{ opacity: 0, x: globalPage ? "-25%" : "25%" }}
 							transition={{ duration: 0.2 }}
-							className="w-full gap-2 flex min-h-80"
+							className="min-h-80 flex w-full gap-2"
 						>
 							{globalPage ? (
 								<>
@@ -371,7 +367,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 										</div>
 										<div className="flex flex-col w-full gap-4">
 											<label>{textData.Language}</label>
-											<div className="flex justify-evenly ">
+											<div className="justify-evenly flex">
 												{LANG_LIST.map((lang) => (
 													<div
 														key={lang.Code}
@@ -385,9 +381,9 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 															setAlertOpen(true);
 														}}
 													>
-														<img src={lang.Flag} alt={lang.Name} className="w-6 h-6 duration-200 hover:scale-120" />
+														<img src={lang.Flag} alt={lang.Name} className="hover:scale-120 w-6 h-6 duration-200" />
 														<span
-															className="overflow-hidden duration-200 mt-12 text-accent absolute whitespace-nowrap "
+															className="text-accent whitespace-nowrap absolute mt-12 overflow-hidden duration-200"
 															style={{
 																opacity: settings.global.lang == lang.Code ? "1" : "0",
 															}}
@@ -402,7 +398,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 								</>
 							) : (
 								<>
-									<div className="min-w-1/2 justify-between flex flex-col min-h-full gap-4 pr-2">
+									<div className="min-w-1/2 justify-evenly flex flex-col min-h-full gap-4 pr-2">
 										<div className="flex flex-col w-full gap-4">
 											<div className="flex items-center gap-1">
 												{textData._LeftSideBar._components._Settings.AutoReload}
@@ -468,15 +464,17 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 													<TooltipContent>
 														<div className="flex flex-col items-center gap-1">
 															<div>{textData._LeftSideBar._components._Settings._LaunchGame.LaunchMsg1}</div>
-															<div>{textData._LeftSideBar._components._Settings._LaunchGame.LaunchMsg2}</div>
-															<div>{textData._LeftSideBar._components._Settings._LaunchGame.LaunchMsg3}</div>
 														</div>
 													</TooltipContent>
 												</Tooltip>
 											</div>
 											<Tabs
 												defaultValue={settings.game.launch.toString()}
-												className="w-full"
+												className=" w-full duration-200"
+												style={customMode?{
+													pointerEvents:"none",
+													filter: "brightness(0.5)"
+												}:{}}
 												onValueChange={(e) => {
 													setSettings((prev) => {
 														prev.game.launch = parseInt(e) as 0 | 1;
@@ -496,65 +494,10 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 													</TabsTrigger>
 												</TabsList>
 											</Tabs>
-											<div className="flex flex-row items-center w-full gap-2">
-												<Button
-													disabled={settings.game.launch == 0}
-													className="aspect-square flex items-center justify-center w-8 h-8"
-													onClick={async () => {
-														const path = await selectPath({multiple:false,directory:false,defaultPath:settings.global.XXMI,title:"Select XXMI Executable",filters:[{name:"Application",extensions:["exe"]}]});
-														if (path) {
-															setSettings((prev) => {
-																prev.global.XXMI = path;
-																return { ...prev };
-															});
-															saveConfigs();
-														}
-													}}
-													style={{
-														marginLeft: leftSidebarOpen ? "" : "0.25rem",
-													}}
-												>
-													<FolderIcon className="aspect-square w-5" />
-												</Button>
-												<Input
-													readOnly
-													disabled={settings.game.launch == 0}
-													type="text"
-													className="w-72 overflow-hidden border-border/0 bg-input/50 cursor-default duration-200 text-ellipsis h-8"
-													value={settings.global.XXMI ?? ""}
-													placeholder={textData._LeftSideBar._components._Settings._LaunchGame.Placeholder}
-													style={{
-														width: leftSidebarOpen ? "" : "0px",
-														opacity: leftSidebarOpen ? "" : "0",
-													}}
-												/>
-											</div>
 										</div>
 										<div className="flex flex-col w-full gap-4">
 											<div className="flex items-center gap-1">
-												{settings.global.game + "MI and Mods Folder"}
-												{/* <Tooltip>
-													<TooltipTrigger>
-														<InfoIcon className="text-muted-foreground hover:text-gray-300 w-4 h-4" />
-													</TooltipTrigger>
-													<TooltipContent>
-														<div className="flex flex-col gap-1">
-															<div>
-																Select location of <b>{textData._LeftSideBar._components._Settings._AutoReload.Disable} -</b>{" "}
-																
-															</div>
-															<div>
-																<b>IMM -</b> {textData._LeftSideBar._components._Settings._AutoReload.WWMMMsg}
-															</div>
-															<div>
-																<b>{textData._LeftSideBar._components._Settings._AutoReload.OnFocus} -</b>{" "}
-																{textData._LeftSideBar._components._Settings._AutoReload.FocusMsg}
-															</div>
-															<Separator />
-															<div>{textData._LeftSideBar._components._Settings._AutoReload.ReloadMsg}</div>
-														</div>
-													</TooltipContent>
-												</Tooltip> */}
+												{textData._LeftSideBar._components._Settings[customMode?"ModDir":"XXMIDir"]}
 											</div>
 											<div className="flex flex-row items-center w-full gap-2">
 												<Button
@@ -563,6 +506,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 														setSource("");
 														setTarget("");
 														setSettingsOpen(false);
+														skipPage();
 														store.set(INIT_DONE, false);
 													}}
 												>
@@ -572,14 +516,14 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 											</div>
 										</div>
 									</div>
-									<div className="min-w-1/2 justify-e venly flex flex-col min-h-full gap-2 pr-2">
-										<div className="flex flex-col w-full gap-4">
+									<div className="min-w-1/2 justify-evenly flex flex-col min-h-full gap-2 pr-2">
+										<div className="flex flex-col w-full gap-2">
 											{textData._LeftSideBar._components._Settings.ImportExport}
 											<div className="flex justify-start w-full gap-2 pr-2">
 												<Button
 													// disabled={disabled}
 													onClick={importConfig}
-													className="h-9 w-1/2 text-sm "
+													className="h-9 w-1/2 text-sm"
 												>
 													<DownloadIcon className="w-4 h-4" />
 													{textData._LeftSideBar._components._Settings._ImportExport.Import}
@@ -619,7 +563,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 												</TooltipContent>
 											</Tooltip>
 										</div>
-										<div className="max-h-51 flex flex-col w-full h-full gap-1 p-2 ml-2 overflow-x-hidden overflow-y-auto ">
+										<div className="max-h-51 flex flex-col w-full h-full gap-1 p-2 ml-2 overflow-x-hidden overflow-y-auto">
 											{presets.length > 0 ? (
 												presets.map((preset, index) => (
 													<div className="flex items-center justify-between w-full h-10 gap-2">

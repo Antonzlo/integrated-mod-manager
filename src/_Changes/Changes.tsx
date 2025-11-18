@@ -52,7 +52,7 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 			}}
 		>
 			<div className="w-180 h-164 bg-background/50 border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg">
-				<div className="min-h-fit text-accent my-6 text-3xl">{textData._Changes.ConfirmChanges}</div>
+				<div className="text-accent min-h-fit my-6 text-3xl">{textData._Changes.ConfirmChanges}</div>
 				<div className="flex flex-row items-center w-full gap-2 px-2">
 					<Button
 						className="aspect-square flex items-center justify-center w-10 h-10"
@@ -96,7 +96,7 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 									{item.isDirectory ? <Folder className="w-4 h-4" /> : <FileIcon className="w-4 h-4" />}
 									<Label className={"w-full pointer-events-none " + ((index % 2) + 1)}>{item.name}</Label>
 								</div>
-								<div className="flex border-l flex-col items-center w-full ml-4">
+								<div className="flex flex-col items-center w-full ml-4 border-l">
 									{item.children?.map((child, index) => (
 										<>
 											<div
@@ -175,7 +175,7 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 					<div className="flex flex-col items-center justify-center w-full">
 						<div className=" flex items-center gap-2">
 							<Checkbox id="checkbox" className=" checked:bg-accent bgaccent" />
-							<label className="text-accent opacity-75 text-sm">{textData._Changes.CreateRestore}</label>
+							<label className="text-accent text-sm opacity-75">{textData._Changes.CreateRestore}</label>
 						</div>
 					</div>
 					<Button

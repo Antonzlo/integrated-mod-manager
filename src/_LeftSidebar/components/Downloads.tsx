@@ -26,7 +26,6 @@ function Downloads() {
 	const [data, setData] = useAtom(DATA);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const leftSidebarOpen = useAtomValue(LEFT_SIDEBAR_OPEN);
-	// const rootDir = useAtomValue(modRootDirAtom);
 	const modList = useSetAtom(MOD_LIST);
 	const downloadRef = useRef<HTMLDivElement>(null);
 	const downloadRef2 = useRef<HTMLDivElement>(null);
@@ -34,8 +33,6 @@ function Downloads() {
 	const speedRef = useRef<HTMLDivElement>(null);
 	const lastSpeedUpdate = useRef<number>(0);
 	const downloadFile = async (item: DownloadItem) => {
-		//console.log(item);
-		// return;
 		if (item.category == "Other/Misc") item.category = "Other";
 		item.name = sanitizeFileName(item.name);
 		path = (await createModDownloadDir(item.category, item.name)) as string;
@@ -55,8 +52,6 @@ function Downloads() {
 			return { ...prevData };
 		});
 		saveConfigs();
-		// let items = await refreshRootDir("");
-		// modList(items);
 		invoke("download_and_unzip", {
 			fileName: item.name,
 			downloadUrl: item.file,
@@ -76,14 +71,16 @@ function Downloads() {
 			const total = payload.total as number;
 			const downloaded = payload.downloaded as number;
 			prev = ((downloaded / total) * 100).toFixed(2) as unknown as number;
-			prevText =` • ${prev}% (${formatBytes(downloaded)}/${formatBytes(total)}) • ${payload.speed} • ${payload.eta} • `
+			prevText = ` • ${prev}% (${formatBytes(downloaded)}/${formatBytes(total)}) • ${payload.speed} • ${
+				payload.eta
+			} • `;
 			// Debounce speed/ETA updates to 500ms
 			const now = Date.now();
 			if (now - lastSpeedUpdate.current >= 1000) {
-				if(speedRef.current) speedRef.current.textContent = prevText;
+				if (speedRef.current) speedRef.current.textContent = prevText;
 				lastSpeedUpdate.current = now;
 			}
-			
+
 			if (downloadRef.current) downloadRef.current.style.width = prev + "%";
 			if (downloadRef2.current) downloadRef2.current.style.width = prev + "%";
 			if (downloadRef3.current) {
@@ -179,17 +176,17 @@ function Downloads() {
 			<DialogTrigger asChild>
 				{
 					<Button
-						className="text-ellipsis min-h-12 max-h-12 min-w -80 px-0 flex flex-col items-center w-full overflow-hidden"
+						className="text-ellipsis min-h-12 max-h-12 min-w -80 flex flex-col items-center w-full px-0 overflow-hidden"
 						style={{ width: leftSidebarOpen ? "" : "3rem" }}
 					>
 						{leftSidebarOpen ? (
 							downloadList.length > 0 ? (
 								<>
-									<div className="fade-in flex-col overflow-hidden rounded-md min-h-12  flex items-center justify-center w-full pointer-events-none">
+									<div className="fade-in min-h-12 flex flex-col items-center justify-center w-full overflow-hidden rounded-md pointer-events-none">
 										<div
 											ref={downloadRef}
 											key={"down" + JSON.stringify(downloadList[0])}
-											className="min-h-12 -mb-12 height-in zzz-rounded  bg-accent bgaccent    text-background hover:brightness-125 z-10 flex flex-col self-start justify-center overflow-hidden rounded-lg"
+											className="min-h-12 height-in zzz-rounded bg-accent bgaccent text-background hover:brightness-125 z-10 flex flex-col self-start justify-center -mb-12 overflow-hidden rounded-lg"
 											style={{ width: prev + "%" }}
 										>
 											<div className="min-w-79 fade-in flex items-center justify-center gap-1 pointer-events-none">
@@ -207,8 +204,7 @@ function Downloads() {
 										</div>
 										<div
 											key={"down2" + JSON.stringify(downloadList[0])}
-											className="fade-in min-h-12 
-											flex items-center justify-center w-full gap-1 pointer-events-none"
+											className="fade-in min-h-12 flex items-center justify-center w-full gap-1 pointer-events-none"
 										>
 											{Icons[downloadList[0].status as keyof typeof Icons] || (
 												<FileQuestionIcon className="min-h-4 min-w-4" />
@@ -224,7 +220,7 @@ function Downloads() {
 									</div>
 								</>
 							) : (
-								<div className="fade-in  min-h-12 flex items-center justify-center w-full gap-1 pl-2 pointer-events-none">
+								<div className="fade-in min-h-12 flex items-center justify-center w-full gap-1 pl-2 pointer-events-none">
 									<DownloadIcon className="min-h-4 min-w-4" />
 									<Label className=" w-fit max-w-72 pr-2 pointer-events-none">{textData.Downloads}</Label>
 								</div>
@@ -233,13 +229,13 @@ function Downloads() {
 							<>
 								<div
 									ref={downloadRef3}
-									className="min-h-12 min-w-12 p-1 max-w-12  max-h-12 flex items-center justify-center rounded-lg"
+									className="min-h-12 min-w-12 max-w-12 max-h-12 flex items-center justify-center p-1 rounded-lg"
 									style={{
 										background: "conic-gradient( var(--accent) 0% " + prev + "%, var(--button) 0% 100%)",
 										transition: "minHeight 0.3s, margin-bottom 0.3s, height 0.3s",
 									}}
 								>
-									<Label className=" w-full h-full flex items-center justify-center bg-button zzz-rounded zzz-fg-text text-accent rounded-md pointer-events-none">{`${
+									<Label className=" bg-button zzz-rounded zzz-fg-text text-accent flex items-center justify-center w-full h-full rounded-md pointer-events-none">{`${
 										done + (downloadList[0].status == "downloading" ? 1 : 0)
 									}/${downloadList.length}`}</Label>
 								</div>
@@ -267,15 +263,15 @@ function Downloads() {
 							{textData._LeftSideBar._components._Downloads.Clear}
 						</Button>
 					</div>
-					<div className="flex flex-col w-full data-wuwa:gap-0 gap-2 h-full overflow-y-auto text-gray-300 data-wuwa:border border-0 rounded-sm">
+					<div className="data-wuwa:gap-0 data-wuwa:border flex flex-col w-full h-full gap-2 overflow-y-auto text-gray-300 border-0 rounded-sm">
 						{downloadList.length > 0 ? (
 							<>
 								{
-									<div className="overflow-hidden data-zzz:zzz-rounded zzz-fg-text   data-gi:rounded-sm duration-0 flex items-center w-full min-h-16 min-w-0 data-wuwa:-mb-16 -mb-18 data-wuwa:border-b">
+									<div className="data-zzz:zzz-rounded zzz-fg-text data-gi:rounded-sm duration-0 min-h-16 data-wuwa:-mb-16 -mb-18 data-wuwa:border-b flex items-center w-full min-w-0 overflow-hidden">
 										<div
 											key={"cur" + JSON.stringify(downloadList[0])}
 											ref={downloadRef2}
-											className="bg-accent bgaccent opacity-50 data-zzz:zzz-rounded zzz-fg-text data-gi:rounded-sm  duration-0 flex items-center w-0 min-h-16 min-w-0"
+											className="bg-accent bgaccent data-zzz:zzz-rounded zzz-fg-text data-gi:rounded-sm duration-0 min-h-16 flex items-center w-0 min-w-0 opacity-50"
 											style={{ width: prev + "%" }}
 										></div>
 									</div>
@@ -283,10 +279,10 @@ function Downloads() {
 								{downloadList.map((item, index) => (
 									<div
 										key={item.name.replaceAll("DISABLED_", "") + index}
-										className="hover:bg-background/20 zzz-fg-text data-zzz:button-like flex justify-between items-center w-full data-gi:border-1 data-gi:rounded-sm  min-h-16 px-4 data-wuwa:border-b"
+										className="hover:bg-background/20 zzz-fg-text data-zzz:button-like data-gi:border-1 data-gi:rounded-sm min-h-16 data-wuwa:border-b flex items-center justify-between w-full px-4"
 										style={{ backgroundColor: index % 2 == 0 ? "#1b1b1b50" : "#31313150" }}
 									>
-										<div className="flex items-center w-full flex-1 gap-3 ">
+										<div className=" flex items-center flex-1 w-full gap-3">
 											{Icons[item.status as keyof typeof Icons] || <FileQuestionIcon className="min-h-4 min-w-4" />}
 											<div className="flex flex-col flex-1 w-full">
 												<Label
@@ -295,9 +291,9 @@ function Downloads() {
 												>
 													{item.name.replaceAll("DISABLED_", "")}
 												</Label>
-												<div className="text-xs text-gray-400 flex gap-1 capitalize">
+												<div className="flex gap-1 text-xs text-gray-400 capitalize">
 													{item.status}
-													<div ref={index==0?speedRef:null}>{prevText}</div>
+													<div ref={index == 0 ? speedRef : null}>{prevText}</div>
 													{item.category}
 												</div>
 											</div>

@@ -28,7 +28,7 @@ function Carousel({ data, big }: { data: any[]; big?: boolean }) {
 				<CarouselContent className="aspect-video min-w-full min-h-full">
 					{data?.map((item, index) => (
 						<CarouselItem key={index} className="flex flex-col overflow-hidden">
-							<div className="  border rounded-lg flex flex-col overflow-hidden">
+							<div className=" flex flex-col overflow-hidden border rounded-lg">
 								<div
 									onClick={(e) => {
 										if (e.target != e.currentTarget) return;
@@ -45,7 +45,7 @@ function Carousel({ data, big }: { data: any[]; big?: boolean }) {
 									onClick={(e) => {
 										if (e.target != e.currentTarget) return;
 									}}
-									className=" aspect-video z-20 flex flex-col items-center justify-between overflow-hidden  rounded-lg pointer-events-auto"
+									className=" aspect-video z-20 flex flex-col items-center justify-between overflow-hidden rounded-lg pointer-events-auto"
 									style={{
 										backgroundImage: `url(${item._sBaseUrl + "/" + item._sFile})`,
 										backgroundSize: "contain",

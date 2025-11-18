@@ -41,7 +41,7 @@ function Page2({ setPage }: { setPage: (page: number) => void }) {
 		return () => window.removeEventListener("keydown", checkEscape);
 	}, []);
 	return (
-		<div className="text-muted-foreground gap-4 fixed flex flex-col items-center justify-center w-screen h-screen">
+		<div className="text-muted-foreground fixed flex flex-col items-center justify-center w-screen h-screen gap-4">
 			<div className="mb-4 text-3xl">
 				{text.Select.split("").map((letter, index) => (
 					<span
@@ -55,7 +55,7 @@ function Page2({ setPage }: { setPage: (page: number) => void }) {
 					</span>
 				))}
 			</div>
-			<div className="flex gap-16 select-none items-center justify-center">
+			<div className="flex items-center justify-center gap-16 select-none">
 				<div
 					onClick={async () => {
 						if (!settings.global.game) initGame("WW");
@@ -66,7 +66,7 @@ function Page2({ setPage }: { setPage: (page: number) => void }) {
 					className="flex duration-200 border-2 border-wuwa-accent/30 hover:shadow-lg hover:-mt-2 active:scale-90 shadow-wuwa-accent bg-wuwa-accent/7 p-6 rounded-md aspect-[3/2] min-w-56 flex-col items-center wuwa-font"
 				>
 					<img src="/WWLogo.png" className="max-h-40 " />
-					<label className="text-2xl mt-8">WuWa</label>
+					<label className="mt-8 text-2xl">WuWa</label>
 				</div>
 				<div
 					onClick={async () => {
@@ -78,7 +78,7 @@ function Page2({ setPage }: { setPage: (page: number) => void }) {
 					className="flex duration-200 border-2 border-zzz-accent-2/30 hover:shadow-lg hover:-mt-2 active:scale-90 shadow-zzz-accent-2 bg-zzz-accent-2/7 p-6 rounded-md min-w-56.5 flex-col items-center zzz-font"
 				>
 					<img src="/ZZLogo.png" className="max-h-40 " />
-					<label className="text-2xl mt-8">Z·Z·Z</label>
+					<label className="mt-8 text-2xl">Z·Z·Z</label>
 				</div>
 				<div
 					onClick={async () => {
@@ -89,8 +89,8 @@ function Page2({ setPage }: { setPage: (page: number) => void }) {
 					}}
 					className="flex duration-200 border-2 border-gi-accent/30 hover:shadow-lg hover:-mt-2 active:scale-90 shadow-gi-accent bg-gi-accent/7 p-6 rounded-md aspect-[3/2] min-w-56.5 flex-col items-center wuwa-font"
 				>
-					<img src="/GILogo.png" className="max-h-40 -mt-2 scale-110 mb-2" />
-					<label className="text-2xl mt-8">Genshin</label>
+					<img src="/GILogo.png" className="max-h-40 mb-2 -mt-2 scale-110" />
+					<label className="mt-8 text-2xl">Genshin</label>
 				</div>
 			</div>
 		</div>

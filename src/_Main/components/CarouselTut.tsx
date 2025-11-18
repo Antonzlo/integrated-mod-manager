@@ -3,8 +3,17 @@ import { Carousel as CarouselCN, CarouselContent, CarouselItem } from "@/compone
 // import { OnlineModImage } from "@/utils/types";
 import type { EmblaCarouselType } from "embla-carousel";
 
-function CarouselTut({ title, data, subIndex, setSubIndex }: { title: string; data: any[]; subIndex: number; setSubIndex: (index: number) => void }) {
-	
+function CarouselTut({
+	title,
+	data,
+	subIndex,
+	setSubIndex,
+}: {
+	title: string;
+	data: any[];
+	subIndex: number;
+	setSubIndex: (index: number) => void;
+}) {
 	const [api, setApi] = useState<EmblaCarouselType | undefined>();
 	useEffect(() => {
 		if (!api) return;
@@ -18,7 +27,6 @@ function CarouselTut({ title, data, subIndex, setSubIndex }: { title: string; da
 	}, [api]);
 	useEffect(() => {
 		if (api && subIndex >= 0) {
-			//console.log("Scrolling to ", subIndex);
 			api.scrollTo(subIndex);
 		}
 	}, [subIndex, api]);
@@ -33,15 +41,6 @@ function CarouselTut({ title, data, subIndex, setSubIndex }: { title: string; da
 					{data?.map((item, index) => (
 						<CarouselItem key={index} className="flex flex-col overflow-hidden">
 							<div className=" flex flex-col overflow-hidden">
-								{/* <div
-									className=" aspect-video ml-4 -mb-[55%] flex blur-md flex-col pointer-events-auto items-center justify-between overflow-hidden rounded-lg"
-									style={{
-										backgroundImage: `url(/tutorials/${title + "/" + index}.png)`,
-										backgroundSize: "cover",
-										backgroundPosition: "center",
-										backgroundRepeat: "no-repeat",
-									}}
-								/> */}
 								<div
 									onClick={(e) => {
 										if (e.target != e.currentTarget) return;

@@ -24,57 +24,38 @@ export function addToast({
 }
 function ToastProvider() {
 	const toasts = useAtomValue(TOASTS);
-	// const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-	// // Mouse tracking
-	// useEffect(() => {
-	// 	const handleMouseMove = (event: MouseEvent) => {
-	// 		setMousePosition({ x: event.clientX, y: event.clientY });
-	// 	};
-	// 	window.addEventListener("mousemove", handleMouseMove);
-	// 	window.addEventListener("scroll", ()=>{//console.log("Scrolling")});
-	// 	return () => window.removeEventListener("mousemove", handleMouseMove);
-	// }, []);
 	return createPortal(
 		<>
-		<div className="fixed z-[99999] top-1 left-1/2 -translate-x-1/2 w-82 h-2 flex flex-col-reverse items-center justify-center pointer-events-none">
-			<AnimatePresence>
-				{toasts.map((toast: any, index: number) => (
-					<motion.div
-					key={toast.id}
-					initial={{ opacity: 0, y: -20 }}
-					animate={{ opacity: 1, y: 0 }}
-					exit={{ opacity: 0, y: -20 }}
-					transition={{ duration: 0.3 }}
-					layout
-					style={{
-						zIndex: 99999 - counter + index,
-						scale: 0.9 + (index - toasts.length) * 0.1,
-						color:
-							toast.type === "success"
-								? "var(--success)"
-								: toast.type === "error"
-								? "var(--destructive)"
-								: toast.type === "warning"
-								? "var(--warn)"
-								: ""
-					}}
-					className="w-full game-font text-center h-20 polka min-h-20 -mb-22 bg-card pointer-events-none flex items-center justify-center rounded-md button-like border"
-					>
-						{toast.message}
-					</motion.div>
-				))}
-			</AnimatePresence>
-			{/* Custom Cursor */}
+			<div className="fixed z-[99999] top-1 left-1/2 -translate-x-1/2 w-82 h-2 flex flex-col-reverse items-center justify-center pointer-events-none">
+				<AnimatePresence>
+					{toasts.map((toast: any, index: number) => (
+						<motion.div
+							key={toast.id}
+							initial={{ opacity: 0, y: -20 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -20 }}
+							transition={{ duration: 0.3 }}
+							layout
+							style={{
+								zIndex: 99999 - counter + index,
+								scale: 0.9 + (index - toasts.length) * 0.1,
+								color:
+									toast.type === "success"
+										? "var(--success)"
+										: toast.type === "error"
+										? "var(--destructive)"
+										: toast.type === "warning"
+										? "var(--warn)"
+										: "",
+							}}
+							className="data-wuwa:px-1 game-font polka min-h-20 -mb-22 bg-card data-gi:outline button-like flex items-center justify-center w-full h-20 px-4 py-1 text-center border rounded-md pointer-events-none"
+						>
+							{toast.message}
+						</motion.div>
+					))}
+				</AnimatePresence>
 			</div>
-			{/* <div
-				className="cursor z-[9999999] fixed top-0 left-0 min-w-8 min-h-8 pointer-events-none"
-				style={{
-					left: `${mousePosition.x}px`,
-					top: `${mousePosition.y}px`,
-				}}
-				/> */}
-				</>,
+		</>,
 		document.body
 	);
 }

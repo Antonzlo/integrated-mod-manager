@@ -99,8 +99,8 @@ export function getConfig(settings: Settings) {
 	const gameConfig: GameConfig = {
 		version: VERSION,
 		custom: xxmiMode,
-		sourceDir: xxmiMode?store.get(SOURCE) || "" : "",
-		targetDir: xxmiMode?store.get(TARGET) || "" : "",
+		sourceDir: xxmiMode ? store.get(SOURCE) || "" : "",
+		targetDir: xxmiMode ? store.get(TARGET) || "" : "",
 		game: settings.global.game,
 		settings: settings.game,
 		data: store.get(DATA) || {},
@@ -444,7 +444,6 @@ export async function categorizeDir(src: string, skipRestore = false) {
 		// First pass: categorize items
 		for (const item of entries) {
 			if (item.isDirectory && ignore.includes(item.name)) continue;
-
 			if (item.name === OLD_RESTORE) {
 				if (skipRestore) continue;
 				try {
@@ -455,7 +454,6 @@ export async function categorizeDir(src: string, skipRestore = false) {
 				continue;
 			}
 			if (categories.includes(item.name)) {
-				reqCategories[item.name] = [];
 				continue;
 			}
 			const category =
@@ -468,7 +466,6 @@ export async function categorizeDir(src: string, skipRestore = false) {
 								catPart.includes(item.name.toLowerCase()) || item.name.toLowerCase().includes(catPart)
 						)
 				) || UNCATEGORIZED;
-
 			if (item.isDirectory && item.name === category) continue;
 
 			if (!reqCategories[category]) {
@@ -476,7 +473,6 @@ export async function categorizeDir(src: string, skipRestore = false) {
 			}
 			reqCategories[category].push({ name: item.name, isDirectory: item.isDirectory });
 		}
-
 		// Second pass: batch create directories and move items
 		const mkdirPromises: Promise<void>[] = [];
 		for (const key of Object.keys(reqCategories)) {
@@ -512,7 +508,7 @@ export async function verifyDirStruct() {
 	try {
 		if (!(!!src && (await exists(src))) || !(!!tgt && (await exists(tgt))))
 			throw new Error("Source or Target not found");
-		
+
 		if (!(await exists(tgt))) throw new Error("Target Directory not found");
 
 		const modDir = join(src, managedSRC);
@@ -563,14 +559,17 @@ export async function verifyDirStruct() {
 		const readPromises: Promise<{ item: any; entries: any[] }>[] = [];
 		for (const item of before) {
 			const category =
-				categories.find((cat: Category) =>
-					cat._sName
-						.toLowerCase()
-						.split(" ")
-						.some(
-							(catPart: string) =>
-								catPart.includes(item.name.toLowerCase()) || item.name.toLowerCase().includes(catPart)
-						)
+				categories.find(
+					(cat: Category) =>
+						cat._sName === item.name ||
+						(!categories.some((c) => c._sName === item.name) &&
+							cat._sName
+								.toLowerCase()
+								.split(" ")
+								.some(
+									(catPart: string) =>
+										catPart.includes(item.name.toLowerCase()) || item.name.toLowerCase().includes(catPart)
+								))
 				) ||
 				(item.name === RESTORE || item.name === OLD_RESTORE
 					? { _sName: RESTORE, _sIconUrl: "" }
@@ -630,14 +629,17 @@ export async function verifyDirStruct() {
 					const category =
 						item.name === RESTORE
 							? { _sName: RESTORE, _sIconUrl: "" }
-							: categories.find((cat) =>
-									cat._sName
-										.toLowerCase()
-										.split(" ")
-										.some(
-											(catPart: string) =>
-												catPart.includes(item.name.toLowerCase()) || item.name.toLowerCase().includes(catPart)
-										)
+							: categories.find(
+									(cat) =>
+										cat._sName === item.name ||
+										(!categories.some((c) => c._sName === item.name) &&
+											cat._sName
+												.toLowerCase()
+												.split(" ")
+												.some(
+													(catPart: string) =>
+														catPart.includes(item.name.toLowerCase()) || item.name.toLowerCase().includes(catPart)
+												))
 							  );
 
 					if (category) {
@@ -852,7 +854,8 @@ async function detectHotkeys(entries: Mod[], data: ModDataObj, src: string, dept
 											k = k.replace("vk_", "");
 										}
 										return k.trim();
-									}).filter((k) => k)
+									})
+									.filter((k) => k)
 									.join("+") || "";
 							counter++;
 						} else if (counter === 1 && ln.startsWith("type=")) {
@@ -903,11 +906,10 @@ export async function refreshModList() {
 		const entries = (await detectHotkeys(await readDirRecr(modSrc, "", 3), data, modSrc))[0]
 			.map((entry) => entry.children)
 			.flat()
-			.map((entry) =>{
-				if(entry.depth==1)
-					entry.children =[];
-				return entry
-			} )
+			.map((entry) => {
+				if (entry.depth == 1) entry.children = [];
+				return entry;
+			})
 			.filter((entry) => entry.depth < 2)
 			.sort(sortMods);
 

@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 // import type { CardLocalProps } from "@/utils/types";
 
 interface CardOnlineProps {
-	
 	_sName: string;
 	_sModelName: string;
 	_sInitialVisibility: string;
@@ -34,7 +33,7 @@ const Online = React.memo((data: CardOnlineProps) => {
 	return (
 		<div className="card-generic card-online ">
 			<img
-				className="flex fadein flex-col bg-no-repeat items-center justify-center w-full h-full duration-200 bg-center object-cover rounded-t-lg pointer-events-none"
+				className="fadein flex flex-col items-center justify-center object-cover w-full h-full duration-200 bg-center bg-no-repeat rounded-t-lg pointer-events-none"
 				src={backgroundImage}
 				onError={(e) => handleImageError(e)}
 				style={{
@@ -43,7 +42,7 @@ const Online = React.memo((data: CardOnlineProps) => {
 				}}
 			/>
 			{data._sInitialVisibility === "hide" && data.blur === true && (
-				<div className="max-h-0 fadein mb-45 z-20  -mt-45 w-fit self-center">
+				<div className="max-h-0 fadein mb-45 -mt-45 w-fit z-20 self-center">
 					<Button
 						className=" bg-background/50 duration-200 pointer-events-auto"
 						onClick={(e) => {
@@ -70,7 +69,6 @@ const Online = React.memo((data: CardOnlineProps) => {
 					readOnly
 					type="text"
 					className="bg-semi w-56 cursor-pointerx select-none focus-within:select-auto overflow-hidden h-8 focus-visible:ring-[0px] border-0 text-ellipsis"
-					// style={COMMON_STYLES.TRANSPARENT_BG}
 					defaultValue={data._sName}
 				/>
 				<div className="flex justify-between w-full h-6 text-xs">

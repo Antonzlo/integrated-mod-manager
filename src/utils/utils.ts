@@ -5,7 +5,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { apiClient } from "./api";
 import { join } from "./hotreload";
 import { addToast } from "@/_Toaster/ToastProvider";
-import { TEXT } from "./text";
+import  TEXT  from "@/textData.json";
 export { join };
 let IMAGE_SERVER_URL = IMAGE_SERVER;
 export function setImageServer(url: string) {

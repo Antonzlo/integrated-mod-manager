@@ -37,7 +37,7 @@ function Notice() {
 			<AlertDialogTrigger asChild>
 				<Button
 					onClick={() => setNoticeOpen(true)}
-					className="aspect-square border text-ellipsis bg-sidebar p-0 flex flex-col h-full overflow-hidden text-xs"
+					className="aspect-square text-ellipsis bg-sidebar flex flex-col h-full p-0 overflow-hidden text-xs border"
 					style={{
 						width: notice.id == 0 ? "0px" : "auto",
 						marginRight: notice.id == 0 ? "-12px" : "0px",
@@ -75,7 +75,7 @@ function Notice() {
 								setUpdateeOpen(true);
 							}, 300);
 						}}
-						className="w-28 justify-between data-zzz:text-accent duration-300"
+						className="w-28 data-zzz:text-accent justify-between duration-300"
 					>
 						<UploadIcon />
 						{textData.Update}

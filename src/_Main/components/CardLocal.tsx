@@ -25,7 +25,7 @@ const CardLocal = React.memo(({ item, selected, lastUpdated }: CardLocalProps) =
 		>
 			<img
 				style={{ filter: item.enabled ? "brightness(1) blur(8px) " : " blur(8px) brightness(0.5) saturate(0.5)" }}
-				className="object-cover fadein w-full h-full pointer-events-none"
+				className="fadein object-cover w-full h-full pointer-events-none"
 				src={previewUrl}
 				onError={(e) => handleImageError(e, true)}
 			/>
@@ -36,14 +36,12 @@ const CardLocal = React.memo(({ item, selected, lastUpdated }: CardLocalProps) =
 				onError={(e) => handleImageError(e)}
 			/>
 			<div className="bg-background/50 fadein backdrop-blur data-gxi:-mt-71.5 flex items-center w-full min-h-14 gap-2 px-4 py-1 header-img">
-				
 				<Label
-					className="w-56 pointer-events-none select-none overflow-hidden border-0 text-ellipsis"
+					className="text-ellipsis w-56 overflow-hidden border-0 pointer-events-none select-none"
 					style={{ backgroundColor: "#fff0", filter: item.enabled ? "brightness(1)" : "brightness(0.5) saturate(0.5)" }}
 				>
 					{item.name}
 				</Label>
-				
 			</div>
 		</div>
 	);

@@ -51,7 +51,7 @@ function Updater() {
 	return (
 		<Dialog open={updaterOpen} onOpenChange={setUpdaterOpen}>
 			<DialogTrigger asChild>
-				<Button className="max-w-32 text-ellipsis bg-sidebar p-0 flex flex-col w-full h-full overflow-hidden text-xs">
+				<Button className="max-w-32 text-ellipsis bg-sidebar flex flex-col w-full h-full p-0 overflow-hidden text-xs">
 					{update && update.status !== "ignored"
 						? {
 								available: (
@@ -64,7 +64,7 @@ function Updater() {
 									<>
 										<div
 											key={"down1"}
-											className="fade-in max-w-24 min-w-24 -mb-14 min-h-12 w-full  z-10 pointer-events-none"
+											className="fade-in max-w-24 min-w-24 -mb-14 min-h-12 z-10 w-full pointer-events-none"
 										>
 											<div
 												ref={ref1}
@@ -102,7 +102,7 @@ function Updater() {
 								error: (
 									<div className="min-w-24 min-h-12 text-background bg-accent flex items-center justify-center w-full gap-1 pointer-events-none">
 										<CircleAlert className="min-h-4 min-w-4 text-destructive" />
-										<Label className=" w-fit max-w-24 text-xs pointer-events-none text-destructive">
+										<Label className=" w-fit max-w-24 text-destructive text-xs pointer-events-none">
 											{textData._Main._components._Updater.Error}
 										</Label>
 									</div>
@@ -114,8 +114,8 @@ function Updater() {
 			</DialogTrigger>
 			<DialogContent className="game-font">
 				<div className="min-h-fit text-accent mt-6 text-3xl">{textData._Main._components._Updater.Updater}</div>
-				<div className="min-h-fit -mt-4 text-muted-foreground">v{VERSION}</div>
-				<div className="flex flex-col -mt-4 mb-6 items-center justify-center w-full">
+				<div className="min-h-fit text-muted-foreground -mt-4">v{VERSION}</div>
+				<div className="flex flex-col items-center justify-center w-full mb-6 -mt-4">
 					<div className=" flex items-center gap-2">
 						<Checkbox
 							id="checkbox"
@@ -139,12 +139,12 @@ function Updater() {
 							}}
 							checked={preReleases}
 						/>
-						<label className="text-muted-foreground text-sm">Get pre-releases</label>
+						<label className="text-muted-foreground text-sm">{textData.GetPre}</label>
 					</div>
 				</div>
 				{update && update.status !== "ignored" && (
 					<>
-						<div className="min-h-2 text-xl text-accent w-full ">
+						<div className="min-h-2 text-accent  w-full text-xl">
 							Version {update.version}{" "}
 							<span className="text-muted-foreground text-base">
 								({getTimeDifference(Date.now() / 1000, new Date(update.date).getTime() / 1000)}{" "}
@@ -154,13 +154,13 @@ function Updater() {
 						<Separator className="my-2" />
 					</>
 				)}
-				<div className="flex flex-col px-4 overflow-y-auto overflow-x-hidden  w-full h-82 max-h-82">
+				<div className="h-82 max-h-82 flex flex-col w-full px-4 overflow-x-hidden overflow-y-auto">
 					{update && update.status !== "ignored" ? (
 						<>
 							{maj.length > 0 && <div className="min-h-6 text-accent">{textData._Main._components._Updater.Maj}:</div>}
 							{maj.map((item: string, index: number) => (
-								<div key={index} className="min-h-fit text-lg text-muted-foreground flex items-center mt-1 gap-2">
-									<div className="min-w-1 min-h-1 self-start mt-3 aspect-square bg-accent rounded-full"></div>
+								<div key={index} className="min-h-fit text-muted-foreground flex items-center gap-2 mt-1 text-lg">
+									<div className="min-w-1 min-h-1 aspect-square bg-accent self-start mt-3 rounded-full"></div>
 									<div>{item}</div>
 								</div>
 							))}
@@ -184,15 +184,15 @@ function Updater() {
 							))}
 						</>
 					) : (
-						<div className="h-full w-full items-center justify-center flex flex-col text-muted-foreground">
+						<div className="text-muted-foreground flex flex-col items-center justify-center w-full h-full">
 							{textData._Main._components._Updater.Lat}
-							<div className="absolute flex items-center gap-2  mt-124">
+							<div className="mt-124 absolute flex items-center gap-2">
 								<label className="opacity-40">{textData.BFR}</label>
 								<label>:</label>
 								<a
 									href="https://gamebanana.com/mods/593490"
 									target="_blank"
-									className="flex gap-1 items-center text-xs opacity-50 hover:opacity-100 duration-200"
+									className="hover:opacity-100 flex items-center gap-1 text-xs duration-200 opacity-50"
 								>
 									{" "}
 									<img className="h-4" src="https://images.gamebanana.com/static/img/favicon/32x32.png" />{" "}
@@ -202,7 +202,7 @@ function Updater() {
 								<a
 									href="https://discord.gg/QGkKzNapXZ"
 									target="_blank"
-									className="flex gap-1 items-center text-xs  opacity-50 hover:opacity-100 duration-200"
+									className="hover:opacity-100 flex items-center gap-1 text-xs duration-200 opacity-50"
 								>
 									{" "}
 									<img
@@ -216,7 +216,7 @@ function Updater() {
 				</div>
 				{update && update.status !== "ignored" && (
 					<div className="flex items-center justify-end w-full h-10 mt-2">
-						<div ref={ref3} className="text-muted-foreground text-xs w-full">
+						<div ref={ref3} className="text-muted-foreground w-full text-xs">
 							{update.status == "ready" ? (
 								<>{textData._Main._components._Updater.Soon}</>
 							) : (

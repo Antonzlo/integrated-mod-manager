@@ -1,7 +1,7 @@
 import { atom, createStore } from "jotai";
 export const store = createStore();
 // import { initGame } from "./init";
-import { TEXT } from "./text";
+import  TEXT  from "@/textData.json";
 import { DEFAULTS, VERSION } from "./consts";
 import {
 	Category,
@@ -99,7 +99,7 @@ const NOTICE = atom({
 	subheading: "",
 	ignoreable: 2,
 	timer: 10,
-	ver: "2.1.2",
+	ver: VERSION,
 	id: 0,
 } as any);
 const HELP_OPEN = atom(false);

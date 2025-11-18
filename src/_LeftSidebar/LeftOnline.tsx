@@ -38,7 +38,7 @@ function LeftOnline() {
 	const game = useAtomValue(GAME)
 	return (
 		<>
-			<div className=" overflow-y-scroll thin flex flex-col w-full p-0"
+			<div className=" thin flex flex-col w-full p-0 overflow-y-scroll"
 			style={{
 				maxHeight:leftSidebarOpen?"":"calc(100vh - 29.66rem)",
 				minHeight:leftSidebarOpen?"fit-content":""
@@ -46,14 +46,14 @@ function LeftOnline() {
 			>
 				<SidebarGroupLabel>{textData._LeftSideBar._LeftOnline.Type}</SidebarGroupLabel>
 				<SidebarContent
-					className="grid min-h-fit data-wuwa:grid-cols-3 px-2 grid-cols-2 items-center justify-center w-full "
+					className="min-h-fit data-wuwa:grid-cols-3 grid items-center justify-center w-full grid-cols-2 px-2"
 					style={{
 						gridTemplateColumns: leftSidebarOpen ? "" : "repeat(1, minmax(0, 1fr))",
 					}}
 				>
 					{types.map((category) => {
 						return (
-							<div className="w-full flex items-center justify-center">
+							<div className="flex items-center justify-center w-full">
 								<Button
 									key={"filter" + category._sName}
 									id={"type " + category._sName}
@@ -73,13 +73,13 @@ function LeftOnline() {
 								>
 									{
 										game == "GI"?
-										<img src={category._sIconUrl} className="w-8 h-8 duration-200 aspect-square" style={{
+										<img src={category._sIconUrl} className="aspect-square w-8 h-8 duration-200" style={{
 											filter:onlinePath.startsWith(category._sName)?"invert(1) hue-rotate(180deg)":""
 										}} />
 										:(iconMap[category._sName] || <ShieldQuestion className="w-6 h-6" />)
 									}
 									
-										{leftSidebarOpen &&<label className="text-center w-full"> {category._sName}</label>}
+										{leftSidebarOpen &&<label className="w-full text-center"> {category._sName}</label>}
 										
 								</Button>
 							</div>
@@ -95,14 +95,14 @@ function LeftOnline() {
 					marginBlock: leftSidebarOpen ? "4px" : "",
 				}}
 			/>
-			<SidebarGroup className="pr-1 flex flex-col h-full overflow-hidden"
+			<SidebarGroup className="flex flex-col h-full pr-1 overflow-hidden"
 			style={{
 				height:leftSidebarOpen?"":"9rem"
 			}}
 			>
 				<SidebarGroupLabel className="flex items-center gap-1">
 					{textData.Installed}{" "}
-					<Label className="text-accent opacity-50 flex text-xs scale-75">
+					<Label className="text-accent flex text-xs scale-75 opacity-50">
 						<UploadIcon className="min-h-2 min-w-2 w-4 h-4" />{" "}
 						{installedItems.filter((item) => item.modStatus === 2).length} |{" "}
 						<EyeIcon className="min-h-2 min-w-2 w-4 h-4" />
@@ -155,15 +155,15 @@ function LeftOnline() {
 							</>
 						) : (
 							<>
-								<div className="aspect-square min-h-10 flex-col button-like items-center text-xs justify-center height-in overflow-hidden rounded-lg flex duration-200 bg-input/50 text-accent hover:bg-input/80">
+								<div className="aspect-square min-h-10 button-like height-in bg-input/50 text-accent hover:bg-input/80 flex flex-col items-center justify-center overflow-hidden text-xs duration-200 rounded-lg">
 									<UploadIcon className="min-h-2 min-w-2 w-4 h-4" />{" "}
 									{installedItems.filter((item) => item.modStatus === 2).length}
 								</div>
-								<div className="aspect-square min-h-10 flex-col button-like items-center text-xs justify-center height-in overflow-hidden rounded-lg flex duration-200 bg-input/50 text-accent hover:bg-input/80">
+								<div className="aspect-square min-h-10 button-like height-in bg-input/50 text-accent hover:bg-input/80 flex flex-col items-center justify-center overflow-hidden text-xs duration-200 rounded-lg">
 									<EyeIcon className="min-h-2 min-w-2 w-4 h-4" />
 									{installedItems.filter((item) => item.modStatus === 1).length}
 								</div>
-								<div className="aspect-square min-h-10 flex-col button-like items-center text-xs justify-center height-in overflow-hidden rounded-lg flex duration-200 bg-input/50 text-accent hover:bg-input/80">
+								<div className="aspect-square min-h-10 button-like height-in bg-input/50 text-accent hover:bg-input/80 flex flex-col items-center justify-center overflow-hidden text-xs duration-200 rounded-lg">
 									<FolderCheckIcon className="min-h-2 min-w-2 w-4 h-4" />
 									{installedItems.filter((item) => item.modStatus === 0).length}
 								</div>{" "}

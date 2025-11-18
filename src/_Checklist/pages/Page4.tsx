@@ -30,7 +30,7 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 			<div className="fixed z-20 flex flex-col items-center justify-center w-full duration-200">
 				{
 					<div className="text-accent flex flex-col items-center gap-5 my-2 text-2xl">
-						Confirm {!checked ? "XXMI Launcher Directory" : "Custom Directories"}
+						{textData._Checklist.Confirm} {textData._Checklist[checked ? "CustomDir" : "XXMILDir"]}
 						<div
 							className="flex items-center gap-2"
 							style={{
@@ -43,7 +43,7 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 							}}
 						>
 							<Button
-								className="aspect-square items-center justify-center "
+								className="aspect-square items-center justify-center"
 								onClick={async () => {
 									let path = ((await folderSelector(tgt)) as string) || tgt || "";
 									path =
@@ -64,16 +64,16 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 								value={xxmiDir?.replace("/", "\\") ?? "-"}
 							/>
 						</div>
-						<div className=" flex min-w-fit  items-center gap-2">
+						<div className=" min-w-fit flex items-center gap-2">
 							<Checkbox
 								checked={!checked}
 								onClick={() => setChecked(checked ? 0 : 1)}
-								className=" checked:bg-accent bgaccent  "
+								className=" checked:bg-accent bgaccent"
 							/>
-							<label className="text-accent/75 text-sm min-w-fit">I'm using XXMI Launcher</label>
+							<label className="text-accent/75 min-w-fit text-sm">{textData._Checklist.UsingXXMILauncher}</label>
 						</div>
 						<div
-							className="flex overflow-y-hidden items-center gap-2"
+							className="flex items-center gap-2 overflow-y-hidden"
 							style={{
 								opacity: !checked ? 0 : 1,
 								height: !checked ? "0px" : "40px",
@@ -86,15 +86,13 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 							<Label className="flex items-center gap-1">
 								<Tooltip>
 									<TooltipTrigger>
-										<InfoIcon className="inline w-4 h-4  opacity-50 hover:opacity-100" />
+										<InfoIcon className="hover:opacity-100 inline w-4 h-4 opacity-50" />
 									</TooltipTrigger>
 									<TooltipContent>
-										<p className="w-48 text-center">
-											This directory is where the program you are using to inject mods expects the mod files to be in.
-										</p>
+										<p className="w-48 text-center">{textData._Checklist.ThisDirTarget}</p>
 									</TooltipContent>
 								</Tooltip>
-								Target Dir :
+								{textData._Checklist.TargetDir}
 							</Label>
 							<Input
 								type="text"
@@ -125,7 +123,7 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 							</Button>
 						</div>
 						<div
-							className="flex overflow-y-hidden items-center gap-2"
+							className="flex items-center gap-2 overflow-y-hidden"
 							style={{
 								opacity: !checked || checked2 ? 0 : 1,
 								height: !checked || checked2 ? "0px" : "40px",
@@ -138,16 +136,13 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 							<Label className="flex items-center gap-1">
 								<Tooltip>
 									<TooltipTrigger>
-										<InfoIcon className="inline w-4 h-4  opacity-50 hover:opacity-100" />
+										<InfoIcon className="hover:opacity-100 inline w-4 h-4 opacity-50" />
 									</TooltipTrigger>
 									<TooltipContent>
-										<p className="w-48 text-center">
-											This directory is where you have stored your mod files. When you enable a mod in IMM, it will
-											create a symlink from this directory to the Target Directory.
-										</p>
+										<p className="w-48 text-center">{textData._Checklist.ThisDirSource}</p>
 									</TooltipContent>
 								</Tooltip>
-								Source Dir :
+								{textData._Checklist.SourceDir}
 							</Label>
 							<Input
 								type="text"
@@ -176,7 +171,7 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 							</Button>
 						</div>
 						<div
-							className=" flex min-w-fit  items-center gap-2"
+							className=" min-w-fit flex items-center gap-2"
 							style={{
 								opacity: !checked ? 0 : 1,
 								height: !checked ? "0px" : "40px",
@@ -189,16 +184,21 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 							<Checkbox
 								checked={checked2}
 								onClick={() => setChecked2(!checked2)}
-								className=" checked:bg-accent bgaccent  "
+								className=" checked:bg-accent bgaccent"
 							/>
-							<label className="text-accent/75 text-sm min-w-fit">
-								Mods are stored in the same directory as Target
-							</label>
+							<label className="text-accent/75 min-w-fit text-sm">{textData._Checklist.SameDir}</label>
 						</div>
 						<Button
 							className={"w-32 mt-2"}
 							onClick={async () => {
 								if (checked) {
+									if (!(await exists(tgt)) || (!checked2 && !(await exists(src)))) {
+										addToast({
+											message: textData._Toasts.SrcOrTgt,
+											type: "error",
+										});
+										return;
+									}
 									setTarget(tgt);
 									setSource(checked2 ? tgt : src);
 								} else {
@@ -207,31 +207,17 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 									console.log(dirs);
 									if (!dirs.sourceDir || !dirs.targetDir) {
 										addToast({
-											message: "Could Not Verify XXMI Config",
+											message: textData._Toasts.XXMIConfErr,
 											type: "error",
 										});
 										return;
 									}
-									// initGame(game);
 									setSource(dirs.sourceDir);
 									setTarget(dirs.targetDir);
 								}
 								applyPreset([]);
 								setChanges(await verifyDirStruct());
 								setPage(4);
-								// setTarget(tgt);
-								// setSource(
-								// 	checked
-								// 		? tgt
-								// 		: src.endsWith(managedSRC)
-								// 		? src.split(managedSRC)[0]
-								// 		: src.endsWith(managedTGT)
-								// 		? src.split(managedTGT)[0]
-								// 		: src
-								// );
-								// applyPreset([]);
-								// setChanges(await verifyDirStruct());
-								// setPage(4);
 							}}
 						>
 							{textData.Confirm}

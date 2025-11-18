@@ -15,12 +15,15 @@ import { AnimatePresence, motion } from "motion/react";
 import CardLocal from "./components/CardLocal";
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
 import { preventContextMenu } from "@/utils/utils";
-import { toggleMod } from "@/utils/filesys";
+import { refreshModList, toggleMod } from "@/utils/filesys";
 import MiniSearch from "minisearch";
 import { join, setChange } from "@/utils/hotreload";
 import { managedSRC } from "@/utils/consts";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { Mod } from "@/utils/types";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { RefreshCwIcon } from "lucide-react";
+import { addToast } from "@/_Toaster/ToastProvider";
 
 let searchDB: any = null;
 let prev = "prev";
@@ -95,14 +98,12 @@ function MainLocal() {
 		setFilteredList(newList);
 	}, [modList, filter, category, search, filterChangeCount]);
 
-	console.log(keyRef.current);
 	const handleClick = (e: MouseEvent, mod: Mod) => {
-		console.log(mod);
 		const click = e.button;
 		let tag = (e.target as HTMLElement).tagName.toLowerCase();
 		if (tag == "button") {
 			if (!mod) return;
-			
+
 			return setSelected(mod.path);
 		}
 		if (click == toggleOn) {
@@ -147,7 +148,7 @@ function MainLocal() {
 		}),
 		[initial]
 	);
-	
+
 	// Memoize transition config
 	const transitionConfig = useCallback(
 		(index: number) => ({
@@ -169,7 +170,7 @@ function MainLocal() {
 	const noItems = useMemo(() => {
 		return (
 			<div
-				className="w-full h-0 text-muted items-center flex-col flex duration-200 justify-center"
+				className="text-muted flex flex-col items-center justify-center w-full h-0 duration-200"
 				style={{
 					height: modList.length == 0 ? "100%" : "0px",
 					opacity: modList.length == 0 ? 1 : 0,
@@ -185,32 +186,50 @@ function MainLocal() {
 			<div
 				ref={containerRef}
 				onScroll={handleScroll}
-				className="flex flex-col  overflow-x-hidden items-center h-screen w-full  overflow-y-auto duration-300"
+				className="flex flex-col items-center w-full h-screen overflow-x-hidden overflow-y-auto duration-300"
 			>
 				{" "}
-				<label className="text-muted flex flex-col gap-1 items-center z-200">
-					{filteredList.length} {textData.Items}
+				<label className="text-muted z-200 flex flex-col items-center gap-1">
+					<label className="flex items-center">
+						{filteredList.length} {textData.Items}{" "}
+						<Tooltip>
+							<TooltipTrigger
+								onClick={() => {
+									addToast({
+										type: "info",
+										message: "Refreshing Mod List",
+									});
+									// setModList([]);
+									refreshModList().then((data) => {
+										setModList(data);
+									});
+								}}
+							>
+								<RefreshCwIcon className="text-link hover:opacity-100 h-4 duration-200 opacity-50"></RefreshCwIcon>
+							</TooltipTrigger>
+							<TooltipContent>{textData.Refresh}</TooltipContent>
+						</Tooltip>
+					</label>
 					<label className="text-xs">
 						in{" "}
 						<label
 							onClick={() => {
 								openPath(join(source, managedSRC));
 							}}
-							className="text-blue-300 opacity-50 duration-200 hover:opacity-75 pointer-events-auto"
+							className="hover:opacity-75 text-blue-300 duration-200 opacity-50 pointer-events-auto"
 						>
 							{source.split("\\").slice(-2).join("\\")}\{managedSRC}
 						</label>
 					</label>
 				</label>
 				{noItems}
-				
 				<AnimatePresence mode="popLayout">
 					<motion.div
 						layout
-						className="min-h-fit grid justify-center w-full py-4 card-grid"
+						className="min-h-fit card-grid grid justify-center w-full py-4"
 						key={keyRef.current}
-						initial={{ opacity: 0,pointerEvents: "none" }}
-						animate={{ opacity: 1,pointerEvents: "auto" }}
+						initial={{ opacity: 0, pointerEvents: "none" }}
+						animate={{ opacity: 1, pointerEvents: "auto" }}
 						exit={{ opacity: 0, pointerEvents: "none" }}
 						transition={{ ...transitionConfig(0) }}
 					>

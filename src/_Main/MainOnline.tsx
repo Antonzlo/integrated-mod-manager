@@ -27,7 +27,7 @@ export function resetPageCounts() {
 	});
 }
 let max = 0;
-let prevLoaded=0;
+let prevLoaded = 0;
 function MainOnline() {
 	const [initial, setInitial] = useState(true);
 	const containerRef = useRef(null as any);
@@ -40,7 +40,7 @@ function MainOnline() {
 	const onlineSort = useAtomValue(ONLINE_SORT);
 	const setRightSlideOverOpen = useSetAtom(RIGHT_SLIDEOVER_OPEN);
 	const [_, setSelected] = useAtom(ONLINE_SELECTED);
-	const types = useAtomValue(TYPES)
+	const types = useAtomValue(TYPES);
 	const [visibleRange, setVisibleRange] = useState({ start: -1, end: -1 });
 	const game = useAtomValue(GAME);
 	const onModClick = useCallback(
@@ -81,7 +81,7 @@ function MainOnline() {
 				loadingRef.current = false;
 				return;
 			}
-			prevLoaded=(pageCount[onlinePath]-1)*15;
+			prevLoaded = (pageCount[onlinePath] - 1) * 15;
 			try {
 				if (onlinePath.startsWith("home")) {
 					await nextPage(apiClient.home({ page: pageCount[onlinePath], type: onlineType }), onlinePath);
@@ -173,7 +173,7 @@ function MainOnline() {
 			containerRef.current.scrollTo({ top: 0 });
 		}
 		setVisibleRange({ start: -1, end: -1 });
-		prevLoaded=0
+		prevLoaded = 0;
 		setInitial(true);
 		//console.log("fetching1", onlineData,onlinePath);
 		//console.log("fetching2");
@@ -194,7 +194,7 @@ function MainOnline() {
 					})
 				);
 				initialLoad(apiClient.home({ type: onlineType }), onlinePath, controller);
-			} else if (types.some(t=> onlinePath.startsWith(t._sName)|| onlinePath.startsWith("Skins"))) {
+			} else if (types.some((t) => onlinePath.startsWith(t._sName) || onlinePath.startsWith("Skins"))) {
 				initialLoad(
 					apiClient.category({ cat: onlinePath.split("&_sort=")[0], sort: onlineSort, page: 1 }),
 					onlinePath,
@@ -210,7 +210,7 @@ function MainOnline() {
 		return () => {
 			controller.abort();
 		};
-	}, [onlinePath, onlineType, game,types]);
+	}, [onlinePath, onlineType, game, types]);
 
 	// Memoize the current timestamp to avoid recalculation on every render
 	const now = useMemo(() => Date.now() / 1000, [onlinePath]);
@@ -225,7 +225,7 @@ function MainOnline() {
 	// Memoize filtered online data
 	const filteredOnlineData = useMemo(() => {
 		if (!onlineData[onlinePath]) return [];
-		return (onlineData[onlinePath]as OnlineMod[]).filter((item) => nsfw || item._sInitialVisibility != "hide");
+		return (onlineData[onlinePath] as OnlineMod[]).filter((item) => nsfw || item._sInitialVisibility != "hide");
 	}, [onlineData, onlinePath, nsfw]);
 	// Memoize animation variants to prevent recreation on every render
 	const animationVariants = useMemo(
@@ -260,9 +260,9 @@ function MainOnline() {
 		<div
 			ref={containerRef}
 			onScroll={handleScroll}
-			className="flex flex-col overflow-x-hidden items-center h-full min-w-full overflow-y-auto duration-300"
+			className="flex flex-col items-center h-full min-w-full overflow-x-hidden overflow-y-auto duration-300"
 		>
-			<div className="min-w-full flex items-center justify-center h-auto" ref={carouselRef}>
+			<div className="flex items-center justify-center h-auto min-w-full" ref={carouselRef}>
 				<AnimatePresence mode="popLayout">
 					{onlinePath.startsWith("home") && filteredBannerData.length > 0 && (
 						<motion.div
@@ -272,13 +272,9 @@ function MainOnline() {
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: 0 }}
 							transition={transitionConfig(0)}
-							className="aspect-video mb-4 w-full max-w-3xl"
+							className="aspect-video w-full max-w-3xl mb-4"
 						>
-							<Carousel
-								data={filteredBannerData || []}
-								blur={nsfw == 1}
-								onModClick={onModClick}
-							/>
+							<Carousel data={filteredBannerData || []} blur={nsfw == 1} onModClick={onModClick} />
 						</motion.div>
 					)}
 				</AnimatePresence>
@@ -286,7 +282,7 @@ function MainOnline() {
 
 			<AnimatePresence mode="popLayout">
 				<motion.div
-					className="min-h-fit grid justify-center w-full py-4 card-grid"
+					className="min-h-fit card-grid grid justify-center w-full py-4"
 					layout
 					key={"content" + onlinePath}
 					initial={{ opacity: 0 }}
@@ -304,19 +300,14 @@ function MainOnline() {
 								initial="hidden"
 								animate="visible"
 								exit="exit"
-								transition={transitionConfig(index-prevLoaded || 0)}
+								transition={transitionConfig(index - prevLoaded || 0)}
 								onMouseUp={(e: any) => onModClick(e, item)}
 								onContextMenu={preventContextMenu}
 							>
 								{isVisible ? (
 									<div className="card-generic card-online"></div>
 								) : (
-									<CardOnline
-										{...item}
-										now={now}
-										blur={nsfw == 1}
-										show={textData._Main._components._Filter.Show}
-									/>
+									<CardOnline {...item} now={now} blur={nsfw == 1} show={textData._Main._components._Filter.Show} />
 								)}
 							</motion.div>
 						);
@@ -324,7 +315,7 @@ function MainOnline() {
 				</motion.div>
 				{(loadingRef.current || pageCount[onlinePath] < max) && (
 					<motion.div
-						className="min-w-8 min-h-8 my-2 flex justify-center"
+						className="min-w-8 min-h-8 flex justify-center my-2"
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}

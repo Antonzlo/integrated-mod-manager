@@ -88,16 +88,16 @@ function RightLocal() {
 			setDeleteItemData(null);
 		}
 	}, [alertOpen]);
-	function manageCategoriesButton({ title = "Manage Categories" }: any) {
+	function manageCategoriesButton({ title = textData._RightSideBar._components._ManageCategories.ManageCat }: any) {
 		return (
 			<Button
 				onClick={() => {
 					setPopoverOpen(false);
 					setDialogOpen(true);
 				}}
-				className="my-1 w-full mx-2"
+				className="w-full mx-2 my-1"
 			>
-				<Settings2Icon className="h-4 w-4" />
+				<Settings2Icon className="w-4 h-4" />
 				{title}
 			</Button>
 		);
@@ -153,17 +153,19 @@ function RightLocal() {
 			</Dialog>
 			<AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
 				<AlertDialogContent>
-					<div className="max-w-96  flex flex-col items-center gap-6 mt-6 text-center">
-						<div className="text-xl max-w-96  break-words text-gray-200">
+					<div className="max-w-96 flex flex-col items-center gap-6 mt-6 text-center">
+						<div className="max-w-96 text-xl text-gray-200 break-words">
 							{textData._Main._MainLocal.Delete} <span className="text-accent ">{deleteItemData?.name}</span>?
 						</div>
 						<div className="text-destructive">{textData._Main._MainLocal.Irrev}</div>
 					</div>
 					<div className="flex justify-between w-full gap-4 mt-4">
-						<AlertDialogCancel variant="default" className="w-24 duration-300">{textData.Cancel}</AlertDialogCancel>
+						<AlertDialogCancel variant="default" className="w-24 duration-300">
+							{textData.Cancel}
+						</AlertDialogCancel>
 						<AlertDialogAction
 							variant="destructive"
-							className="w-24 "
+							className=" w-24"
 							onClick={async () => {
 								if (!deleteItemData) return;
 								setData((prev) => {
@@ -192,9 +194,9 @@ function RightLocal() {
 					</div>
 				</AlertDialogContent>
 			</AlertDialog>
-			<SidebarContent className="flex polka duration-300 flex-row w-full h-full gap-0 p-0 overflow-hidden border border-l-0">
-				<div className="flex flex-col items-center h-full min-w-full overflow-y-hidden " key={item?.path || "no-item"}>
-					<div className="min-w-full text-accent flex items-center justify-center min-h-16 h-16 gap-3 px-3 border-b">
+			<SidebarContent className="polka flex flex-row w-full h-full gap-0 p-0 overflow-hidden duration-300 border border-l-0">
+				<div className=" flex flex-col items-center h-full min-w-full overflow-y-hidden" key={item?.path || "no-item"}>
+					<div className="text-accent min-h-16 flex items-center justify-center h-16 min-w-full gap-3 px-3 border-b">
 						{item ? (
 							<>
 								<Button
@@ -203,7 +205,7 @@ function RightLocal() {
 										openPath(join(source, managedSRC, item.path));
 									}}
 								>
-									<ArrowUpRightFromSquareIcon  className="w-4 h-4" />
+									<ArrowUpRightFromSquareIcon className="w-4 h-4" />
 								</Button>
 								<Input
 									onFocus={(e) => {
@@ -229,17 +231,15 @@ function RightLocal() {
 											return item;
 										});
 									}}
-									
-								
 								>
-									<TrashIcon className="w-4 h-4"/>
+									<TrashIcon className="w-4 h-4" />
 								</Button>
 							</>
 						) : (
 							"---"
 						)}
 					</div>
-					<SidebarGroup className="min-h-82  px-1 mt-1 select-none">
+					<SidebarGroup className="min-h-82 px-1 mt-1 select-none">
 						<EditIcon
 							onClick={() => {
 								item && savePreviewImage(item.path);
@@ -254,7 +254,7 @@ function RightLocal() {
 						></img>
 					</SidebarGroup>
 					<SidebarGroup className="px-1 min-h-27.5 my-1">
-						<div className="flex flex-col w-full border  rounded-lg">
+						<div className="flex flex-col w-full border rounded-lg">
 							<div className="bg-pat2 flex items-center justify-between w-full p-1 rounded-lg">
 								<Label className=" h-12  flex items-center justify-center  min-w-28.5 w-28.5 text-accent ">
 									{textData.Category}
@@ -271,7 +271,7 @@ function RightLocal() {
 														{" "}
 														{category.name != "Uncategorized" && (
 															<img
-																className=" items-center justify-center h-full rounded-full pointer-events-none aspect-square scale-120 outline bg-accent/10 text-white "
+																className=" aspect-square scale-120 outline bg-accent/10 items-center justify-center h-full text-white rounded-full pointer-events-none"
 																onError={(e) => {
 																	e.currentTarget.src = "/who.jpg";
 																}}
@@ -305,7 +305,7 @@ function RightLocal() {
 																className="button-like zzz-fg-text data-zzz:mt-1"
 															>
 																<img
-																	className="aspect-square outline bg-accent/10 flex text-white items-center justify-center h-12 rounded-full pointer-events-none"
+																	className="aspect-square outline bg-accent/10 flex items-center justify-center h-12 text-white rounded-full pointer-events-none"
 																	onError={(e) => {
 																		e.currentTarget.src = "/who.jpg";
 																	}}
@@ -328,7 +328,9 @@ function RightLocal() {
 										</PopoverContent>
 									</Popover>
 								) : (
-									<div className="w-48.5 flex items-center pr-2">{manageCategoriesButton({ title: "Manage" })}</div>
+									<div className="w-48.5 flex items-center pr-2">
+										{manageCategoriesButton({ title: textData._RightSideBar._RightLocal.Manage })}
+									</div>
 								)}
 							</div>
 							<div className="bg-pat1 flex justify-between w-full p-1 rounded-lg">
@@ -382,18 +384,18 @@ function RightLocal() {
 						</div>
 					</SidebarGroup>
 					<SidebarGroup
-						className="duration-200 h-full opacity-0"
+						className="h-full duration-200 opacity-0"
 						style={{
 							opacity: item ? 1 : 0,
 						}}
 					>
-						<div className="flex flex-col p-2 w-full h-full overflow-hidden ">
+						<div className=" flex flex-col w-full h-full p-2 overflow-hidden">
 							<Tabs defaultValue={tab} onValueChange={(val: any) => setTab(val)} className="w-full min-h-full">
-								<TabsList className="bg-background/0  w-full gap-2">
+								<TabsList className="bg-background/0 w-full gap-2">
 									<TabsTrigger
 										value="hotkeys"
 										nbg2
-										className="w-1/2 transparent-bg  h-10"
+										className="transparent-bg w-1/2 h-10"
 										style={{
 											color: tab == "hotkeys" ? "var(--accent)" : "var(--muted-foreground)",
 											border: "1px solid var(--border)",
@@ -405,7 +407,7 @@ function RightLocal() {
 									<TabsTrigger
 										nbg2
 										value="notes"
-										className="w-1/2 transparent-bg h-10"
+										className="transparent-bg w-1/2 h-10"
 										style={{
 											color: tab !== "hotkeys" ? "var(--accent)" : "var(--muted-foreground)",
 											border: "1px solid var(--border)",
@@ -422,7 +424,7 @@ function RightLocal() {
 										animate={{ opacity: 1, x: 0 }}
 										exit={{ opacity: 0, x: tab == "hotkeys" ? "-25%" : "25%" }}
 										transition={{ duration: 0.2 }}
-										className="w-full border rounded-md gap-2 flex h-full"
+										className="flex w-full h-full gap-2 border rounded-md"
 									>
 										{tab == "hotkeys" ? (
 											<div className="text-gray-300 h-full max-h-[calc(100vh-36.75rem)] flex flex-col w-full overflow-y-scroll overflow-x-hidden">
@@ -434,20 +436,20 @@ function RightLocal() {
 															(1 + (index % 2))
 														}
 													>
-														<label className="text-sm min-w-1/3 max-w-1/3 text-accent flex-1 truncate">
+														<label className="min-w-1/3 max-w-1/3 text-accent flex-1 text-sm truncate">
 															{hotkey.name}
 														</label>
 														|
-														<div className="flex w-2/3 items-center gap-1 ">
+														<div className=" flex items-center w-2/3 gap-1">
 															{formatHotkeyDisplay(normalizeHotkey(hotkey.key))
 																.split(" ﹢ ")
 																.map((key, i, arr) => (
 																	<span key={i} className="flex items-center">
-																		<kbd className="px-2 py-1 text-sm font-semibold text-accent bg-sidebar border border-border rounded-md shadow-sm min-w-8 text-center">
+																		<kbd className="text-accent bg-sidebar border-border min-w-8 px-2 py-1 text-sm font-semibold text-center border rounded-md shadow-sm">
 																			{key}
 																		</kbd>
 																		{i < arr.length - 1 && (
-																			<span className="mx-1 text-xs text-muted-foreground">+</span>
+																			<span className="text-muted-foreground mx-1 text-xs">+</span>
 																		)}
 																	</span>
 																))}

@@ -1,6 +1,6 @@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import {  DialogContent } from "@/components/ui/dialog";
+import { DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { deleteCategory, saveConfigs } from "@/utils/filesys";
@@ -50,7 +50,6 @@ function ManageCategories() {
 				} else if (curData._sIconUrl !== value && (!curData._sAltIconUrl || curData._sAltIconUrl.length === 0)) {
 					curData._sAltIconUrl = curData._sIconUrl;
 				}
-
 			}
 			curData._sIconUrl = value;
 			return curData;
@@ -66,7 +65,7 @@ function ManageCategories() {
 				<AlertDialogContent>
 					<div className="max-w-96 flex flex-col items-center gap-2 mt-6 text-center">
 						<img
-							className="aspect-square outline bg-accent/10 z-10 flex text-white items-center justify-center h-20 rounded-full pointer-events-none"
+							className="aspect-square outline bg-accent/10 z-10 flex items-center justify-center h-20 text-white rounded-full pointer-events-none"
 							onError={(e) => {
 								e.currentTarget.src = "/who.jpg";
 							}}
@@ -80,15 +79,15 @@ function ManageCategories() {
 							onChange={(e) => {
 								setAlertData((prev: any) => ({ ...prev, _sName: e.target.value }));
 							}}
-							placeholder="Category Name"
+							placeholder={textData._RightSideBar._components._ManageCategories.CatName}
 							style={{
 								borderColor: alertData.creating && categorySet.has(alertData._sName) ? "var(--destructive)" : "",
 							}}
-							className="  text-center disabled:border-0  max-w-80 text-ellipsis overflow-hidden break-words"
+							className=" disabled:border-0 max-w-80 text-ellipsis overflow-hidden text-center break-words"
 						/>
 						<Tooltip>
 							<TooltipTrigger
-								className="self-end duration-200 -mt-9 "
+								className="-mt-9  self-end duration-200"
 								style={{
 									opacity: !alertData._sUrl && !alertData.creating ? 1 : 0,
 									pointerEvents: !alertData._sUrl && !alertData.creating ? "auto" : "none",
@@ -121,19 +120,19 @@ function ManageCategories() {
 							>
 								<TrashIcon className="h-5 p-0.5 w-5 text-destructive cursor-pointer hover:text-accent/70" />
 							</TooltipTrigger>
-							<TooltipContent>Delete Category</TooltipContent>
+							<TooltipContent>{textData._RightSideBar._components._ManageCategories.DeleteCat}</TooltipContent>
 						</Tooltip>
 						<label
-							className="select-none pointer-events-none text-destructive duration-300 text-sm -my-1"
+							className="text-destructive -my-1 text-sm duration-300 pointer-events-none select-none"
 							style={{
 								opacity: alertData.creating && categorySet.has(alertData._sName) ? 1 : 0,
 							}}
 						>
-							{"Category already exists!"}
+							{textData._RightSideBar._components._ManageCategories.CatExist}
 						</label>
-						<div className="flex flex-col gap-2 items-start w-120">
+						<div className="w-120 flex flex-col items-start gap-2">
 							<label className="min-w-fit text-xs -mb-2 ml-2 bg-background text-accent border border-b-0 rounded-t-md px-1.5 py-0.5">
-								Icon URL
+								{textData._RightSideBar._components._ManageCategories.IconURL}
 							</label>
 							<Input
 								type="text"
@@ -143,12 +142,12 @@ function ManageCategories() {
 								onChange={(e) => {
 									debouncedIconUpdate((e.target as HTMLInputElement).value);
 								}}
-								className="w-full disabled:border-0 min-w-fit text-ellipsis overflow-hidden break-words"
+								className="disabled:border-0 min-w-fit text-ellipsis w-full overflow-hidden break-words"
 							/>
 
 							<Tooltip>
 								<TooltipTrigger
-									className="self-end duration-200 -mt-9 -mr-6"
+									className="-mt-9 self-end -mr-6 duration-200"
 									style={{
 										opacity: alertData._sAltIconUrl ? 1 : 0,
 										pointerEvents: alertData._sAltIconUrl ? "auto" : "none",
@@ -159,25 +158,21 @@ function ManageCategories() {
 								>
 									<RefreshCwIcon className="h-5 p-0.5 w-5 text-accent cursor-pointer hover:text-accent/70" />
 								</TooltipTrigger>
-								<TooltipContent>Reset</TooltipContent>
+								<TooltipContent>{textData._RightSideBar._components._ManageCategories.Reset}</TooltipContent>
 							</Tooltip>
 						</div>
 					</div>
-					<div className="flex justify-between items-center w-full gap-4 mt-4">
-						<AlertDialogCancel
-							className="w-24"
-						>
-							{textData.Cancel}
-						</AlertDialogCancel>
+					<div className="flex items-center justify-between w-full gap-4 mt-4">
+						<AlertDialogCancel className="w-24">{textData.Cancel}</AlertDialogCancel>
 						<label
 							id="deleteWarning"
-							className="text-destructive duration-200 text-xs opacity-0 pointer-events-none"
+							className="text-destructive text-xs duration-200 opacity-0 pointer-events-none"
 							key={alertData._sName}
 						>
-							Cannot delete, folder is not empty.
+							{textData._RightSideBar._components._ManageCategories.CannotDel}
 						</label>
 						<AlertDialogAction
-						variant="success"
+							variant="success"
 							className="w-24"
 							onClick={async () => {
 								if (alertData._sName.trim().length === 0 || (alertData.creating && categorySet.has(alertData._sName))) {
@@ -207,8 +202,10 @@ function ManageCategories() {
 					</div>
 				</AlertDialogContent>
 			</AlertDialog>
-			<div className="min-h-fit text-accent my-6 text-3xl">Manage Categories</div>
-			<div className="flex flex-wrap gap-2 p-2 w-full h-full overflow-x-hidden overflow-y-scroll text-gray-300 rounded-sm max-h-120 min-h-120">
+			<div className="min-h-fit text-accent my-6 text-3xl">
+				{textData._RightSideBar._components._ManageCategories.ManageCat}
+			</div>
+			<div className="max-h-120 min-h-120 flex flex-wrap w-full h-full gap-2 p-2 overflow-x-hidden overflow-y-scroll text-gray-300 rounded-sm">
 				{categories.map((cat) => (
 					<div
 						key={cat._sName}
@@ -216,10 +213,10 @@ function ManageCategories() {
 							setAlertData(cat);
 							setAlertOpen(true);
 						}}
-						className="button-like border-1 rounded-md bg-button hover:bg-accent/30 active:bg-accent/50 active:scale-90 group select-none  duration-300 flex w-80 p-2 items-center gap-2 zzz-fg-text data-zzz:mt-1"
+						className="button-like border-1 bg-button hover:bg-accent/30 active:bg-accent/50 active:scale-90 group w-80 zzz-fg-text data-zzz:mt-1 flex items-center gap-2 p-2 duration-300 rounded-md select-none"
 					>
 						<img
-							className="aspect-square outline bg-accent/10 z-10 flex text-white items-center justify-center h-12 rounded-full pointer-events-none"
+							className="aspect-square outline bg-accent/10 z-10 flex items-center justify-center h-12 text-white rounded-full pointer-events-none"
 							onError={(e) => {
 								e.currentTarget.src = "/who.jpg";
 							}}
@@ -229,16 +226,16 @@ function ManageCategories() {
 						<Label
 							// type="text"
 
-							className="w-70 pointer-events-none group-hover:text-accent duration-300 border-0 text-ellipsis overflow-hidden whitespace-nowrap"
+							className="w-70 group-hover:text-accent text-ellipsis whitespace-nowrap overflow-hidden duration-300 border-0 pointer-events-none"
 						>
 							{cat._sName}
 						</Label>
-							
+
 						<EditIcon className="z-20 h-full min-w-5 p-[3px] text-accent cursor-pointer" />
 					</div>
 				))}
 			</div>
-			<div className="w-full flex items-end">
+			<div className="flex items-end w-full">
 				<Button
 					variant="outline"
 					className="w-full"
@@ -247,7 +244,7 @@ function ManageCategories() {
 						setAlertOpen(true);
 					}}
 				>
-					Create New Category
+					{textData._RightSideBar._components._ManageCategories.CreateCat}
 				</Button>
 			</div>
 		</DialogContent>

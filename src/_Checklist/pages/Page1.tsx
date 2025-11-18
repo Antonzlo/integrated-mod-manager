@@ -1,12 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { LANG_LIST } from "@/utils/consts";
 import { resetWithBackup } from "@/utils/filesys";
-import { TEXT } from "@/utils/text";
+import TEXT from "@/textData.json";
 import { LANG, SETTINGS } from "@/utils/vars";
 import { useAtom, useAtomValue } from "jotai";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
-let interval="" as  NodeJS.Timeout | "";
+let interval = "" as NodeJS.Timeout | "";
 let loadTime = null as number | null;
 let timer = null as NodeJS.Timeout | null;
 function Page1({ setPage }: { setPage: (page: number) => void }) {
@@ -35,7 +35,6 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 
 		return () => clearInterval(interval);
 	}, []);
-
 	useEffect(() => {
 		const handleKeyDown = (event: KeyboardEvent) => {
 			if (event.key !== "Escape") return;
@@ -55,8 +54,8 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 		return () => window.removeEventListener("keydown", handleKeyDown);
 	}, []);
 	return (
-		<div className="text-muted-foreground  gap-2 fixed flex flex-col items-center justify-center w-screen h-screen">
-			<div className="text-6xl flex  text-foreground">
+		<div className="text-muted-foreground fixed flex flex-col items-center justify-center w-screen h-screen gap-2">
+			<div className="text-foreground flex text-6xl">
 				{"Integrated".split("").map((letter, index) => (
 					<span
 						key={index}
@@ -69,7 +68,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 					</span>
 				))}
 			</div>
-			<div className=" flex text-accent textaccent text-4xl">
+			<div className=" text-accent textaccent flex text-4xl">
 				{"Mod Manager".split("").map((letter, index) => (
 					<span
 						key={index}
@@ -83,7 +82,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 				))}
 			</div>
 
-			<div className="absolute items-center fade-in bottom-0 h-64 flex flex-col gap-8 justify-evenly">
+			<div className="fade-in justify-evenly absolute bottom-0 flex flex-col items-center h-64 gap-8">
 				<AnimatePresence mode="wait">
 					{!lang && currentLangIndex > -1 && (
 						<motion.div
@@ -92,7 +91,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: 0 }}
 							transition={{ duration: 0.4, ease: "easeInOut" }}
-							className="text-xl text-accent/80 text-center"
+							className="text-accent/80 text-xl text-center"
 						>
 							{TEXT[languageKeys[currentLangIndex]].SelectLang}
 						</motion.div>
@@ -106,7 +105,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 							animate={{ opacity: 1 }}
 							exit={{ opacity: 0 }}
 							transition={{ duration: 0.4, ease: "easeInOut" }}
-							className="opacity-0 flex justify-center gap-8"
+							className="flex justify-center gap-8 opacity-0"
 						>
 							{LANG_LIST.map((lang, index) => (
 								<div
@@ -145,7 +144,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 										className="w-8 h-8 duration-300"
 									/>
 									<span
-										className="overflow-hidden duration-300 mt-16 text-accent group-hover:opacity-50 opacity-0 absolute whitespace-nowrap "
+										className="text-accent group-hover:opacity-50 whitespace-nowrap absolute mt-16 overflow-hidden duration-300 opacity-0"
 										style={{
 											opacity: selectedIndex == index ? "1" : "",
 											scale: selectedIndex == index ? "0.8" : "0.7",
@@ -166,7 +165,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: 0 }}
 							transition={{ duration: 0.4, ease: "easeInOut" }}
-							className="opacity-20 text-accent mt-4 fixed bottom-2 right-1 text-sm max-w-1/3 flex flex-col text-center"
+							className="opacity-20 text-accent bottom-2 right-1 max-w-1/3 fixed flex flex-col mt-4 text-sm text-center"
 						>
 							<span>{TEXT[languageKeys[selectedIndex]].Warning1}</span>
 							{TEXT[languageKeys[selectedIndex]].Warning2}
@@ -180,15 +179,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 					disabled={selectedIndex == -1 || !!lang || currentLangIndex < 0}
 					onClick={() => {
 						setSettings((prev) => ({ ...prev, global: { ...prev.global, lang: languageKeys[selectedIndex] } }));
-						// if(isFirstLoad)
 						setPage(1);
-						// if (firstLoad) {
-						// 	setPage(1);
-						// 	clearInterval(interval);
-						// 	interval = null;
-						// } else {
-						// 	saveConfig();
-						// }
 					}}
 				>
 					Confirm

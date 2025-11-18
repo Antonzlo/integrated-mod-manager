@@ -31,15 +31,18 @@ function Progress() {
 				{restoreInfo.title
 					.replace("Creating Restore Point", textData._Progress.CreatingRestorePoint)
 					.replace("Restore Point Created", textData._Progress.RestorePointCreated)
-					.replace("Restoring from", (textData._Progress.RestoringFrom + (restoreInfo.title.startsWith("Restoring from")?`: ${restoreInfo.name}`:"")))
+					.replace(
+						"Restoring from",
+						textData._Progress.RestoringFrom +
+							(restoreInfo.title.startsWith("Restoring from") ? `: ${restoreInfo.name}` : "")
+					)
 					.replace("Operation Cancelled", textData._Progress.OperationCancelled)
-					.replace("Restoration Completed", textData._Progress.RestorationCompleted)
-					}
+					.replace("Restoration Completed", textData._Progress.RestorationCompleted)}
 			</div>
-			<div className="w-120 bg-background/50 h-8 overflow-hidden border rounded-lg button-like">
+			<div className="w-120 bg-background/50 button-like h-8 overflow-hidden border rounded-lg">
 				<div
 					id="restore-progress"
-					className="bg-muted data-zzz:bg-accent opacity-75 bgaccent w-0 h-full duration-100 rounded-lg zzz-rounded"
+					className="bg-muted data-zzz:bg-accent bgaccent zzz-rounded w-0 h-full duration-100 rounded-lg opacity-75"
 				/>
 			</div>
 			<div className="w-120 text-accent/75 flex items-center justify-between gap-2 mt-2 text-sm">
@@ -50,13 +53,13 @@ function Progress() {
 			</div>
 			<Button
 				variant={restoreInfo.finished ? "default" : "warn"}
-				className="w-32 my-6 "
+				className=" w-32 my-6"
 				onClick={async () => {
 					setRestoreInfo((prev) => ({ ...prev, finished: true }));
 					if (!restoreInfo.finished) {
 						cancelRestore();
 					} else {
-						if (restoreInfo.title == "Restoration Completed") setChanges((await verifyDirStruct()));
+						if (restoreInfo.title == "Restoration Completed") setChanges(await verifyDirStruct());
 						setRestoreInfo((prev) => ({ ...prev, open: false }));
 					}
 				}}

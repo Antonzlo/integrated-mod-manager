@@ -10,14 +10,19 @@ function BottomBar() {
 	const textData = useAtomValue(TEXT_DATA);
 	const [category, setCategory] = useAtom(CATEGORY);
 	const [onlinePath, setOnlinePath] = useAtom(ONLINE_PATH);
-	const onlineType = useAtomValue(ONLINE_TYPE)
-	const onlineSort = useAtomValue(ONLINE_SORT)
+	const onlineType = useAtomValue(ONLINE_TYPE);
+	const onlineSort = useAtomValue(ONLINE_SORT);
 	const online = useAtomValue(ONLINE);
 	const modList = useAtomValue(MOD_LIST);
 	const categories = useAtomValue(CATEGORIES);
 	const localCategories = useMemo(() => {
 		return online
-			? categories.filter((_,index) => onlinePath.startsWith("Weapons")?(index>=categories.findIndex(c=>c._sName=="Bows")&& index<=categories.findIndex(c=>c._sName=="Swords") ): true)
+			? categories.filter((_, index) =>
+					onlinePath.startsWith("Weapons")
+						? index >= categories.findIndex((c) => c._sName == "Bows") &&
+						  index <= categories.findIndex((c) => c._sName == "Swords")
+						: true
+			  )
 			: [
 					{ _sName: "All", _sIconUrl: "/icons/all.png", _special: true },
 					...(modList.some((mod) => mod.parent == UNCATEGORIZED)
@@ -25,7 +30,7 @@ function BottomBar() {
 						: []),
 					...categories.filter((cat) => modList.some((mod) => mod.parent == cat._sName)),
 			  ];
-	}, [categories, modList, online,onlinePath]);
+	}, [categories, modList, online, onlinePath]);
 	return (
 		<div className="min-h-20 flex items-center justify-center w-full h-20 p-2">
 			<div className="bg-sidebar trs data-gi:rounded-[3rem] z-100 text-accent flex items-center justify-center w-full h-full gap-1 p-2 border rounded-lg">
@@ -77,7 +82,8 @@ function BottomBar() {
 										padding: online && cat._special ? "0rem" : "",
 									}}
 									className={
-										" data-zzz:rounded-lg "+((online ? onlinePath.startsWith(`Skins/${cat._sName}`) : category == cat._sName)
+										" data-zzz:rounded-lg " +
+										((online ? onlinePath.startsWith(`Skins/${cat._sName}`) : category == cat._sName)
 											? " bg-accent bgaccent    text-background"
 											: "")
 									}
@@ -88,7 +94,7 @@ function BottomBar() {
 										<FileQuestionIcon className="aspect-square ctrs h-full pointer-events-none" />
 									) : (
 										<img
-											className="aspect-square min-w-6 scale-120 h-full ctrs rounded-full pointer-events-none"
+											className="aspect-square min-w-6 scale-120 ctrs h-full rounded-full pointer-events-none"
 											onError={(e) => {
 												e.currentTarget.src = "/who.jpg";
 											}}

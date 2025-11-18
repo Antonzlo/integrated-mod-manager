@@ -1,5 +1,5 @@
 
-import { TEXT } from "./text";
+import  TEXT  from "@/textData.json";
 import {
 	Category,
 	ChangeInfo,

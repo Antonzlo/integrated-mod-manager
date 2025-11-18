@@ -36,7 +36,7 @@ import { executeXXMI, isGameProcessRunning } from "./autolaunch";
 // import { updateIni } from "./iniUpdater";
 import { join, setHotreload, stopWindowMonitoring } from "./hotreload";
 import { registerGlobalHotkeys } from "./hotkeyUtils";
-import { TEXT } from "./text";
+import  TEXT  from "@/textData.json";
 import { unregisterAll } from "@tauri-apps/plugin-global-shortcut";
 import { isOlderThanOneDay, safeLoadJson, setImageServer } from "./utils";
 import { addToast } from "@/_Toaster/ToastProvider";
@@ -228,7 +228,7 @@ store.sub(SETTINGS, async () => {
 	for (let i = 0; i < compare.src.length; i++) {
 		if (compare.src[i] !== store.get(compare.to[i])) {
 			if (compare.names[i] === "lang" && compare.src[i])
-				store.set(TEXT_DATA, TEXT[compare.src[i] as keyof typeof TEXT] || TEXT["en"]);
+				store.set(TEXT_DATA, TEXT[compare.src[i] as "en"] || TEXT["en"]);
 			// else if (compare.names[i] === "game" && compare.src[i]) await initGame(compare.src[i]);
 			store.set(compare.to[i] as any, compare.src[i]);
 		}

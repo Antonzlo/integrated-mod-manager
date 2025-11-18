@@ -24,7 +24,7 @@ function Carousel({
 	blur = true,
 }: {
 	data?: OnlineMod[];
-	onModClick?: (e:any,data: OnlineMod) => void;
+	onModClick?: (e: any, data: OnlineMod) => void;
 	blur?: boolean;
 }) {
 	const [api, setApi] = useState<EmblaCarouselType | undefined>();
@@ -55,19 +55,19 @@ function Carousel({
 								onClick={(e) => {
 									if (e.target != e.currentTarget) return;
 									if (onModClick) {
-										onModClick(e,item);
+										onModClick(e, item);
 									} else {
 									}
 								}}
-								className=" aspect-video flex flex-col border items-center justify-between overflow-hidden rounded-lg"
+								className=" aspect-video flex flex-col items-center justify-between overflow-hidden border rounded-lg"
 								style={{
 									backgroundImage: `url(${item._sImageUrl})`,
 									backgroundSize: "cover",
 									backgroundPosition: "center",
 								}}
 							>
-								<div className="text-accent -mb-18 z-10 flex justify-between w-full overflow-hidden rounded-lg h-16 pointer-events-none">
-									<label className="bg-background/50 backdrop-blur-md h-fit brightness-100 px-4 py-2 text-lg font-bold rounded-br-lg rounded-tl-lg">
+								<div className="text-accent -mb-18 z-10 flex justify-between w-full h-16 overflow-hidden rounded-lg pointer-events-none">
+									<label className="bg-background/50 backdrop-blur-md h-fit brightness-100 px-4 py-2 text-lg font-bold rounded-tl-lg rounded-br-lg">
 										Best of {dict[(item._sPeriod || "alltime") as keyof typeof dict]}{" "}
 									</label>
 									<label className="bg-background/50 py-2.5 px-4 rounded-bl-lg rounded-tr-lg backdrop-blur-md h-fit brightness-100 ">
@@ -75,7 +75,7 @@ function Carousel({
 									</label>
 								</div>
 								<Blur blur={item._sInitialVisibility == "hide" && blur} />
-								<div className="h-14 bg-background/50 rounded-b-lg overflow-hidden backdrop-blur-md -mt-14 flex items-center justify-between w-full px-2 pointer-events-none">
+								<div className="h-14 bg-background/50 backdrop-blur-md -mt-14 flex items-center justify-between w-full px-2 overflow-hidden rounded-b-lg pointer-events-none">
 									<Input
 										className="w-full text-accent  border-0 rounded-none select-none focus-within:select-auto overflow-hidden max-h-14 focus-visible:ring-[0px] focus-within:border-0   text-ellipsis"
 										value={item._sName}

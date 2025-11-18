@@ -20,7 +20,7 @@ function Checklist() {
 			initial={{ opacity: page !== 0 ? 1 : 0, filter: "blur(6px)", pointerEvents: "none" }}
 			animate={{ opacity: 1, filter: "blur(0px)", pointerEvents: "auto" }}
 			exit={{ opacity: 0, filter: "blur(6px)", pointerEvents: "none" }}
-			className="z-10 bg-background/50  backdrop-blur-md fixed w-screen h-screen"
+			className="bg-background/50 backdrop-blur-md fixed z-10 w-screen h-screen"
 		>
 			<AnimatePresence mode="wait">
 				<motion.div

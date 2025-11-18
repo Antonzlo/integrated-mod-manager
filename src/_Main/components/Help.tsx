@@ -6,6 +6,8 @@ import { ChevronLeft, ChevronRight, HelpCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import CarouselTut from "./CarouselTut";
 import { AnimatePresence, motion } from "motion/react";
+import { Tooltip } from "@radix-ui/react-tooltip";
+import { TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 function Help() {
 	const textData = useAtomValue(TEXT_DATA);
@@ -21,20 +23,26 @@ function Help() {
 	return (
 		<Dialog open={helpOpen} onOpenChange={setHelpOpen}>
 			<DialogTrigger asChild>
-				<Button className="aspect-square border text-ellipsis bg-sidebar p-0 flex flex-col h-full overflow-hidden text-xs">
+				<Button className="aspect-square text-ellipsis bg-sidebar flex flex-col h-full p-0 overflow-hidden text-xs border">
 					<HelpCircle className="scale-120 mb-0.5" />
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="game-font gap-8 flex flex-col min-h-200 min-w-280">
-				<div className="min-h-fit text-accent mt-6 text-3xl">{textData.Tutorials}</div>
-				<div className="w-255 gap-12 h-161 overflow-hidden flex">
-					<div className="h-full min-w-82 flex flex-col gap-2 overflow-hidden">
+			<DialogContent className="game-font min-h-200 min-w-280 flex flex-col gap-8">
+				<div className="min-h-fit text-accent mt-6 text-3xl">
+					{textData.Tutorials}
+					<Tooltip>
+						<TooltipTrigger></TooltipTrigger>
+						<TooltipContent className="opacity-0"></TooltipContent>
+					</Tooltip>
+				</div>
+				<div className="w-255 h-161 flex gap-12 overflow-hidden">
+					<div className="min-w-82 flex flex-col h-full gap-2 overflow-hidden">
 						{/* <Input placeholder="Search..." /> */}
-						<div className="w-82 h-full border-0 data-wuwa:border data-wuwa:gap-0 gap-1 flex flex-col rounded-sm data-wuwa:pr-0 pr-1 overflow-y-auto overflow-x-hidden">
+						<div className="w-82 data-wuwa:border data-wuwa:gap-0 data-wuwa:pr-0 flex flex-col h-full gap-1 pr-1 overflow-x-hidden overflow-y-auto border-0 rounded-sm">
 							{Object.keys(data).map((key, index) => (
 								<Button
 									key={key}
-									onClick={() => setSelectedItem((prev)=>prev === index ? -1 : index)}
+									onClick={() => setSelectedItem((prev) => (prev === index ? -1 : index))}
 									className={"w-full h-10 bgaccent text-muted-foreground"}
 									style={{
 										backgroundColor:
@@ -56,7 +64,7 @@ function Help() {
 							))}
 						</div>
 					</div>
-					<div className="h-full justify-center  flex-col flex w-full">
+					<div className="flex flex-col justify-center w-full h-full">
 						<AnimatePresence mode="wait">
 							{selectedItem > -1 ? (
 								<motion.div
@@ -64,9 +72,14 @@ function Help() {
 									initial={{ opacity: 0, scale: 0.95 }}
 									animate={{ opacity: 1, scale: 1 }}
 									exit={{ opacity: 0, scale: 1.05 }}
-									className="h-full justify-center  flex-col flex w-full"
+									className="flex flex-col justify-center w-full h-full"
 								>
-									<CarouselTut subIndex={subIndex} setSubIndex={setSubIndex} data={data[keys[selectedItem] as keyof typeof data]?.content} title={keys[selectedItem]} />
+									<CarouselTut
+										subIndex={subIndex}
+										setSubIndex={setSubIndex}
+										data={data[keys[selectedItem] as keyof typeof data]?.content}
+										title={keys[selectedItem]}
+									/>
 								</motion.div>
 							) : (
 								<>
@@ -77,7 +90,7 @@ function Help() {
 										animate={{ opacity: 1, scale: 1 }}
 										exit={{ opacity: 0, scale: 1.05 }}
 									>
-										<div className="mb-4 logo min-h-60 min-w-60 brightness-50"></div>
+										<div className="logo min-h-60 min-w-60 brightness-50 mb-4"></div>
 										{/* <div className="mb-4 text-2xl">--Select--</div> */}
 									</motion.div>
 								</>
@@ -85,29 +98,41 @@ function Help() {
 						</AnimatePresence>
 					</div>
 				</div>
-				<div className="flex w-full -mt-12 h-10">
+				<div className="flex w-full h-10 -mt-12">
 					<div className="min-w-94" />
-					<div className="w-full flex justify-between">
-						<Button className=" min-w-28" disabled={selectedItem <= 0 && subIndex === 0} onClick={() => {
-							if(subIndex === 0){
-								setSelectedItem((prev) => (prev - 1 ));
-							}
-							else{
-								setSubIndex((prev) => prev - 1);
-							}
-						}}>
+					<div className="flex justify-between w-full">
+						<Button
+							className=" min-w-28"
+							disabled={selectedItem <= 0 && subIndex === 0}
+							onClick={() => {
+								if (subIndex === 0) {
+									setSelectedItem((prev) => prev - 1);
+								} else {
+									setSubIndex((prev) => prev - 1);
+								}
+							}}
+						>
 							<ChevronLeft className="-ml-2" /> {textData.Prev}
 						</Button>
-						<Button className="min-w-28" disabled={(selectedItem === keys.length - 1) && (data[keys[selectedItem] as keyof typeof data]?.content.length - 1 === subIndex)} onClick={() => {
-							if(selectedItem<0 || data[keys[selectedItem] as keyof typeof data]?.content.length - 1 === subIndex){
-								setSelectedItem((prev) => (prev + 1 ));
-								setSubIndex(0);
+						<Button
+							className="min-w-28"
+							disabled={
+								selectedItem === keys.length - 1 &&
+								data[keys[selectedItem] as keyof typeof data]?.content.length - 1 === subIndex
 							}
-							else{
-								setSubIndex((prev) => prev + 1);
-							}
-						}}>
-							{textData.Next} <ChevronRight className="-mr-2"/>
+							onClick={() => {
+								if (
+									selectedItem < 0 ||
+									data[keys[selectedItem] as keyof typeof data]?.content.length - 1 === subIndex
+								) {
+									setSelectedItem((prev) => prev + 1);
+									setSubIndex(0);
+								} else {
+									setSubIndex((prev) => prev + 1);
+								}
+							}}
+						>
+							{textData.Next} <ChevronRight className="-mr-2" />
 						</Button>
 					</div>
 				</div>

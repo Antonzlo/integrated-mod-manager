@@ -18,7 +18,6 @@ function LeftLocal() {
 	const updatePreset = (index: number, name: string, shouldSave = false, shouldDelete = false) => {
 		const tempPresets = [...presets];
 		let wasCreated = false;
-
 		if (index === tempPresets.length) {
 			tempPresets.push({ name, data: [], hotkey: "" });
 			wasCreated = true;
@@ -91,10 +90,7 @@ function LeftLocal() {
 							onClick={() => {
 								setFilter(fil.name);
 							}}
-							className={
-								"w-25 data-zzz:text-xs " +
-								(filter == fil.name ? "bg-accent bgaccent text-background " : "")
-							}
+							className={"w-25 data-zzz:text-xs " + (filter == fil.name ? "bg-accent bgaccent text-background " : "")}
 							style={{ width: leftSidebarOpen ? "" : "2.5rem" }}
 						>
 							{fil.icon}
@@ -121,7 +117,7 @@ function LeftLocal() {
 							applyPreset([]);
 							setModList(await refreshModList());
 						}}
-						className="min-w-fit hover:text-accent duration-200 cursor-pointerx active:scale-95 select-none text-xs text-accent/50"
+						className="min-w-fit hover:text-accent cursor-pointerx active:scale-95 text-accent/50 text-xs duration-200 select-none"
 						onClick={() => {}}
 					>
 						{textData._LeftSideBar._LeftLocal._Presets.DisableAll}
@@ -162,9 +158,7 @@ function LeftLocal() {
 											<div
 												className={
 													"w-full text-accent button-like duration-200 rounded-lg px-2 pointer-events-none items-center flex gap-1 " +
-													(currentPreset == index
-														? " bg-accent bgaccent text-background"
-														: "zzz-fg-text bg-input/10")
+													(currentPreset == index ? " bg-accent bgaccent text-background" : "zzz-fg-text bg-input/10")
 												}
 												style={{
 													transitionProperty: "background-color, border-radius",
@@ -211,7 +205,7 @@ function LeftLocal() {
 									initial={{ opacity: 0, height: "0px" }}
 									animate={{ opacity: 1, height: "2.5rem" }}
 									key="loner"
-									className="text-foreground/50 flex text-center items-center justify-center w-64 h-10 overflow-hidden duration-200 ease-linear"
+									className="text-foreground/50 flex items-center justify-center w-64 h-10 overflow-hidden text-center duration-200 ease-linear"
 									style={{
 										opacity: leftSidebarOpen ? "" : "0",
 										scale: leftSidebarOpen ? "" : "0",

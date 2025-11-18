@@ -27,10 +27,10 @@ function Main() {
 				<AnimatePresence mode="popLayout" initial={false}>
 					<motion.div
 						{...ONLINE_TRANSITION(online)}
-						key={online==debouncedOnline ? online? "online" : "local":"transitioning"}
-						className="flex flex-col delay-200 items-center h-full min-w-full overflow-y-hidden "
+						key={online == debouncedOnline ? (online ? "online" : "local") : "transitioning"}
+						className=" flex flex-col items-center h-full min-w-full overflow-y-hidden delay-200"
 					>
-						{online==debouncedOnline ? online? <MainOnline /> : <MainLocal />:<></>}
+						{online == debouncedOnline ? online ? <MainOnline /> : <MainLocal /> : <></>}
 					</motion.div>
 				</AnimatePresence>
 			</div>

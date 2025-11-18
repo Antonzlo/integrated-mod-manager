@@ -3,20 +3,26 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { UNCATEGORIZED } from "@/utils/consts";
-import { createRestorePoint, deleteRestorePoint, getRestorePoints, previewRestorePoint, restoreFromPoint } from "@/utils/filesys";
+import {
+	createRestorePoint,
+	deleteRestorePoint,
+	getRestorePoints,
+	previewRestorePoint,
+	restoreFromPoint,
+} from "@/utils/filesys";
 import { Mod } from "@/utils/types";
 import { GAME, TEXT_DATA } from "@/utils/vars";
 import { useAtomValue } from "jotai";
 import { FileIcon, FolderCogIcon, FolderIcon, PlusIcon, SaveAllIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
-function Restore({ leftSidebarOpen,disabled=false }: { leftSidebarOpen: boolean,disabled?:boolean }) {
+function Restore({ leftSidebarOpen, disabled = false }: { leftSidebarOpen: boolean; disabled?: boolean }) {
 	const textData = useAtomValue(TEXT_DATA);
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [restorePoints, setRestorePoints] = useState<string[]>([]);
 	const [selectedRestorePoint, setSelectedRestorePoint] = useState<number>(-1);
 	const [alertOpen, setAlertOpen] = useState(false);
 	const [data, setData] = useState<Mod[]>([]);
-	const game =  useAtomValue(GAME);
+	const game = useAtomValue(GAME);
 	useEffect(() => {
 		const abortController = new AbortController();
 		if (dialogOpen) {
@@ -25,8 +31,7 @@ function Restore({ leftSidebarOpen,disabled=false }: { leftSidebarOpen: boolean,
 					setRestorePoints(r);
 				}
 			});
-		}
-		else{
+		} else {
 			setSelectedRestorePoint(-1);
 			setData([]);
 		}
@@ -42,13 +47,12 @@ function Restore({ leftSidebarOpen,disabled=false }: { leftSidebarOpen: boolean,
 			});
 		}
 	}, [selectedRestorePoint]);
-	// getRestorePoints().then((r) => //console.log(r));
 	return (
 		<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 			<DialogTrigger asChild>
 				<Button
 					className="w-38.75 text-ellipsis h-12 overflow-hidden"
-					style={{ width: leftSidebarOpen ? "" : "3rem",borderRadius: leftSidebarOpen ? "" : "999px" }}
+					style={{ width: leftSidebarOpen ? "" : "3rem", borderRadius: leftSidebarOpen ? "" : "999px" }}
 				>
 					<SaveAllIcon />
 					{leftSidebarOpen && textData._LeftSideBar._components._Restore.Restore}
@@ -59,18 +63,26 @@ function Restore({ leftSidebarOpen,disabled=false }: { leftSidebarOpen: boolean,
 					<AlertDialogContent className="min-w-120">
 						<div className="max-w-96 flex flex-col items-center gap-6 mt-6 text-center">
 							<div className="text-xl text-gray-200">
-								{textData._Main._MainLocal.Delete} <span className="text-accent ">{restorePoints[selectedRestorePoint]}</span>?
+								{textData._Main._MainLocal.Delete}{" "}
+								<span className="text-accent ">{restorePoints[selectedRestorePoint]}</span>?
 							</div>
-							<div className="text-destructive	">{textData._Main._MainLocal.Irrev}</div>
+							<div className="text-destructive ">{textData._Main._MainLocal.Irrev}</div>
 						</div>
 						<div className="flex justify-between w-full gap-4 mt-4">
-							<AlertDialogCancel variant="default" className="w-24 duration-300">{textData.Cancel}</AlertDialogCancel>
+							<AlertDialogCancel variant="default" className="w-24 duration-300">
+								{textData.Cancel}
+							</AlertDialogCancel>
 							<AlertDialogAction
-							variant="destructive"
+								variant="destructive"
 								className="w-24"
 								onClick={async () => {
-									if (selectedRestorePoint === null || selectedRestorePoint === undefined || !restorePoints[selectedRestorePoint]) return;
-									if(await deleteRestorePoint(restorePoints[selectedRestorePoint])){
+									if (
+										selectedRestorePoint === null ||
+										selectedRestorePoint === undefined ||
+										!restorePoints[selectedRestorePoint]
+									)
+										return;
+									if (await deleteRestorePoint(restorePoints[selectedRestorePoint])) {
 										let newRPs = [...restorePoints];
 										newRPs.splice(selectedRestorePoint, 1);
 										setRestorePoints(newRPs);
@@ -78,7 +90,6 @@ function Restore({ leftSidebarOpen,disabled=false }: { leftSidebarOpen: boolean,
 										setData([]);
 									}
 									setAlertOpen(false);
-
 								}}
 							>
 								{textData._Main._MainLocal.Delete}
@@ -92,29 +103,39 @@ function Restore({ leftSidebarOpen,disabled=false }: { leftSidebarOpen: boolean,
 						<div className="min-h-10 flex items-center justify-between w-full mb-2">
 							{textData._LeftSideBar._components._Restore.RestorePoints}
 						</div>
-						<div className="flex flex-col w-full h-full overflow-x-hidden overflow-y-auto border-0 text-gray-300 data-wuwa:border rounded-sm">
-							{ (
-								<div className="flex flex-col  w-full h-full data-wuwa:gap-0 gap-2 data-wuwa:border data-wuwa:pr-0 pr-1 overflow-x-hidden overflow-y-auto text-gray-300 border-0 border-b-0 rounded-sm rounded-b-none">
+						<div className="data-wuwa:border flex flex-col w-full h-full overflow-x-hidden overflow-y-auto text-gray-300 border-0 rounded-sm">
+							{
+								<div className="data-wuwa:gap-0 data-wuwa:border data-wuwa:pr-0 flex flex-col w-full h-full gap-2 pr-1 overflow-x-hidden overflow-y-auto text-gray-300 border-0 border-b-0 rounded-sm rounded-b-none">
 									{restorePoints.map((item, index) => (
 										<Button
 											onClick={() => {
 												setSelectedRestorePoint(index);
 											}}
-											style={{ backgroundColor: game=="WW"?selectedRestorePoint == index ? "var(--border)" : index % 2 == 0 ? "#1b1b1b50" : "#31313150":selectedRestorePoint == index?"var(--accent)":"",
-												color:game!="WW" && selectedRestorePoint == index?"var(--background)":"",
-												animation:game!="WW"&&selectedRestorePoint==index?"":"none"
-											 }}
-
-											className={"w-full h-10 border-b  bgaccent bg-background/50 data-gi:bg-button rounded-none  zzz-border gap-2 flex items-center px-2"}
-											
+											style={{
+												backgroundColor:
+													game == "WW"
+														? selectedRestorePoint == index
+															? "var(--border)"
+															: index % 2 == 0
+															? "#1b1b1b50"
+															: "#31313150"
+														: selectedRestorePoint == index
+														? "var(--accent)"
+														: "",
+												color: game != "WW" && selectedRestorePoint == index ? "var(--background)" : "",
+												animation: game != "WW" && selectedRestorePoint == index ? "" : "none",
+											}}
+											className={
+												"w-full h-10 border-b  bgaccent bg-background/50 data-gi:bg-button rounded-none  zzz-border gap-2 flex items-center px-2"
+											}
 										>
 											<Label className="w-full pointer-events-none">{item}</Label>
 										</Button>
 									))}
 								</div>
-							)}
+							}
 							<Button
-								className="w-full min-h-10 data-wuwa:bg-background/50 data-wuwa:mt-0 mt-2 text-sm gap-2 rounded-b-sm flex items-center justify-center px-2 border"
+								className="min-h-10 data-wuwa:bg-background/50 data-wuwa:mt-0 flex items-center justify-center w-full gap-2 px-2 mt-2 text-sm border rounded-b-sm"
 								onClick={() => {
 									if (disabled) return;
 									setDialogOpen(false);
@@ -128,12 +149,14 @@ function Restore({ leftSidebarOpen,disabled=false }: { leftSidebarOpen: boolean,
 					<div className="max-w-1/2 flex flex-col w-1/2 h-full pl-2">
 						<div className="min-h-10 flex items-center justify-between w-full mb-2">
 							{textData._LeftSideBar._components._Restore.RestorePointContent}
-							<Button className=" max-h-7 max-w-7"
-							disabled={disabled||!restorePoints[selectedRestorePoint]}
-							onClick={() => {
-								if (disabled) return;
-								setAlertOpen(true);
-							}}>
+							<Button
+								className=" max-h-7 max-w-7"
+								disabled={disabled || !restorePoints[selectedRestorePoint]}
+								onClick={() => {
+									if (disabled) return;
+									setAlertOpen(true);
+								}}
+							>
 								<Trash2Icon className="w-3 h-3 max-w-3.5 text-destructive hover:brightness-75 duration-200 pointer-events-none" />
 							</Button>
 						</div>
@@ -141,10 +164,10 @@ function Restore({ leftSidebarOpen,disabled=false }: { leftSidebarOpen: boolean,
 							{data.map((item, index) => (
 								<div
 									className={"w-full flex  flex-col"}
-									style={{ backgroundColor: index % 2 == 0 ? "#1b1b1b50" : "#31313150",
-										borderBottom: index == data.length-1 ?  "1px solid var(--border)":""
-									 }}
-
+									style={{
+										backgroundColor: index % 2 == 0 ? "#1b1b1b50" : "#31313150",
+										borderBottom: index == data.length - 1 ? "1px solid var(--border)" : "",
+									}}
 								>
 									<div
 										className={
@@ -168,7 +191,7 @@ function Restore({ leftSidebarOpen,disabled=false }: { leftSidebarOpen: boolean,
 												className={"w-full h-10 border-l flex gap-2 items-center px-2 "}
 												style={{
 													backgroundColor: index2 % 2 == 0 ? "#1b1b1b50" : "#31313150",
-													borderBottom: index2 == item.children.length-1 ? "" : "1px dashed var(--border)",
+													borderBottom: index2 == item.children.length - 1 ? "" : "1px dashed var(--border)",
 												}}
 											>
 												{child.isDir ? <FolderIcon className="w-4 h-4" /> : <FileIcon className="w-4 h-4" />}
@@ -177,9 +200,7 @@ function Restore({ leftSidebarOpen,disabled=false }: { leftSidebarOpen: boolean,
 										))}
 									</div>
 								</div>
-							))
-							
-							}
+							))}
 						</div>
 					</div>
 				</div>
