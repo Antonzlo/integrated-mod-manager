@@ -6,8 +6,7 @@ import { ChevronLeft, ChevronRight, HelpCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import CarouselTut from "./CarouselTut";
 import { AnimatePresence, motion } from "motion/react";
-import { Tooltip } from "@radix-ui/react-tooltip";
-import { TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 function Help() {
 	const textData = useAtomValue(TEXT_DATA);

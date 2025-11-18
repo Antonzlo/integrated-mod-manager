@@ -7,12 +7,12 @@
 	"bgType": 2,
 	"listType": 0,
 	"nsfw": 1,
-    "toggleClick": 2,
+	"toggleClick": 2,
 	"ignore": "2.1.0",
 	"notice": 0,
 	"clientDate": "",
 	"XXMI": "",
 	"lang": "",
-	"game":"",
+	"game": "",
 	"preReleases": false
 }

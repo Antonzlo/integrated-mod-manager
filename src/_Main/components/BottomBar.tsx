@@ -16,9 +16,10 @@ function BottomBar() {
 	const modList = useAtomValue(MOD_LIST);
 	const categories = useAtomValue(CATEGORIES);
 	const localCategories = useMemo(() => {
+		console.log("Online Path:", onlinePath);
 		return online
 			? categories.filter((_, index) =>
-					onlinePath.startsWith("Weapons")
+					["Weapons", "Bows","Catalysts","Claymores","Polearms", "Swords"].includes(onlinePath.split("&")[0].split("/").pop() as string)
 						? index >= categories.findIndex((c) => c._sName == "Bows") &&
 						  index <= categories.findIndex((c) => c._sName == "Swords")
 						: true

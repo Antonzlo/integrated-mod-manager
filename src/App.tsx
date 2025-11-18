@@ -82,9 +82,9 @@ function App() {
 		[rightSidebarOpen]
 	);
 	return (
-		<div id="background" className="flex flex-row fixed justify-start items-start w-full h-full game-font">
+		<div id="background" className="game-font fixed flex flex-row items-start justify-start w-full h-full">
 			<div
-				className="fixed h-screen w-screen bg-bgg "
+				className="bg-bgg fixed w-screen h-screen"
 				style={{
 					opacity: (settings.global.bgOpacity || 1) * 0.1,
 					animation: settings.global.bgType == 2 ? "moveDiagonal 15s linear infinite" : "",
@@ -99,12 +99,12 @@ function App() {
 				<RightLocal />
 			</SidebarProvider>
 			<RightOnline open={online && rightSlideOverOpen} />
-			<div className="w-full h-full fixed flex flex-row">
+			<div className="fixed flex flex-row w-full h-full">
 				<div className="h-full duration-200 ease-linear" style={leftSidebarStyle} />
 				<Main />
 				<div className="h-full duration-300 ease-linear" style={rightSidebarStyle} />
 			</div>
-			<div className="w-full pointer-events-none h-full fixed flex flex-row">
+			<div className="fixed flex flex-row w-full h-full pointer-events-none">
 				<div className="h-full duration-200 ease-linear" style={leftSidebarStyle} />
 				<AnimatePresence>
 					{online && rightSlideOverOpen && (

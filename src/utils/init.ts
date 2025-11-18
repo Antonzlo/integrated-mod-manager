@@ -244,7 +244,7 @@ export async function setCategories(game = prevGame) {
 		if (!categories || categories.length == 0) throw "No categories found, please verify the directories again";
 	} catch (e) {
 		console.log("[IMM] Failed to fetch categories from API, using local config if available.", e);
-		categories = configXX.categories && configXX.categories.length > 0 ? configXX.categories : apiClient.categoryList;
+		categories = configXX.categories && configXX.categories.length > 0 ? configXX.categories : [...apiClient.categoryList,...apiClient.generic.categories];
 	} finally {
 		//console.log("Using categories:", categories,apiClient.categoryList,configXX.categories);
 		if (!categories || categories.length == 0) return;

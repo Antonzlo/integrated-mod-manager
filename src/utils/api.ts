@@ -508,6 +508,7 @@ class ApiClient {
 			];
 			return this.categoryList;
 		} catch (error) {
+			// console.log(this.categoryList,this.GAME)
 			return [];
 			//console.error("Failed to fetch categories:", error);
 			throw error;

@@ -177,7 +177,14 @@ function Restore({ leftSidebarOpen, disabled = false }: { leftSidebarOpen: boole
 										}
 									>
 										{item.icon ? (
-											<img src={item.icon} className="w-6 h-6 -ml-1 -mr-1 overflow-hidden rounded-full" alt="icon" />
+											<img
+												src={item.icon}
+												onError={(e) => {
+													e.currentTarget.src = "/who.jpg";
+												}}
+												className="w-6 h-6 -ml-1 -mr-1 overflow-hidden rounded-full"
+												alt="icon"
+											/>
 										) : item.name == UNCATEGORIZED ? (
 											<FolderCogIcon className="aspect-square w-5 h-5 -mr-1 pointer-events-none" />
 										) : (
