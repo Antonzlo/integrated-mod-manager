@@ -3,7 +3,7 @@ name = "integrated-mod-manager"
 version = "2.3.0"
 description = "A desktop mod manager for xxmi built with Tauri"
 authors = ["YourBadLuck"]
-edition = "2026"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
