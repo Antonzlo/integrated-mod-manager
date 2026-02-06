@@ -103,8 +103,23 @@
     "fs:allow-watch",
     "fs:read-dirs",
     {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        { "cmd": "sh",
+          "args": [
+            "x",
+            {"validator": ".*"},
+            {"validator": "-o.*"}
+          ],
+          "name": "binaries/7z"
+        }
+      ]
+    },
+    {
       "identifier": "fs:scope",
-      "allow": ["**/*"]
+      "allow": [
+        "**/*"
+      ]
     },
     "deep-link:default",
     "opener:default",
@@ -136,6 +151,7 @@
         }
       ]
     },
-    "http:default"
+    "http:default",
+    "shell:default"
   ]
 }

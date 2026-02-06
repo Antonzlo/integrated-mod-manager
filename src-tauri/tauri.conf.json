@@ -29,9 +29,7 @@
 			"csp": null,
 			"assetProtocol": {
 				"enable": true,
-				"scope": [
-					"**"
-				]
+				"scope": ["**"]
 			},
 			"capabilities": ["default"]
 		},
@@ -41,33 +39,25 @@
 		"createUpdaterArtifacts": true,
 		"active": true,
 		"targets": "nsis",
-		"icon": [
-			"icons/128x128.png",
-			"icons/icon.icns",
-			"icons/imm.ico"
-		],
+		"icon": ["icons/128x128.png", "icons/icon.icns", "icons/imm.ico"],
 		"windows": {
 			"nsis": {
 				"installerIcon": "icons/imm.ico"
 			}
-		}
+		},
+		"externalBin": ["binaries/7z"]
 	},
 	"plugins": {
 		"updater": {
 			"pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVDNDVCOEZFQzIyMkJDMjkKUldRcHZDTEMvcmhGWEhGdWNGcFJzN1hYR05YVXZPMXlzcVc3b2xrMzA5M25SdTZkMldtOUFWbzcK",
-			"endpoints": [
-				"https://github.com/jpbhatt21/integrated-mod-manager/releases/latest/download/latest.json"
-			],
+			"endpoints": ["https://github.com/jpbhatt21/integrated-mod-manager/releases/latest/download/latest.json"],
 			"windows": {
 				"installMode": "passive"
 			}
 		},
 		"deep-link": {
 			"desktop": {
-				"schemes": [
-					"imm",
-					"wwmm"
-				]
+				"schemes": ["imm", "wwmm"]
 			}
 		},
 		"fs": {

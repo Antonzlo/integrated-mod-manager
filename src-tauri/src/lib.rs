@@ -2,7 +2,7 @@ use futures_util::StreamExt;
 use once_cell::sync::Lazy;
 use reqwest::Client;
 use serde::Serialize;
-use sevenz_rust2::decompress_file;
+use tauri_plugin_shell::ShellExt;
 use std::collections::HashMap;
 use std::fs::{remove_file, File};
 use std::io::{self, BufWriter, Write};
@@ -205,7 +205,32 @@ fn mime_to_extension(mime_type: &str) -> Option<&'static str> {
         .find(|(mime, _)| *mime == clean_mime)
         .map(|(_, ext)| *ext)
 }
+async fn decompress_file(app_handle: tauri::AppHandle, file_path: &str, save_path: &str) -> Result<(), String> {
+    let output = app_handle
+        .shell()
+        .sidecar("7z")
+        .map_err(|e| e.to_string())?
+        .args([
+            "x", 
+            file_path, 
+            &format!("-o{}", save_path),
+            "-y"
+        ])
+        .output()
+        .await // Await directly instead of using block_on
+        .map_err(|e| e.to_string())?;
 
+    if output.status.success() {
+        Ok(())
+    } else {
+        let err = String::from_utf8_lossy(&output.stderr);
+        Err(if err.is_empty() { 
+            String::from_utf8_lossy(&output.stdout).to_string() 
+        } else { 
+            err.to_string() 
+        })
+    }
+}
 /// Extract archive file (zip, rar, or 7z) to the specified path
 #[tauri::command]
 async fn extract_archive(
@@ -293,10 +318,10 @@ async fn extract_archive(
         clean_folder_before_extraction(Path::new(&save_path), &file_name)?;
         println!("Starting 7z extraction");
         let before = Instant::now();
-        let res = decompress_file(file_path.as_os_str(), save_path);
+        let res = decompress_file(app_handle.clone(), file_path.to_str().unwrap(), &save_path);
         let duration = before.elapsed();
         println!("7z extraction completed in: {:.2?}", duration);
-        if let Err(e) = res {
+        if let Err(e) = res.await {
             println!("7z extraction error: {}", e);
         } else {
             if del {
@@ -319,7 +344,11 @@ async fn extract_archive(
             if count >= 1 {
                 valid = true;
                 *counts.get_mut(&key).unwrap() -= 1;
-                println!("Decreased download count for key '{}': {}", key, counts.get(&key).unwrap());
+                println!(
+                    "Decreased download count for key '{}': {}",
+                    key,
+                    counts.get(&key).unwrap()
+                );
             }
         }
         tracing::info!(
@@ -328,7 +357,10 @@ async fn extract_archive(
             file_name
         );
         if !valid {
-            println!("Session {} invalid after extraction for key '{}'", valid, key);
+            println!(
+                "Session {} invalid after extraction for key '{}'",
+                valid, key
+            );
             return Err(format!(
                 "Session changed during processing, operation cancelled (file: {})",
                 file_name
@@ -350,11 +382,14 @@ async fn download_and_unzip(
     emit: bool,
 ) -> Result<(), String> {
     // Increment download count for this key
-    if emit
-    {
+    if emit {
         let mut counts = DOWNLOAD_COUNTS.lock().unwrap();
         *counts.entry(key.clone()).or_insert(0) += 1;
-        println!("Download count for key '{}': {}", key, counts.get(&key).unwrap());
+        println!(
+            "Download count for key '{}': {}",
+            key,
+            counts.get(&key).unwrap()
+        );
     }
 
     let current_sid = SESSION_ID.load(Ordering::SeqCst);
@@ -515,13 +550,18 @@ async fn download_and_unzip(
     // Emit final progress update showing download complete
     if emit {
         let final_speed = format_speed(avg_speed);
-        app_handle.emit("ext", DownloadProgress {
-            downloaded: total_size as f64,
-            total: total_size as f64,
-            speed: final_speed,
-            eta: "0s".to_string(),
-            key: key.clone(),
-        }).map_err(|e| e.to_string())?;
+        app_handle
+            .emit(
+                "ext",
+                DownloadProgress {
+                    downloaded: total_size as f64,
+                    total: total_size as f64,
+                    speed: final_speed,
+                    eta: "0s".to_string(),
+                    key: key.clone(),
+                },
+            )
+            .map_err(|e| e.to_string())?;
     }
 
     // Extract archive if it's a supported format
@@ -535,17 +575,14 @@ async fn download_and_unzip(
         key,
         current_sid,
         true,
-    ).await?;
+    )
+    .await?;
 
-
-    
-    
     tracing::info!(
         "Download and extraction completed successfully for session {}: {}",
         current_sid,
         file_name
     );
-
 
     Ok(())
 }
@@ -659,10 +696,7 @@ async fn create_symlink(link_path: String, target_path: String) -> Result<(), St
 }
 
 #[tauri::command]
-async fn set_window_icon(
-    app_handle: tauri::AppHandle,
-    game: String,
-) -> Result<(), String> {
+async fn set_window_icon(app_handle: tauri::AppHandle, game: String) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     {
         let icon_bytes = match game.as_str() {
@@ -681,11 +715,11 @@ async fn set_window_icon(
     Ok(())
 }
 
-
 use tauri_plugin_window_state::{Builder, StateFlags};
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_shell::init())
         .plugin(
             Tracing::new()
                 .with_max_level(
@@ -698,7 +732,7 @@ pub fn run() {
                 .with_file_logging()
                 .with_rotation(Rotation::Daily)
                 .with_rotation_strategy(RotationStrategy::KeepSome(10))
-                .with_max_file_size(MaxFileSize::mb(50))
+                .with_max_file_size(MaxFileSize::mb(25))
                 .with_default_subscriber()
                 .build()
         )
