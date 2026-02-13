@@ -24,7 +24,7 @@ function Help() {
 			<DialogTrigger asChild>
 				<Button disabled={helpOpen} className="bg-sidebar flex gap-0.5 h-5 pointer-events-auto p-0 px-1 text-[10px] border">
 					<HelpCircle className="py-[1px]" />
-					Help
+					{textData._Checklist._Help.Help}
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="game-font h-200 max-h-[calc(100vh-4rem)] min-w-260 flex flex-col gap-8">
@@ -91,7 +91,6 @@ function Help() {
 										exit={{ opacity: 0, scale: 1.05 }}
 									>
 										<div className="logo min-h-60 min-w-60 brightness-50 mb-4"></div>
-										{/* <div className="mb-4 text-2xl">--Select--</div> */}
 									</motion.div>
 								</>
 							)}

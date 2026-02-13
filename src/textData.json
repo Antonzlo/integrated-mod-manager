@@ -10,6 +10,9 @@
 		"Skip": "Skip",
 		"Search": "Search...",
 		"Items": "Items",
+		"Note":"Note",
+		"IUnd":"I Understand",
+		"Back": "Back",
 		"Cancel": "Cancel",
 		"Select": "Select",
 		"Tutorials": "Tutorials",
@@ -30,8 +33,8 @@
 		"GetPre": "Get pre-releases",
 		"Start": "Start Game",
 		"Refresh": "Refresh mod list",
-		"CredCN":"Thanks to 118ununoctium for verifying CN translations!",
-		"CredRU":"Thanks to Antonzlo for verifying RU translations!",
+		"CredCN": "Thanks to 118ununoctium for verifying CN translations!",
+		"CredRU": "Thanks to Antonzlo for verifying RU translations!",
 		"v2.1.2Warning": "If you are upgrading from v2.1.2 or lower, please close all file explorer windows and refresh IMM.",
 		"Languages": {
 			"cn": "Chinese (Simplified)",
@@ -77,7 +80,15 @@
 			"CannotExpandSelected": "Cannot expand a selected item.",
 			"RefreshMods": "Refreshing Mod List",
 			"SrcOrTgt": "Source or Target directory does not exist",
-			"XXMIConfErr": "Could Not Verify XXMI Config"
+			"XXMIConfErr": "Could Not Verify XXMI Config",
+			
+			"FileAdded":"File added to download queue.",
+			"CollisionsDetected": "Collisions detected for enabled mods",
+			"SwitchGame":"Switching to game: <game/>",
+			"FailedRename":"Failed to rename mod. Please try again.",
+			"UnableCat":"Unable to categorize: <item/>",
+			"ErrInstall":"Error installing <item/>",
+			"SuccessInstall":"<success/>/<total/> mod(s) installed successfully."
 		},
 		"_Help": {
 			"SwitchGames": {
@@ -95,6 +106,12 @@
 			"EditModInfo": {
 				"title": "Editing Mod Details",
 				"content": ["Select a mod, and edit details such as name, category, source (URL)."]
+			},
+			"EditModConfig": {
+				"title": "Editing Mod Config",
+				"content": [
+					"Open Mod Config Menu from the right sidebar to view/edit defaults and preferences for mod variables."
+				]
 			},
 			"ChangeImg": {
 				"title": "Changing Preview Image",
@@ -144,6 +161,19 @@
 				"title": "Updating Mods",
 				"content": ["Get notified when an installed mod has updates available!"]
 			},
+			"ManualInstall": {
+				"title": "Installing Mods from Archives",
+				"content": [
+					"Click on the 'Manual Install' button in the bottom of the right sidebar & select the files to install.\nSupported archive formats: .zip, .rar, .7z"
+				]
+			},
+			"ConflictRes": {
+				"title": "Mod Conflict Resolution",
+				"content": [
+					"Warns you when two mods for the same character that may have conflicting parameters are enabled.",
+					"Easily resolve all conflicts from the 'Conflicts' menu in the right sidebar."
+				]
+			},
 			"ManageCats": {
 				"title": "Managing Categories",
 				"content": [
@@ -170,11 +200,22 @@
 			"Updater": {
 				"title": "IMM Updater",
 				"content": ["Update IMM to the latest version from within the app."]
+			},
+			"RemoveIMM": {
+				"title": "Removing IMM",
+				"content": [
+					"You can find the 'Remove IMM' in the Restore Menu.",
+					"Choose how you want your mods and data to be handled, and click 'Confirm & Remove'.",
+					"Follow the steps and complete the removal process by clicking 'Move'."
+				]
 			}
 		},
 		"_Changes": {
 			"ConfirmChanges": "Confirm changes",
-			"CreateRestore": "Create a restore point before applying changes"
+			"CreateRestore": "Create a restore point before applying changes",
+			"WillBeOrg":"Files and folders will be organized/moved as displayed in the previous menu",
+			"WhatIfRem":"What if I want to remove IMM later?",
+			"RemIMM":"You will be able to remove IMM and move your mods back out using the 'Remove IMM' option in the Restore menu."
 		},
 		"_Checklist": {
 			"Greeting": "Hello, ",
@@ -308,15 +349,17 @@
 						"Import": "Import",
 						"Export": "Export"
 					},
-					"Folders": "<game> and Mods Folder",
+					"Folders": "<game/> and Mods Folder",
 					"ModDir": "Mods Directories",
 					"XXMIDir": "XXMI Directory",
-					"LaunchGame": "Launch Game",
-					"_LaunchGame": {
-						"LaunchMsg1": "Launches the game via XXMI when you start IMM",
-						"LaunchMsg2": "Make sure the XXMI executable path is set below",
-						"LaunchMsg3": "(usually ...\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe)",
-						"Placeholder": "XXMI Executable Path"
+					"LaunchSettings": "Launch Settings",
+					"_LaunchSettings": {
+						"NoChanges": "No Changes",
+						"LaunchGame": "Launch the game when opening IMM",
+						"LaunchIMM": "Launch IMM when opening <game/>MI",
+						"Note": "Note",
+						"Warn1": "As XXMI config has been modified, you may receive this warning on next launch.",
+						"Warn2": "When this occurs, to make IMM start when the game launches, please press 'Keep'"
 					},
 					"HotKey": "Hotkey",
 					"_HotKey": {
@@ -329,6 +372,39 @@
 						"ClearHK": "Clear Hotkey",
 						"HKEmpty": "Create a preset to set hotkeys."
 					}
+				},
+				"_RemoveIMM": {
+					"RemoveIMM": "Remove IMM",
+					"MoveAll": "Move all mods that are managed by IMM to:",
+					"DirStruct": "Directory Structure",
+					"Flat": "Flat",
+					"Categorized": "Categorized",
+					"EnDisbMods": "Enable/Disable Mods",
+					"DisAll": "Disable All",
+					"EnAll": "Enable All",
+					"Unchanged": "Unchanged",
+					"IMMData": "IMM Data",
+					"IMMTip": "This includes mod data (sources, notes, preferences, etc...), presets and custom categories. It can be imported to IMM later.",
+					"NoExp": "Do not export",
+					"Exp": "Export Config",
+					"ModData": "Mod Data",
+					"ModTip": "This includes data such as mod sources, notes, preferences, etc. A 'DISABLED_pref.ini' with your mod preferences and a 'data.json' file will be created in the folder for mods that have any such data stored to IMM. It cannot be imported to IMM later.",
+					"PresetData": "Preset Data",
+					"PresetTip": "This will create a 'Presets' folder; txt files for each preset will be created in it. It cannot be imported to IMM later.",
+					"NoSave": "Do not save",
+					"SaveRef": "Save for reference",
+					"ConfRem": "Confirm & Remove",
+					"Recheck": "Please recheck your choices as this action cannot be undone.",
+					"AsConf": "Mods will be moved as per your chosen configuration.",
+					"ExpIMM": "Export IMM data",
+					"SaveMD": "Save mod data for reference",
+					"SavePS": "Save preset data for reference",
+					"CompleteRem": "Complete removal by moving mods",
+					"Exporting": "Exporting...",
+					"Saving": "Saving...",
+					"Moving": "Moving...",
+					"Thanks": "Thank you for using IMM",
+					"AppRL": "App will reload in <s/> seconds"
 				}
 			},
 			"_Left": {
@@ -341,10 +417,10 @@
 					"Enabled": "Enabled",
 					"Disabled": "Disabled",
 					"Advanced": "Advanced",
-					"AdvFilOpt":"Advanced Filter Options",
-					"All":"All / Any",
-					"Yes":"Yes / Positive",
-					"No":"No / Negative"	
+					"AdvFilOpt": "Advanced Filter Options",
+					"All": "All / Any",
+					"Yes": "Yes / Positive",
+					"No": "No / Negative"
 				},
 				"Presets": "Presets",
 				"_Presets": {
@@ -356,7 +432,7 @@
 			},
 			"_LeftOnline": {
 				"Type": "Type",
-				"Chk":"Check for Updates"
+				"Chk": "Check for Updates"
 			}
 		},
 		"_Main": {
@@ -387,8 +463,15 @@
 					"Patch": "Patches",
 					"Lat": "You are on the latest version.",
 					"Soon": "Update will be installed soon",
-					"In": "Update will be installed in <time>s",
+					"In": "Update will be installed in <s/>s",
 					"Use": "You can use the app while updates are being downloaded."
+				},
+				"_ModConflicts":{
+					"ResModConf":"Resolve Mod Conflicts",
+					"NoConf":"No Conflicts Detected",
+					"Resolve":"Resolve",
+					"Msg1":"To resolve conflicts, choose one to keep enabled.",
+					"Msg2":"Remaining will be disabled. You may ignore conflicts if you wish."
 				}
 			},
 			"_MainLocal": {
@@ -419,6 +502,25 @@
 					"CreateCat": "Create New Category",
 					"CatExist": "Category already exists.",
 					"CannotDel": "Cannot delete, folder is not empty."
+				},
+				"_ModPreferences":{
+					"EditConf":"Edit Mod Config",
+					"EditConfig":"Edit Mod Configurations",
+					"ShowVars":"Show All Variables",
+					"Select":"Select File",
+					"Page":"Page",
+					"Of":"of",
+					"Name":"Name",
+					"NameTip":"This only will only reflect in the UI and will not affect any mod/ini files.",
+					"DefVal":"Default Value",
+					"DefValTip":"The default value of the variable in the mod/ini file. Changes will be written to the mod/ini file.",
+					"Pref":"Preference",
+					"PrefTip":"To set your preferred settings directly for the mod injector user preferences. This will not affect any mod/ini files. If preference has not been set, IMM will use the last state of the vars as stored by XXMI.",
+					"Expected":"Expected Values",
+					"Default":"Default",
+					"Unknown":"Unknown",
+					"AutoSaved":"Auto saved:",
+					"Priority":"Priority: Preference > Auto save > Default"
 				}
 			},
 			"_RightLocal": {
@@ -432,21 +534,36 @@
 				"NoNotes": "No notes",
 				"Manage": "Manage",
 				"ViewModOnline": "View Mod Online",
-				"SearchOnline": "Search Online"
+				"SearchOnline": "Search Online",
+				"ManualInstall": "Manual Install",
+				"Conflicts":"Conflicts"
 			},
 			"_RightOnline": {
 				"Reinstall": "Reinstall",
 				"Unknown": "Unknown",
 				"Preview": "Preview Images",
 				"About": "About",
-				"LatestUpd": "Latest Update",
+				"Updates": "Updates",
+				"Comments":"Comments",
 				"Sep": "Install Separately",
 				"NoItem": "No item selected",
 				"LinkCopied": "Link copied to clipboard!",
 				"CopyLink": "Copy Link",
 				"OpenBrowser": "Open in Browser",
 				"LinkToMod": "Link to Existing Mod",
-				"LinkToModSuccess": "Successfully linked!"
+				"LinkToModSuccess": "Successfully linked!",
+				"NoComs":"No comments yet.",
+				"LoadMore":"Load more comments",
+				"ViewReps":"View Replies",
+				"Clean":"Clean",
+				"Danger": "Dangerous",
+				"Pending": "Pending",
+				"Private":"This mod has been set to private.",
+				"Deleted":"This mod has been deleted.",
+				"Withheld":"This mod has been withheld.",
+				"ForGame":"This mod is for <game/>, which is not the currently selected game.",
+				"ViewAnyways": "View anyways",
+				"SwitchGame": "Switch game"
 			}
 		},
 		"_Tutorial": {
@@ -520,6 +637,9 @@
 		"Skip": "跳过",
 		"Search": "搜索...",
 		"Items": "项目",
+		"Note":"注意",
+		"IUnd":"我理解",
+		"Back": "返回",
 		"Cancel": "取消",
 		"Select": "选择",
 		"Tutorials": "教程",
@@ -540,8 +660,8 @@
 		"GetPre": "获取预发布版本",
 		"Start": "启动游戏",
 		"Refresh": "刷新模组列表",
-		"CredCN":"感谢 118ununoctium 验证中文翻译！",
-		"CredRU":"感谢 Antonzlo 验证俄语翻译！",
+		"CredCN": "感谢 118ununoctium 验证中文翻译！",
+		"CredRU": "感谢 Antonzlo 验证俄语翻译！",
 		"v2.1.2Warning": "如果您从v2.1.2或更低版本升级，请关闭所有文件资源管理器窗口并刷新IMM。",
 		"Languages": {
 			"cn": "中文（简体）",
@@ -587,7 +707,15 @@
 			"CannotExpandSelected": "无法展开选定的项目。",
 			"RefreshMods": "正在刷新模组列表",
 			"SrcOrTgt": "源目录或目标目录不存在",
-			"XXMIConfErr": "无法验证 XXMI 配置"
+			"XXMIConfErr": "无法验证 XXMI 配置",
+			
+			"FileAdded":"文件已添加到下载队列。",
+			"CollisionsDetected": "检测到已启用模组的冲突",
+			"SwitchGame":"切换到游戏：<game/>",
+			"FailedRename":"重命名模组失败。请重试。",
+			"UnableCat":"无法分类：<item/>",
+			"ErrInstall":"安装 <item/> 时出错",
+			"SuccessInstall":"<success/>/<total/> 个模组安装成功。"
 		},
 		"_Help": {
 			"SwitchGames": {
@@ -605,6 +733,10 @@
 			"EditModInfo": {
 				"title": "编辑模组详情",
 				"content": ["选择一个模组，编辑名称、分类、来源（URL）等详情。"]
+			},
+			"EditModConfig": {
+				"title": "编辑模组配置",
+				"content": ["从右侧边栏打开模组配置菜单以查看/编辑模组变量的默认值和首选项。"]
 			},
 			"ChangeImg": {
 				"title": "更改预览图片",
@@ -646,6 +778,17 @@
 				"title": "更新模组",
 				"content": ["当已安装的模组有可用更新时会收到通知！"]
 			},
+			"ManualInstall": {
+				"title": "从压缩包安装模组",
+				"content": ["点击右侧边栏底部的'手动安装'按钮并选择要安装的文件。\n支持的压缩格式：.zip, .rar, .7z"]
+			},
+			"ConflictRes": {
+				"title": "模组冲突解决",
+				"content": [
+					"当启用了同一角色的两个可能有冲突参数的模组时会发出警告。",
+					"从右侧边栏的'冲突'菜单轻松解决所有冲突。"
+				]
+			},
 			"Restore": {
 				"title": "备份点",
 				"content": ["创建和管理备份点。", "从保存的备份点恢复您的模组。"]
@@ -665,11 +808,22 @@
 			"Updater": {
 				"title": "IMM 更新器",
 				"content": ["在应用内将 IMM 更新到最新版本。"]
+			},
+			"RemoveIMM": {
+				"title": "删除 IMM",
+				"content": [
+					"您可以在恢复菜单中找到“删除 IMM”。",
+					"选择如何处理您的模组和数据，然后点击“确认并删除”。",
+					"按照步骤完成删除过程，点击“移动”。"
+				]
 			}
 		},
 		"_Changes": {
 			"ConfirmChanges": "确认更改",
-			"CreateRestore": "应用更改前创建备份点"
+			"CreateRestore": "应用更改前创建备份点",
+			"WillBeOrg":"文件和文件夹将按照上一个菜单中显示的方式进行组织/移动",
+			"WhatIfRem":"如果我后面想删除 IMM 怎么办？",
+			"RemIMM":"您将能够使用恢夏菜单中的“删除 IMM”选项删除 IMM 并将您的模组移回出去。"
 		},
 		"_Checklist": {
 			"Greeting": "你好，",
@@ -803,15 +957,17 @@
 						"Import": "导入",
 						"Export": "导出"
 					},
-					"Folders": "<game> 和模组文件夹",
+					"Folders": "<game/> 和模组文件夹",
 					"ModDir": "模组目录",
 					"XXMIDir": "XXMI 目录",
-					"LaunchGame": "启动游戏",
-					"_LaunchGame": {
-						"LaunchMsg1": "在启动 IMM 时通过 XXMI 启动游戏",
-						"LaunchMsg2": "请确保已在下方设置 XXMI 可执行文件路径",
-						"LaunchMsg3": "(通常为 ...\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe)",
-						"Placeholder": "XXMI 可执行文件路径"
+					"LaunchSettings": "启动设置",
+					"_LaunchSettings": {
+						"NoChanges": "无变化",
+						"LaunchGame": "打开 IMM 时启动游戏",
+						"LaunchIMM": "打开 <game/>MI 时启动 IMM",
+						"Note": "注意",
+						"Warn1": "由于 XXMI 配置已被修改，您可能会在下次启动时收到此警告。",
+						"Warn2": "发生这种情况时，要使 IMM 在游戏启动时启动，请按“保留”"
 					},
 					"HotKey": "快捷键",
 					"_HotKey": {
@@ -824,6 +980,40 @@
 						"ClearHK": "清除快捷键",
 						"HKEmpty": "创建预设以设置快捷键。"
 					}
+				},
+				"_RemoveIMM": {
+					"RemoveIMM": "删除 IMM",
+
+					"MoveAll": "将 IMM 管理的所有模组移动到：",
+					"DirStruct": "目录结构",
+					"Flat": "平面",
+					"Categorized": "分类",
+					"EnDisbMods": "启用/禁用模组",
+					"DisAll": "全部禁用",
+					"EnAll": "全部启用",
+					"Unchanged": "不变",
+					"IMMData": "IMM 数据",
+					"IMMTip": "这包括模组数据（来源、注释、首选项等）、预设和自定义分类。稍后可以导入到 IMM。",
+					"NoExp": "不导出",
+					"Exp": "导出配置",
+					"ModData": "模组数据",
+					"ModTip": "这包括模组来源、注释、首选项等数据。将为存储到 IMM 的任何此类数据的模组创建文件夹中的 'DISABLED_pref.ini' （包含您的模组首选项）和 'data.json' 文件。稍后无法导入到 IMM。",
+					"PresetData": "预设数据",
+					"PresetTip": "这将创建一个 'Presets' 文件夹；将在其中创建每个预设的 txt 文件。稍后无法导入到 IMM。",
+					"NoSave": "不保存",
+					"SaveRef": "保存以供参考",
+					"ConfRem": "确认并删除",
+					"Recheck": "请重新检查您的选择，因为此操作无法撤销。",
+					"AsConf": "模组将根据您选择的配置移动。",
+					"ExpIMM": "导出 IMM 数据",
+					"SaveMD": "保存模组数据以供参考",
+					"SavePS": "保存预设数据以供参考",
+					"CompleteRem": "通过移动模组完成删除",
+					"Exporting": "正在导出...",
+					"Saving": "正在保存...",
+					"Moving": "正在移动...",
+					"Thanks": "感谢您使用 IMM",
+					"AppRL": "应用将在 <s/> 秒后重新加载"
 				}
 			},
 			"_Left": {
@@ -836,10 +1026,10 @@
 					"Enabled": "已启用",
 					"Disabled": "已禁用",
 					"Advanced": "高级",
-					"AdvFilOpt":"高级筛选选项",
-					"All":"全部 / 任意",
-					"Yes":"是 / 肯定",
-					"No":"否 / 否定"
+					"AdvFilOpt": "高级筛选选项",
+					"All": "全部 / 任意",
+					"Yes": "是 / 肯定",
+					"No": "否 / 否定"
 				},
 				"Presets": "预设",
 				"_Presets": {
@@ -851,7 +1041,7 @@
 			},
 			"_LeftOnline": {
 				"Type": "类型",
-				"Chk":"检查更新"
+				"Chk": "检查更新"
 			}
 		},
 		"_Main": {
@@ -882,8 +1072,15 @@
 					"Patch": "补丁",
 					"Lat": "您使用的是最新版本。",
 					"Soon": "即将安装更新",
-					"In": "更新将在 <time> 秒后安装",
+					"In": "更新将在 <s/> 秒后安装",
 					"Use": "您可以在下载更新时使用应用程序。"
+				},
+				"_ModConflicts":{
+					"ResModConf":"解决模组冲突",
+					"NoConf":"未检测到冲突",
+					"Resolve":"解决",
+					"Msg1":"要解决冲突，请选择一个保持启用状态。",
+					"Msg2":"其余将被禁用。如果您愿意，可以忽略冲突。"
 				}
 			},
 			"_MainLocal": {
@@ -914,6 +1111,25 @@
 					"CreateCat": "创建新分类",
 					"CatExist": "分类已存在。",
 					"CannotDel": "无法删除，文件夹不为空。"
+				},
+				"_ModPreferences":{
+					"EditConf":"编辑模组配置",
+					"EditConfig":"编辑模组配置",
+					"ShowVars":"显示所有变量",
+					"Select":"选择文件",
+					"Page":"页面",
+					"Of":"的",
+					"Name":"名称",
+					"NameTip":"这只会在 UI 中显示，不会影响任何模组/ini 文件。",
+					"DefVal":"默认值",
+					"DefValTip":"模组/ini 文件中变量的默认值。更改将被写入模组/ini 文件。",
+					"Pref":"首选项",
+					"PrefTip":"直接为模组注入器用户首选项设置您的首选设置。这不会影响任何模组/ini 文件。如果未设置首选项，IMM 将使用 XXMI 存储的变量最后状态。",
+					"Expected":"预期值",
+					"Default":"默认",
+					"Unknown":"未知",
+					"AutoSaved":"自动保存：",
+					"Priority":"优先级：首选项 > 自动保存 > 默认"
 				}
 			},
 			"_RightLocal": {
@@ -927,21 +1143,36 @@
 				"NoNotes": "无备注",
 				"Manage": "管理",
 				"ViewModOnline": "在线查看模组",
-				"SearchOnline": "在线搜索"
+				"SearchOnline": "在线搜索",
+				"ManualInstall": "手动安装",
+				"Conflicts":"冲突"
 			},
 			"_RightOnline": {
 				"Reinstall": "重新安装",
 				"Unknown": "未知",
 				"Preview": "预览图片",
 				"About": "关于",
-				"LatestUpd": "最新更新",
+				"Updates": "更新",
+				"Comments":"评论",
 				"Sep": "单独安装",
 				"NoItem": "未选择项目",
 				"LinkCopied": "链接已复制到剪贴板！",
 				"CopyLink": "复制链接",
 				"OpenBrowser": "在浏览器中打开",
 				"LinkToMod": "链接到现有模组",
-				"LinkToModSuccess": "成功链接！"
+				"LinkToModSuccess": "成功链接！",
+				"NoComs":"还没有评论。",
+				"LoadMore":"加载更多评论",
+				"ViewReps":"查看回复",
+				"Clean":"干净",
+				"Danger": "危险",
+				"Pending": "待定",
+				"Private":"此模组已设置为私有。",
+				"Deleted":"此模组已被删除。",
+				"Withheld":"此模组已被扣留。",
+				"ForGame":"此模组适用于 <game/>，而不是当前选择的游戏。",
+				"ViewAnyways": "仍然查看",
+				"SwitchGame": "切换游戏"
 			}
 		},
 		"_Tutorial": {
@@ -1015,6 +1246,9 @@
 		"Skip": "Пропустить",
 		"Search": "Поиск...",
 		"Items": "Элементы",
+		"Note":"Примечание",
+		"IUnd":"Я понимаю",
+		"Back": "Назад",
 		"Cancel": "Отмена",
 		"Select": "Выбрать",
 		"Tutorials": "Руководства",
@@ -1035,8 +1269,8 @@
 		"GetPre": "Скачивать пререлизы",
 		"Start": "Запустить игру",
 		"Refresh": "Обновить список модов",
-		"CredCN":"Спасибо 118ununoctium за проверку перевода на китайский!",
-		"CredRU":"Спасибо Antonzlo за проверку перевода на русский!",
+		"CredCN": "Спасибо 118ununoctium за проверку перевода на китайский!",
+		"CredRU": "Спасибо Antonzlo за проверку перевода на русский!",
 		"v2.1.2Warning": "Если вы обновляетесь с версии v2.1.2 или ниже, пожалуйста, закройте все окна проводника и обновите IMM.",
 		"Languages": {
 			"cn": "Китайский (упрощенный)",
@@ -1082,7 +1316,15 @@
 			"CannotExpandSelected": "Невозможно развернуть выбранный элемент.",
 			"RefreshMods": "Обновление списка модов",
 			"SrcOrTgt": "Исходная или целевая папка не существует",
-			"XXMIConfErr": "Не удалось проверить конфигурацию XXMI"
+			"XXMIConfErr": "Не удалось проверить конфигурацию XXMI",
+			
+			"FileAdded":"Файл добавлен в очередь загрузки.",
+			"CollisionsDetected": "Обнаружены коллизии для включенных модов",
+			"SwitchGame":"Переключение на игру: <game/>",
+			"FailedRename":"Не удалось переименовать мод. Пожалуйста, попробуйте снова.",
+			"UnableCat":"Невозможно категоризировать: <item/>",
+			"ErrInstall":"Ошибка установки <item/>",
+			"SuccessInstall":"<success/>/<total/> модов успешно установлено."
 		},
 		"_Help": {
 			"SwitchGames": {
@@ -1100,6 +1342,12 @@
 			"EditModInfo": {
 				"title": "Редактирование деталей мода",
 				"content": ["Выберите мод и отредактируйте детали - название, категория, источник (URL)."]
+			},
+			"EditModConfig": {
+				"title": "Редактирование конфигурации мода",
+				"content": [
+					"Откройте меню конфигурации мода на правой боковой панели для просмотра/редактирования значений по умолчанию и настроек переменных мода."
+				]
 			},
 			"ChangeImg": {
 				"title": "Изменение превью изображения",
@@ -1153,6 +1401,19 @@
 				"title": "Обновление модов",
 				"content": ["Получайте уведомления, когда для установленного мода доступны обновления!"]
 			},
+			"ManualInstall": {
+				"title": "Установка модов из архивов",
+				"content": [
+					"Нажмите кнопку 'Ручная установка' внизу правой боковой панели и выберите файлы для установки.\nПоддерживаемые форматы архивов: .zip, .rar, .7z"
+				]
+			},
+			"ConflictRes": {
+				"title": "Разрешение конфликтов модов",
+				"content": [
+					"Предупреждает, когда включены два мода для одного персонажа с возможно конфликтующими параметрами.",
+					"Легко разрешайте все конфликты из меню 'Конфликты' на правой боковой панели."
+				]
+			},
 			"Restore": {
 				"title": "Точки восстановления",
 				"content": [
@@ -1184,11 +1445,22 @@
 			"Updater": {
 				"title": "Обновлятор IMM",
 				"content": ["Обновите IMM до последней версии прямо из приложения."]
+			},
+			"RemoveIMM": {
+				"title": "Удаление IMM",
+				"content": [
+					"Вы можете найти 'Удалить IMM' в меню восстановления.",
+					"Выберите, как вы хотите обработать ваши моды и данные, и нажмите 'Подтвердить и удалить'.",
+					"Следуйте инструкциям и завершите процесс удаления, нажав 'Переместить'."
+				]
 			}
 		},
 		"_Changes": {
 			"ConfirmChanges": "Подтвердить изменения",
-			"CreateRestore": "Создайте точку восстановления перед применением изменений"
+			"CreateRestore": "Создайте точку восстановления перед применением изменений",
+			"WillBeOrg":"Файлы и папки будут организованы/перемещены так, как показано в предыдущем меню",
+			"WhatIfRem":"Что, если я захочу удалить IMM позже?",
+			"RemIMM":"Вы сможете удалить IMM и переместить ваши моды обратно с помощью опции 'Удалить IMM' в меню восстановления."
 		},
 		"_Checklist": {
 			"Greeting": "Привет, ",
@@ -1322,15 +1594,17 @@
 						"Import": "Импорт",
 						"Export": "Экспорт"
 					},
-					"Folders": "<game> и папка модов",
+					"Folders": "<game/> и папка модов",
 					"ModDir": "Папки модов",
 					"XXMIDir": "Папка XXMI",
-					"LaunchGame": "Запустить игру",
-					"_LaunchGame": {
-						"LaunchMsg1": "Запускает игру через XXMI при старте IMM",
-						"LaunchMsg2": "Убедитесь, что путь к исполняемому файлу XXMI указан ниже",
-						"LaunchMsg3": "(обычно ...\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe)",
-						"Placeholder": "Путь к исполняемому файлу XXMI"
+					"LaunchSettings": "Настройки запуска",
+					"_LaunchSettings": {
+						"NoChanges": "Без изменений",
+						"LaunchGame": "Запускать игру при открытии IMM",
+						"LaunchIMM": "Запускать IMM при открытии <game/>MI",
+						"Note": "Примечание",
+						"Warn1": "Поскольку конфигурация XXMI была изменена, вы можете получить это предупреждение при следующем запуске.",
+						"Warn2": "Когда это произойдет, чтобы IMM запускался при запуске игры, нажмите 'Оставить'"
 					},
 					"HotKey": "Горячая клавиша",
 					"_HotKey": {
@@ -1343,6 +1617,39 @@
 						"ClearHK": "Сбросить горячую клавишу",
 						"HKEmpty": "Создайте пресет для настройки горячих клавиш."
 					}
+				},
+				"_RemoveIMM": {
+					"RemoveIMM": "Удалить IMM",
+					"MoveAll": "Переместить все моды, управляемые IMM, в:",
+					"DirStruct": "Структура каталогов",
+					"Flat": "Плоская",
+					"Categorized": "Категоризированная",
+					"EnDisbMods": "Включить/Отключить моды",
+					"DisAll": "Отключить все",
+					"EnAll": "Включить все",
+					"Unchanged": "Без изменений",
+					"IMMData": "Данные IMM",
+					"IMMTip": "Это включает данные модов (источники, заметки, настройки и т.д.), пресеты и пользовательские категории. Может быть импортировано в IMM позже.",
+					"NoExp": "Не экспортировать",
+					"Exp": "Экспортировать конфигурацию",
+					"ModData": "Данные модов",
+					"ModTip": "Это включает такие данные, как источники модов, заметки, настройки и т.д. Файл 'DISABLED_pref.ini' с вашими настройками мода и файл 'data.json' будут созданы в папке для модов, имеющих такие данные в IMM. Не может быть импортировано в IMM позже.",
+					"PresetData": "Данные пресетов",
+					"PresetTip": "Это создаст папку 'Presets'; в ней будут созданы txt-файлы для каждого пресета. Не может быть импортировано в IMM позже.",
+					"NoSave": "Не сохранять",
+					"SaveRef": "Сохранить для справки",
+					"ConfRem": "Подтвердить и удалить",
+					"Recheck": "Пожалуйста, перепроверьте свой выбор, так как это действие нельзя отменить.",
+					"AsConf": "Моды будут перемещены согласно выбранной конфигурации.",
+					"ExpIMM": "Экспортировать данные IMM",
+					"SaveMD": "Сохранить данные модов для справки",
+					"SavePS": "Сохранить данные пресетов для справки",
+					"CompleteRem": "Завершить удаление, переместив моды",
+					"Exporting": "Экспорт...",
+					"Saving": "Сохранение...",
+					"Moving": "Перемещение...",
+					"Thanks": "Спасибо за использование IMM",
+					"AppRL": "Приложение перезагрузится через <s/> секунд"
 				}
 			},
 			"_Left": {
@@ -1355,10 +1662,10 @@
 					"Enabled": "Включено",
 					"Disabled": "Отключено",
 					"Advanced": "Расширенный",
-					"AdvFilOpt":"Расширенные параметры фильтра",
-					"All":"Все / Любой",
-					"Yes":"Да / Положительный",
-					"No":"Нет / Отрицательный"
+					"AdvFilOpt": "Расширенные параметры фильтра",
+					"All": "Все / Любой",
+					"Yes": "Да / Положительный",
+					"No": "Нет / Отрицательный"
 				},
 				"Presets": "Пресеты",
 				"_Presets": {
@@ -1370,7 +1677,7 @@
 			},
 			"_LeftOnline": {
 				"Type": "Тип",
-				"Chk":"Проверить обновления"
+				"Chk": "Проверить обновления"
 			}
 		},
 		"_Main": {
@@ -1401,8 +1708,15 @@
 					"Patch": "Исправления",
 					"Lat": "У вас установлена последняя версия.",
 					"Soon": "Обновление будет установлено скоро",
-					"In": "Обновление будет установлено через <time> с",
+					"In": "Обновление будет установлено через <s/> с",
 					"Use": "Вы можете использовать приложение во время загрузки обновлений."
+				},
+				"_ModConflicts":{
+					"ResModConf":"Разрешить конфликты модов",
+					"NoConf":"Конфликтов не обнаружено",
+					"Resolve":"Разрешить",
+					"Msg1":"Чтобы разрешить конфликты, выберите один для сохранения включенным.",
+					"Msg2":"Остальные будут отключены. Вы можете игнорировать конфликты, если хотите."
 				}
 			},
 			"_MainLocal": {
@@ -1433,6 +1747,25 @@
 					"CreateCat": "Создать новую категорию",
 					"CatExist": "Категория уже существует.",
 					"CannotDel": "Невозможно удалить, папка не пуста."
+				},
+				"_ModPreferences":{
+					"EditConf":"Редактировать конфигурацию мода",
+					"EditConfig":"Редактировать конфигурации мода",
+					"ShowVars":"Показать все переменные",
+					"Select":"Выбрать файл",
+					"Page":"Страница",
+					"Of":"из",
+					"Name":"Имя",
+					"NameTip":"Это будет отображаться только в интерфейсе и не повлияет на какие-либо файлы модов/ini.",
+					"DefVal":"Значение по умолчанию",
+					"DefValTip":"Значение переменной по умолчанию в файле мода/ini. Изменения будут записаны в файл мода/ini.",
+					"Pref":"Предпочтение",
+					"PrefTip":"Чтобы установить предпочтительные настройки напрямую для пользовательских настроек инжектора модов. Это не повлияет на какие-либо файлы модов/ini. Если предпочтение не установлено, IMM будет использовать последнее состояние переменных, сохраненное XXMI.",
+					"Expected":"Ожидаемые значения",
+					"Default":"По умолчанию",
+					"Unknown":"Неизвестно",
+					"AutoSaved":"Автосохранено:",
+					"Priority":"Приоритет: Предпочтение > Автосохранение > По умолчанию"
 				}
 			},
 			"_RightLocal": {
@@ -1446,21 +1779,36 @@
 				"NoNotes": "Нет заметок",
 				"Manage": "Управление",
 				"ViewModOnline": "Посмотреть мод онлайн",
-				"SearchOnline": "Поиск онлайн"
+				"SearchOnline": "Поиск онлайн",
+				"ManualInstall": "Ручная установка",
+				"Conflicts":"Конфликты"
 			},
 			"_RightOnline": {
 				"Reinstall": "Переустановить",
 				"Unknown": "Неизвестно",
 				"Preview": "Превью изображения",
 				"About": "Описание",
-				"LatestUpd": "Последнее обновление",
+				"Updates": "Обновления",
+				"Comments":"Комментарии",
 				"Sep": "Установить отдельно",
 				"NoItem": "Элемент не выбран",
 				"LinkCopied": "Ссылка скопирована в буфер обмена!",
 				"CopyLink": "Скопировать ссылку",
 				"OpenBrowser": "Открыть в браузере",
 				"LinkToMod": "Связать с существующим модом",
-				"LinkToModSuccess": "Успешно связано!"
+				"LinkToModSuccess": "Успешно связано!",
+				"NoComs":"Комментариев пока нет.",
+				"LoadMore":"Загрузить еще комментарии",
+				"ViewReps":"Посмотреть ответы",
+				"Clean":"Чистый",
+				"Danger": "Опасный",
+				"Pending": "Ожидается",
+				"Private":"Этот мод установлен как приватный.",
+				"Deleted":"Этот мод был удален.",
+				"Withheld":"Этот мод был заблокирован.",
+				"ForGame":"Этот мод предназначен для <game/>, а не для текущей выбранной игры.",
+				"ViewAnyways": "Все равно посмотреть",
+				"SwitchGame": "Переключить игру"
 			}
 		},
 		"_Tutorial": {
@@ -1534,6 +1882,9 @@
 		"Skip": "スキップ",
 		"Search": "検索...",
 		"Items": "アイテム",
+		"Note":"注意",
+		"IUnd":"理解しました",
+		"Back": "戻る",
 		"Cancel": "キャンセル",
 		"Select": "選択",
 		"Tutorials": "チュートリアル",
@@ -1554,8 +1905,8 @@
 		"GetPre": "プレリリースを取得",
 		"Start": "ゲームを起動",
 		"Refresh": "Modリストを更新",
-		"CredCN":"118ununoctiumさんに中国語翻訳の検証をいただきありがとうございます！",
-		"CredRU":"Antonzloさんにロシア語翻訳の検証をいただきありがとうございます！",
+		"CredCN": "118ununoctiumさんに中国語翻訳の検証をいただきありがとうございます！",
+		"CredRU": "Antonzloさんにロシア語翻訳の検証をいただきありがとうございます！",
 		"v2.1.2Warning": "v2.1.2以前からアップグレードする場合は、すべてのファイルエクスプローラーウィンドウを閉じてIMMを更新してください。",
 		"Languages": {
 			"cn": "中国語（簡体字）",
@@ -1601,7 +1952,15 @@
 			"CannotExpandSelected": "選択したアイテムを展開できません。",
 			"RefreshMods": "Modリストを更新中",
 			"SrcOrTgt": "ソースまたはターゲットディレクトリが存在しません",
-			"XXMIConfErr": "XXMI設定を確認できませんでした"
+			"XXMIConfErr": "XXMI設定を確認できませんでした",
+			
+			"FileAdded":"ファイルがダウンロードキューに追加されました。",
+			"CollisionsDetected": "有効なModの競合が検出されました",
+			"SwitchGame":"ゲームに切り替え中：<game/>",
+			"FailedRename":"Modの名前変更に失敗しました。もう一度お試しください。",
+			"UnableCat":"分類できません：<item/>",
+			"ErrInstall":"<item/>のインストール中にエラーが発生しました",
+			"SuccessInstall":"<success/>/<total/> 個のModが正常にインストールされました。"
 		},
 		"_Help": {
 			"SwitchGames": {
@@ -1619,6 +1978,10 @@
 			"EditModInfo": {
 				"title": "Mod詳細の編集",
 				"content": ["Modを選択し、名前、カテゴリ、ソース（URL）などの詳細を編集します。"]
+			},
+			"EditModConfig": {
+				"title": "Mod設定の編集",
+				"content": ["右サイドバーからMod設定メニューを開いて、Mod変数のデフォルトと環境設定を表示/編集します。"]
 			},
 			"ChangeImg": {
 				"title": "プレビュー画像の変更",
@@ -1674,6 +2037,19 @@
 				"title": "Modの更新",
 				"content": ["インストール済みのModに利用可能なアップデートがある場合に通知を受け取ります！"]
 			},
+			"ManualInstall": {
+				"title": "アーカイブからModをインストール",
+				"content": [
+					"右サイドバーの下部にある「手動インストール」ボタンをクリックし、インストールするファイルを選択します。\n対応アーカイブ形式：.zip, .rar, .7z"
+				]
+			},
+			"ConflictRes": {
+				"title": "Mod競合の解決",
+				"content": [
+					"同じキャラクターで競合する可能性のあるパラメータを持つ2つのModが有効になっている場合に警告します。",
+					"右サイドバーの「競合」メニューからすべての競合を簡単に解決できます。"
+				]
+			},
 			"Restore": {
 				"title": "復元ポイント",
 				"content": ["復元ポイント（バックアップ）を作成・管理します。", "保存された復元ポイントからModを復元します。"]
@@ -1696,11 +2072,22 @@
 			"Updater": {
 				"title": "IMMアップデーター",
 				"content": ["アプリ内からIMMを最新バージョンに更新します。"]
+			},
+			"RemoveIMM": {
+				"title": "IMMの削除",
+				"content": [
+					"復元メニューに「IMMを削除」があります。",
+					"Modとデータの処理方法を選択し、「確認して削除」をクリックします。",
+					"手順に従って「移動」をクリックして削除プロセスを完了します。"
+				]
 			}
 		},
 		"_Changes": {
 			"ConfirmChanges": "変更を確認",
-			"CreateRestore": "変更を適用する前に復元ポイントを作成"
+			"CreateRestore": "変更を適用する前に復元ポイントを作成",
+			"WillBeOrg":"ファイルとフォルダは前のメニューで表示された通りに整理/移動されます",
+			"WhatIfRem":"後でIMMを削除したい場合は？",
+			"RemIMM":"復元メニューの「IMMを削除」オプションを使用して、IMMを削除しModを戻すことができます。"
 		},
 		"_Checklist": {
 			"Greeting": "こんにちは、",
@@ -1834,15 +2221,17 @@
 						"Import": "インポート",
 						"Export": "エクスポート"
 					},
-					"Folders": "<game> とModフォルダ",
+					"Folders": "<game/> とModフォルダ",
 					"ModDir": "Modディレクトリ",
 					"XXMIDir": "XXMIディレクトリ",
-					"LaunchGame": "ゲーム起動",
-					"_LaunchGame": {
-						"LaunchMsg1": "IMM を起動したときに XXMI 経由でゲームを起動します",
-						"LaunchMsg2": "下の XXMI 実行ファイルのパスが設定されていることを確認してください",
-						"LaunchMsg3": "(通常は ...\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe)",
-						"Placeholder": "XXMI 実行ファイルのパス"
+					"LaunchSettings": "起動設定",
+					"_LaunchSettings": {
+						"NoChanges": "変更なし",
+						"LaunchGame": "IMM を開くときにゲームを起動する",
+						"LaunchIMM": "<game/>MI を開くときに IMM を起動する",
+						"Note": "注意",
+						"Warn1": "XXMI 設定が変更されたため、次回起動時にこの警告が表示される可能性があります。",
+						"Warn2": "これが発生した場合、ゲーム起動時に IMM を開始するには「保持」を押してください"
 					},
 					"HotKey": "ホットキー",
 					"_HotKey": {
@@ -1855,6 +2244,39 @@
 						"ClearHK": "ホットキーをクリア",
 						"HKEmpty": "ホットキーを設定するにはプリセットを作成してください。"
 					}
+				},
+				"_RemoveIMM": {
+					"RemoveIMM": "IMMを削除",
+					"MoveAll": "IMMが管理するすべてのModを移動：",
+					"DirStruct": "ディレクトリ構造",
+					"Flat": "フラット",
+					"Categorized": "カテゴリ別",
+					"EnDisbMods": "Modを有効/無効化",
+					"DisAll": "すべて無効化",
+					"EnAll": "すべて有効化",
+					"Unchanged": "変更なし",
+					"IMMData": "IMMデータ",
+					"IMMTip": "これにはModデータ（ソース、メモ、設定など）、プリセット、カスタムカテゴリが含まれます。後でIMMにインポートできます。",
+					"NoExp": "エクスポートしない",
+					"Exp": "設定をエクスポート",
+					"ModData": "Modデータ",
+					"ModTip": "これにはModソース、メモ、設定などのデータが含まれます。IMMに保存されたデータを持つModのフォルダに、Mod設定を含む 'DISABLED_pref.ini' と 'data.json' ファイルが作成されます。後でIMMにインポートできません。",
+					"PresetData": "プリセットデータ",
+					"PresetTip": "これにより 'Presets' フォルダが作成され、各プリセットのtxtファイルがその中に作成されます。後でIMMにインポートできません。",
+					"NoSave": "保存しない",
+					"SaveRef": "参考用に保存",
+					"ConfRem": "確認して削除",
+					"Recheck": "この操作は元に戻せないため、選択内容を再確認してください。",
+					"AsConf": "Modは選択した設定に従って移動されます。",
+					"ExpIMM": "IMMデータをエクスポート",
+					"SaveMD": "Modデータを参考用に保存",
+					"SavePS": "プリセットデータを参考用に保存",
+					"CompleteRem": "Modを移動して削除を完了",
+					"Exporting": "エクスポート中...",
+					"Saving": "保存中...",
+					"Moving": "移動中...",
+					"Thanks": "IMMをご利用いただきありがとうございます",
+					"AppRL": "アプリは <s/> 秒後に再読み込みされます"
 				}
 			},
 			"_Left": {
@@ -1867,10 +2289,10 @@
 					"Enabled": "有効",
 					"Disabled": "無効",
 					"Advanced": "詳細",
-					"AdvFilOpt":"詳細フィルターオプション",
-					"All":"すべて / いずれか",
-					"Yes":"はい / 肯定",
-					"No":"いいえ / 否定"
+					"AdvFilOpt": "詳細フィルターオプション",
+					"All": "すべて / いずれか",
+					"Yes": "はい / 肯定",
+					"No": "いいえ / 否定"
 				},
 				"Presets": "プリセット",
 				"_Presets": {
@@ -1882,7 +2304,7 @@
 			},
 			"_LeftOnline": {
 				"Type": "タイプ",
-				"Chk":"更新を確認"
+				"Chk": "更新を確認"
 			}
 		},
 		"_Main": {
@@ -1913,8 +2335,15 @@
 					"Patch": "パッチ",
 					"Lat": "最新バージョンを使用しています。",
 					"Soon": "まもなくアップデートがインストールされます",
-					"In": "<time>秒後にアップデートがインストールされます",
+					"In": "<s/>秒後にアップデートがインストールされます",
 					"Use": "アップデートのダウンロード中もアプリケーションを使用できます。"
+				},
+				"_ModConflicts":{
+					"ResModConf":"Modの競合を解決",
+					"NoConf":"競合は検出されませんでした",
+					"Resolve":"解決",
+					"Msg1":"競合を解決するには、有効にしておくものを1つ選択してください。",
+					"Msg2":"残りは無効になります。必要に応じて、競合を無視することもできます。"
 				}
 			},
 			"_MainLocal": {
@@ -1945,6 +2374,25 @@
 					"CreateCat": "新しいカテゴリを作成",
 					"CatExist": "カテゴリは既に存在します。",
 					"CannotDel": "削除できません。フォルダが空ではありません。"
+				},
+				"_ModPreferences":{
+					"EditConf":"Mod設定を編集",
+					"EditConfig":"Mod構成を編集",
+					"ShowVars":"すべての変数を表示",
+					"Select":"ファイルを選択",
+					"Page":"ページ",
+					"Of":"/",
+					"Name":"名前",
+					"NameTip":"これはUIにのみ反映され、Mod/iniファイルには影響しません。",
+					"DefVal":"デフォルト値",
+					"DefValTip":"Mod/iniファイル内の変数のデフォルト値。変更はMod/iniファイルに書き込まれます。",
+					"Pref":"環境設定",
+					"PrefTip":"Modインジェクターユーザーの環境設定に直接設定します。これはMod/iniファイルに影響しません。環境設定が設定されていない場合、IMMはXXMIによって保存された変数の最後の状態を使用します。",
+					"Expected":"予想される値",
+					"Default":"デフォルト",
+					"Unknown":"不明",
+					"AutoSaved":"自動保存：",
+					"Priority":"優先度: 環境設定 > 自動保存 > デフォルト"
 				}
 			},
 			"_RightLocal": {
@@ -1958,21 +2406,36 @@
 				"NoNotes": "ノートなし",
 				"Manage": "管理",
 				"ViewModOnline": "Modをオンラインで表示",
-				"SearchOnline": "オンライン検索"
+				"SearchOnline": "オンライン検索",
+				"ManualInstall": "手動インストール",
+				"Conflicts":"競合"
 			},
 			"_RightOnline": {
 				"Reinstall": "再インストール",
 				"Unknown": "不明",
 				"Preview": "プレビュー画像",
 				"About": "詳細",
-				"LatestUpd": "最新アップデート",
+				"Updates": "アップデート",
+				"Comments":"コメント",
 				"Sep": "個別にインストール",
 				"NoItem": "アイテムが選択されていません",
 				"LinkCopied": "リンクをクリップボードにコピーしました！",
 				"CopyLink": "リンクをコピー",
 				"OpenBrowser": "ブラウザで開く",
 				"LinkToMod": "既存のModにリンク",
-				"LinkToModSuccess": "正常にリンクされました！"
+				"LinkToModSuccess": "正常にリンクされました！",
+				"NoComs":"まだコメントがありません。",
+				"LoadMore":"さらにコメントを読み込む",
+				"ViewReps":"返信を表示",
+				"Clean":"クリーン",
+				"Danger": "危険",
+				"Pending": "保留中",
+				"Private":"このModは非公開に設定されています。",
+				"Deleted":"このModは削除されました。",
+				"Withheld":"このModは保留されています。",
+				"ForGame":"このModは <game/> 用であり、現在選択されているゲームではありません。",
+				"ViewAnyways": "とにかく表示",
+				"SwitchGame": "ゲームを切り替え"
 			}
 		},
 		"_Tutorial": {
@@ -2046,6 +2509,9 @@
 		"Skip": "건너뛰기",
 		"Search": "검색...",
 		"Items": "항목",
+		"Note":"참고",
+		"IUnd":"이해했습니다",
+		"Back": "뒤로",
 		"Cancel": "취소",
 		"Select": "선택",
 		"Tutorials": "튜토리얼",
@@ -2066,8 +2532,8 @@
 		"GetPre": "프리릴리스 받기",
 		"Start": "게임 시작",
 		"Refresh": "모드 목록 새로 고침",
-		"CredCN":"118ununoctium님께 중국어 번역 검증을 감사드립니다!",
-		"CredRU":"Antonzlo님께 러시아어 번역 검증을 감사드립니다!",
+		"CredCN": "118ununoctium님께 중국어 번역 검증을 감사드립니다!",
+		"CredRU": "Antonzlo님께 러시아어 번역 검증을 감사드립니다!",
 		"v2.1.2Warning": "v2.1.2 이하 버전에서 업그레이드하는 경우 모든 파일 탐색기 창을 닫고 IMM을 새로 고침하세요.",
 		"Languages": {
 			"cn": "중국어 (간체)",
@@ -2113,7 +2579,15 @@
 			"CannotExpandSelected": "선택한 항목을 확장할 수 없습니다.",
 			"RefreshMods": "모드 목록 새로 고침 중",
 			"SrcOrTgt": "소스 또는 대상 디렉토리가 존재하지 않습니다",
-			"XXMIConfErr": "XXMI 설정을 확인할 수 없습니다"
+			"XXMIConfErr": "XXMI 설정을 확인할 수 없습니다",
+			
+			"FileAdded":"파일이 다운로드 대기열에 추가되었습니다.",
+			"CollisionsDetected": "활성화된 모드의 충돌이 감지되었습니다",
+			"SwitchGame":"게임으로 전환 중: <game/>",
+			"FailedRename":"모드 이름 변경에 실패했습니다. 다시 시도하세요.",
+			"UnableCat":"분류할 수 없습니다: <item/>",
+			"ErrInstall":"<item/> 설치 중 오류 발생",
+			"SuccessInstall":"<success/>/<total/>개의 모드가 성공적으로 설치되었습니다."
 		},
 		"_Help": {
 			"SwitchGames": {
@@ -2131,6 +2605,10 @@
 			"EditModInfo": {
 				"title": "모드 세부 정보 편집",
 				"content": ["모드를 선택하고 이름, 카테고리, 소스(URL) 등의 세부 정보를 편집합니다."]
+			},
+			"EditModConfig": {
+				"title": "모드 설정 편집",
+				"content": ["오른쪽 사이드바에서 모드 설정 메뉴를 열어 모드 변수의 기본값 및 환경 설정을 보거나 편집합니다."]
 			},
 			"ChangeImg": {
 				"title": "미리보기 이미지 변경",
@@ -2184,6 +2662,19 @@
 				"title": "모드 업데이트",
 				"content": ["설치된 모드에 사용 가능한 업데이트가 있을 때 알림을 받으세요!"]
 			},
+			"ManualInstall": {
+				"title": "아카이브에서 모드 설치",
+				"content": [
+					"오른쪽 사이드바 하단의 '수동 설치' 버튼을 클릭하고 설치할 파일을 선택합니다.\n지원되는 아카이브 형식: .zip, .rar, .7z"
+				]
+			},
+			"ConflictRes": {
+				"title": "모드 충돌 해결",
+				"content": [
+					"동일한 캐릭터에 대해 충돌하는 매개변수를 가질 수 있는 두 모드가 활성화되면 경고합니다.",
+					"오른쪽 사이드바의 '충돌' 메뉴에서 모든 충돌을 쉽게 해결할 수 있습니다."
+				]
+			},
 			"Restore": {
 				"title": "복원 지점",
 				"content": ["복원 지점(백업)을 생성하고 관리합니다.", "저장된 복원 지점에서 모드를 복원합니다."]
@@ -2206,11 +2697,22 @@
 			"Updater": {
 				"title": "IMM 업데이터",
 				"content": ["앱 내에서 IMM을 최신 버전으로 업데이트합니다."]
+			},
+			"RemoveIMM": {
+				"title": "IMM 제거",
+				"content": [
+					"복원 메뉴에서 'IMM 제거'를 찾을 수 있습니다.",
+					"모드와 데이터를 어떻게 처리할지 선택하고 '확인 및 제거'를 클릭하세요.",
+					"단계를 따르고 '이동'을 클릭하여 제거 프로세스를 완료하세요."
+				]
 			}
 		},
 		"_Changes": {
 			"ConfirmChanges": "변경 사항 확인",
-			"CreateRestore": "변경 사항을 적용하기 전에 복원 지점 생성"
+			"CreateRestore": "변경 사항을 적용하기 전에 복원 지점 생성",
+			"WillBeOrg":"파일과 폴더는 이전 메뉴에 표시된 대로 정리/이동됩니다",
+			"WhatIfRem":"나중에 IMM을 제거하려면 어떻게 하나요?",
+			"RemIMM":"복원 메뉴의 'IMM 제거' 옵션을 사용하여 IMM을 제거하고 모드를 다시 이동할 수 있습니다."
 		},
 		"_Checklist": {
 			"Greeting": "안녕하세요, ",
@@ -2344,15 +2846,17 @@
 						"Import": "가져오기",
 						"Export": "내보내기"
 					},
-					"Folders": "<game> 및 모드 폴더",
+					"Folders": "<game/> 및 모드 폴더",
 					"ModDir": "모드 디렉토리",
 					"XXMIDir": "XXMI 디렉토리",
-					"LaunchGame": "게임 실행",
-					"_LaunchGame": {
-						"LaunchMsg1": "IMM을 시작하면 XXMI를 통해 게임을 실행합니다",
-						"LaunchMsg2": "아래에 XXMI 실행 파일 경로가 설정되어 있는지 확인하세요",
-						"LaunchMsg3": "(보통 ...\\XXMI Launcher\\Resources\\Bin\\XXMI Launcher.exe)",
-						"Placeholder": "XXMI 실행 파일 경로"
+					"LaunchSettings": "실행 설정",
+					"_LaunchSettings": {
+						"NoChanges": "변경 없음",
+						"LaunchGame": "IMM을 열 때 게임 실행",
+						"LaunchIMM": "<game/>MI를 열 때 IMM 실행",
+						"Note": "참고",
+						"Warn1": "XXMI 설정이 수정되었으므로 다음 실행 시 이 경고가 표시될 수 있습니다.",
+						"Warn2": "이런 상황이 발생하면 게임 실행 시 IMM이 시작되도록 하려면 '유지'를 누르세요"
 					},
 					"HotKey": "단축키",
 					"_HotKey": {
@@ -2365,6 +2869,39 @@
 						"ClearHK": "단축키 지우기",
 						"HKEmpty": "단축키를 설정하려면 프리셋을 만드세요."
 					}
+				},
+				"_RemoveIMM": {
+					"RemoveIMM": "IMM 제거",
+					"MoveAll": "IMM이 관리하는 모든 모드를 다음으로 이동:",
+					"DirStruct": "디렉토리 구조",
+					"Flat": "플랫",
+					"Categorized": "카테고리별",
+					"EnDisbMods": "모드 활성화/비활성화",
+					"DisAll": "모두 비활성화",
+					"EnAll": "모두 활성화",
+					"Unchanged": "변경 없음",
+					"IMMData": "IMM 데이터",
+					"IMMTip": "여기에는 모드 데이터(소스, 메모, 환경 설정 등), 프리셋 및 사용자 정의 카테고리가 포함됩니다. 나중에 IMM으로 가져올 수 있습니다.",
+					"NoExp": "내보내기 안 함",
+					"Exp": "설정 내보내기",
+					"ModData": "모드 데이터",
+					"ModTip": "여기에는 모드 소스, 메모, 환경 설정 등의 데이터가 포함됩니다. IMM에 저장된 데이터가 있는 모드의 폴더에 모드 환경 설정을 포함하는 'DISABLED_pref.ini' 및 'data.json' 파일이 생성됩니다. 나중에 IMM으로 가져올 수 없습니다.",
+					"PresetData": "프리셋 데이터",
+					"PresetTip": "이는 'Presets' 폴더를 생성하고, 각 프리셋에 대한 txt 파일이 그 안에 생성됩니다. 나중에 IMM으로 가져올 수 없습니다.",
+					"NoSave": "저장 안 함",
+					"SaveRef": "참조용으로 저장",
+					"ConfRem": "확인 및 제거",
+					"Recheck": "이 작업은 취소할 수 없으므로 선택 내용을 다시 확인하세요.",
+					"AsConf": "모드는 선택한 구성에 따라 이동됩니다.",
+					"ExpIMM": "IMM 데이터 내보내기",
+					"SaveMD": "참조용으로 모드 데이터 저장",
+					"SavePS": "참조용으로 프리셋 데이터 저장",
+					"CompleteRem": "모드를 이동하여 제거 완료",
+					"Exporting": "내보내기 중...",
+					"Saving": "저장 중...",
+					"Moving": "이동 중...",
+					"Thanks": "IMM을 사용해 주셔서 감사합니다",
+					"AppRL": "앱은 <s/>초 후에 다시 로드됩니다"
 				}
 			},
 			"_Left": {
@@ -2377,10 +2914,10 @@
 					"Enabled": "활성화됨",
 					"Disabled": "비활성화됨",
 					"Advanced": "고급",
-					"AdvFilOpt":"고급 필터 옵션",
-					"All":"모두 / 임의",
-					"Yes":"예 / 긍정",
-					"No":"아니오 / 부정"
+					"AdvFilOpt": "고급 필터 옵션",
+					"All": "모두 / 임의",
+					"Yes": "예 / 긍정",
+					"No": "아니오 / 부정"
 				},
 				"Presets": "프리셋",
 				"_Presets": {
@@ -2392,7 +2929,7 @@
 			},
 			"_LeftOnline": {
 				"Type": "타입",
-				"Chk":"업데이트 확인"
+				"Chk": "업데이트 확인"
 			}
 		},
 		"_Main": {
@@ -2423,8 +2960,15 @@
 					"Patch": "패치",
 					"Lat": "최신 버전을 사용 중입니다.",
 					"Soon": "곧 업데이트가 설치됩니다",
-					"In": "<time>초 후에 업데이트가 설치됩니다",
+					"In": "<s/>초 후에 업데이트가 설치됩니다",
 					"Use": "업데이트를 다운로드하는 동안 앱을 사용할 수 있습니다."
+				},
+				"_ModConflicts":{
+					"ResModConf":"모드 충돌 해결",
+					"NoConf":"충돌이 감지되지 않았습니다",
+					"Resolve":"해결",
+					"Msg1":"충돌을 해결하려면 활성화 상태로 유지할 항목을 선택하세요.",
+					"Msg2":"나머지는 비활성화됩니다. 원하시면 충돌을 무시할 수 있습니다."
 				}
 			},
 			"_MainLocal": {
@@ -2455,6 +2999,25 @@
 					"CreateCat": "새 카테고리 생성",
 					"CatExist": "카테고리가 이미 존재합니다.",
 					"CannotDel": "삭제할 수 없습니다. 폴더가 비어 있지 않습니다."
+				},
+				"_ModPreferences":{
+					"EditConf":"모드 설정 편집",
+					"EditConfig":"모드 구성 편집",
+					"ShowVars":"모든 변수 표시",
+					"Select":"파일 선택",
+					"Page":"페이지",
+					"Of":"/",
+					"Name":"이름",
+					"NameTip":"이는 UI에만 반영되며 모드/ini 파일에는 영향을 미치지 않습니다.",
+					"DefVal":"기본값",
+					"DefValTip":"모드/ini 파일의 변수 기본값입니다. 변경 사항은 모드/ini 파일에 기록됩니다.",
+					"Pref":"환경 설정",
+					"PrefTip":"모드 인젝터 사용자 환경 설정에 직접 설정합니다. 이는 모드/ini 파일에 영향을 미치지 않습니다. 환경 설정이 설정되지 않았다면 IMM은 XXMI에 저장된 변수의 마지막 상태를 사용합니다.",
+					"Expected":"예상 값",
+					"Default":"기본값",
+					"Unknown":"알 수 없음",
+					"AutoSaved":"자동 저장:",
+					"Priority":"우선순위: 환경 설정 > 자동 저장 > 기본값"
 				}
 			},
 			"_RightLocal": {
@@ -2468,21 +3031,36 @@
 				"NoNotes": "노트 없음",
 				"Manage": "관리",
 				"ViewModOnline": "온라인에서 모드 보기",
-				"SearchOnline": "온라인 검색"
+				"SearchOnline": "온라인 검색",
+				"ManualInstall": "수동 설치",
+				"Conflicts":"충돌"
 			},
 			"_RightOnline": {
 				"Reinstall": "재설치",
 				"Unknown": "알 수 없음",
 				"Preview": "미리보기 이미지",
 				"About": "정보",
-				"LatestUpd": "최신 업데이트",
+				"Updates": "업데이트",
+				"Comments":"댓글",
 				"Sep": "개별 설치",
 				"NoItem": "선택된 항목 없음",
 				"LinkCopied": "링크가 클립보드에 복사되었습니다!",
 				"CopyLink": "링크 복사",
 				"OpenBrowser": "브라우저에서 열기",
 				"LinkToMod": "기존 모드에 링크",
-				"LinkToModSuccess": "성공적으로 링크되었습니다!"
+				"LinkToModSuccess": "성공적으로 링크되었습니다!",
+				"NoComs":"아직 댓글이 없습니다.",
+				"LoadMore":"댓글 더 불러오기",
+				"ViewReps":"답글 보기",
+				"Clean":"깨끗함",
+				"Danger": "위험",
+				"Pending": "보류 중",
+				"Private":"이 모드는 비공개로 설정되었습니다.",
+				"Deleted":"이 모드는 삭제되었습니다.",
+				"Withheld":"이 모드는 보류되었습니다.",
+				"ForGame":"이 모드는 <game/>용이며, 현재 선택된 게임이 아닙니다.",
+				"ViewAnyways": "그래도 보기",
+				"SwitchGame": "게임 전환"
 			}
 		},
 		"_Tutorial": {

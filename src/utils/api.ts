@@ -546,12 +546,35 @@ class ApiClient {
 
 	async updates(mod = "Mod/0", signal?: AbortSignal) {
 		try {
-			const response = await this.makeRequest(`${mod}/Updates?_nPage=1&_nPerpage=1`, signal && { signal });
+			const response = await this.makeRequest(`${mod}/Updates?_nPage=1&_nPerpage=5`, signal && { signal });
 			return response;
 		} catch (error) {
 			//console.error("Failed to fetch categories:", error);
 			throw error;
 		}
+	}
+	async comments(mod = "Mod/0", page = 1, signal?: AbortSignal) {
+		// https://gamebanana.com/apiv11/Mod/651401/Posts?_nPage=1&_nPerpage=15&_sSort=popular
+		try{
+			const response = await this.makeRequest(`${mod}/Posts?_nPage=${page}&_nPerpage=15&_sSort=popular`, signal && { signal });
+			return response;
+		}
+		catch (error) {
+			//console.error("Failed to fetch comments:", error);
+			throw error;
+		}
+	}
+	async nestedcomments(postId = "0", signal?: AbortSignal) {
+		//https://gamebanana.com/apiv11/Post/13272284/Posts?_nPage=1&_nPerpage=20
+		try{
+			const response = await this.makeRequest(`Post/${postId}/Posts?_nPage=1&_nPerpage=15`, signal && { signal });
+			return response;
+		}
+		catch (error) {
+			//console.error("Failed to fetch nested comments:", error);
+			throw error;
+		}
+
 	}
 	search({ term = "", page = 1, type = "" }) {
 		return `${API_BASE_URL}Util/Search/Results?_sModelName=${type}&_sOrder=best_match&_idGameRow=${

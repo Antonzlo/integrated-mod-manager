@@ -8,16 +8,16 @@ import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { GAME_NAMES, LANG_LIST } from "@/utils/consts";
-import { getConfig, saveConfigs, setConfig } from "@/utils/filesys";
+import { saveConfigs, setConfig } from "@/utils/filesys";
 import { encodeHotkeyForStorage, formatHotkeyDisplay, processHotkeyCode } from "@/utils/hotkeyUtils";
 import { join, setHotreload } from "@/utils/hotreload";
-import { getCwd, setWindowType } from "@/utils/init";
+import { getCwd, setPrePostLaunch, setWindowType } from "@/utils/init";
 import TEXT from "@/textData.json";
-import { keySort } from "@/utils/utils";
-import { INIT_DONE, PRESETS, SETTINGS, SOURCE, store, TARGET, TEXT_DATA, XXMI_MODE } from "@/utils/vars";
+import { exportConfig, keySort } from "@/utils/utils";
+import { INIT_DONE, PRESETS, SAVED_LANG, SETTINGS, SOURCE, store, TARGET, TEXT_DATA, XXMI_MODE } from "@/utils/vars";
 import { Separator } from "@radix-ui/react-separator";
-import { open, save } from "@tauri-apps/plugin-dialog";
-import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { open } from "@tauri-apps/plugin-dialog";
+import { readTextFile } from "@tauri-apps/plugin-fs";
 import { useAtom, useAtomValue } from "jotai";
 import {
 	AppWindowIcon,
@@ -28,6 +28,7 @@ import {
 	EyeIcon,
 	EyeOffIcon,
 	FocusIcon,
+	Gamepad2Icon,
 	Globe2,
 	InfoIcon,
 	Maximize2Icon,
@@ -41,7 +42,7 @@ import {
 	XIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 let bg: HTMLBodyElement | null = null;
 let keys = [] as any[];
 let keysdown = [] as any[];
@@ -50,6 +51,8 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 	const customMode = useAtomValue(XXMI_MODE);
 	const [presets, setPresets] = useAtom(PRESETS);
 	const [settingsOpen, setSettingsOpen] = useState(false);
+	const [savedLang, setSavedLang] = useAtom(SAVED_LANG);
+	const [alertType, setAlertType] = useState<"lang" | "xxmi">("lang");
 	const [_, setSource] = useAtom(SOURCE);
 	const [target, setTarget] = useAtom(TARGET);
 	const [settings, setSettings] = useAtom(SETTINGS);
@@ -66,7 +69,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 				filters: [
 					{
 						name: "JSON files",
-						extensions: ["json", "json.bak"],
+						extensions: ["json", "json.bak", "json.bak.bak"],
 					},
 				],
 			};
@@ -80,36 +83,16 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 				try {
 					setConfig(JSON.parse(content));
 					setSettingsOpen(false);
-					addToast({ type: "success", message: "Config imported successfully" });
+					addToast({ type: "success", message: textData._Toasts.ConfigImported });
 				} catch {
 					addToast({ type: "error", message: textData._Toasts.InvalidConfig });
 				}
 			}
 		} catch (error) {
-			addToast({ type: "error", message: "Error importing config" });
+			addToast({ type: "error", message: textData._Toasts.ErrorImporting });
 		}
 	};
-	const exportConfig = useCallback(async () => {
-		try {
-			const { gameConfig } = getConfig(settings);
-			const filePath = await save({
-				title: textData._LeftSideBar._components._Settings._ImportExport.ExportPop,
-				defaultPath: `config${settings.global.game}.json`,
-				filters: [
-					{
-						name: "JSON files",
-						extensions: ["json"],
-					},
-				],
-			});
-			if (filePath) {
-				await writeTextFile(filePath, JSON.stringify(gameConfig, null, 2));
-				addToast({ type: "success", message: textData._Toasts.ConfigExported });
-			}
-		} catch (error) {
-			addToast({ type: "error", message: textData._Toasts.ErrorExporting });
-		}
-	}, [settings]);
+	
 	return (
 		<Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
 			<DialogTrigger asChild>
@@ -124,56 +107,77 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 			</DialogTrigger>
 			<DialogContent className="min-h-fit">
 				<AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
-					<AlertDialogContent className=" game-font bg-background/50 backdrop-blur-xs border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg">
-						<div className=" flex flex-col items-center gap-6 mt-6 text-center">
-							<div className="flex flex-col items-center justify-center gap-2 text-xl text-gray-200">
-								{TEXT[langAlertData.prev].Change + TEXT[langAlertData.prev].Languages[langAlertData.new]}
-								?
-								<Separator />
-								{TEXT[langAlertData.new].Change + TEXT[langAlertData.new].Languages[langAlertData.new]}?
-							</div>
-
-							{langAlertData.new !== "en" && (
-								<div className="max-w-96 text-accent flex flex-col gap-4 text-sm">
-									<span>
-										{TEXT[langAlertData.prev].Warning1 + " "}
-										{TEXT[langAlertData.prev].Warning2}
-										</span>
-										{langAlertData.new === "cn"
-											? TEXT[langAlertData.prev].CredCN
-											: langAlertData.new === "ru"
-												? TEXT[langAlertData.prev].CredRU
-												: ""}
-									<span>
-										{TEXT[langAlertData.new].Warning1 + " "}
-										{TEXT[langAlertData.new].Warning2}
-										</span>
-										{langAlertData.new === "cn"
-											? TEXT[langAlertData.new].CredCN
-											: langAlertData.new === "ru"
-												? TEXT[langAlertData.new].CredRU
-												: ""}
+					<AlertDialogContent className="game-font bg-background/50 backdrop-blur-xs border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg"
+					style={{
+						minWidth:alertType === "xxmi"?"700px":"",
+						maxWidth:alertType === "xxmi"?"700px":""
+					}}
+					>
+						{alertType === "xxmi" ? (
+							<>
+								<div className=" flex flex-col items-center mt-6 text-center">
+									<div className="flex flex-col items-center justify-center gap-2 mb-8 text-3xl text-gray-200">
+										{textData._LeftSideBar._components._Settings._LaunchSettings.Note}
+									</div>
+									<img src="xxmi-warn.png" className="rounded-xl min-w-164 max-w-164" />
+									<div className="h-12 w-49  -ml-85.25 -mt-15.5 border border-accent animate-pulse rounded-lg"/>
+									
+									<div className="text-accent mt-6">{textData._LeftSideBar._components._Settings._LaunchSettings.Warn1}</div>
+									<div className="text-accent">{textData._LeftSideBar._components._Settings._LaunchSettings.Warn2}</div>
 								</div>
-							)}
-						</div>
-						<div className="flex justify-between w-full gap-4 mt-4">
-							<AlertDialogCancel className="min-w-24 duration-300">
-								{TEXT[langAlertData.prev].Cancel} | {TEXT[langAlertData.new].Cancel}
-							</AlertDialogCancel>
-							<AlertDialogAction
-								className="min-w-24 text-accent "
-								onClick={() => {
-									setSettings((prev) => {
-										prev.global.lang = langAlertData.new;
-										return { ...prev };
-									});
-									saveConfigs();
-									setAlertOpen(false);
-								}}
-							>
-								{TEXT[langAlertData.prev].Confirm} | {TEXT[langAlertData.new].Confirm}
-							</AlertDialogAction>
-						</div>
+								<div className="flex justify-center w-full gap-4 mt-4">
+									<AlertDialogAction className="min-w-24 duration-300">{textData.Confirm}</AlertDialogAction>
+								</div>
+							</>
+						) : (
+							<>
+								<div className=" flex flex-col items-center gap-6 mt-6 text-center">
+									<div className="flex flex-col items-center justify-center gap-2 text-xl text-gray-200">
+										{TEXT[langAlertData.prev].Change + TEXT[langAlertData.prev].Languages[langAlertData.new]}
+										?
+										<Separator />
+										{TEXT[langAlertData.new].Change + TEXT[langAlertData.new].Languages[langAlertData.new]}?
+									</div>
+
+									{langAlertData.new !== "en" && (
+										<div className="max-w-96 text-accent flex flex-col gap-4 text-sm">
+											<span>
+												{TEXT[langAlertData.prev].Warning1 + " "}
+												{TEXT[langAlertData.prev].Warning2}
+											</span>
+											{langAlertData.new === "cn"
+												? TEXT[langAlertData.prev].CredCN
+												: langAlertData.new === "ru"
+													? TEXT[langAlertData.prev].CredRU
+													: ""}
+											<span>
+												{TEXT[langAlertData.new].Warning1 + " "}
+												{TEXT[langAlertData.new].Warning2}
+											</span>
+											{langAlertData.new === "cn"
+												? TEXT[langAlertData.new].CredCN
+												: langAlertData.new === "ru"
+													? TEXT[langAlertData.new].CredRU
+													: ""}
+										</div>
+									)}
+								</div>
+								<div className="flex justify-between w-full gap-4 mt-4">
+									<AlertDialogCancel className="min-w-24 duration-300">
+										{TEXT[langAlertData.prev].Cancel} | {TEXT[langAlertData.new].Cancel}
+									</AlertDialogCancel>
+									<AlertDialogAction
+										className="min-w-24 text-accent "
+										onClick={() => {
+											setSavedLang(langAlertData.new);
+											setAlertOpen(false);
+										}}
+									>
+										{TEXT[langAlertData.prev].Confirm} | {TEXT[langAlertData.new].Confirm}
+									</AlertDialogAction>
+								</div>
+							</>
+						)}
 					</AlertDialogContent>
 				</AlertDialog>
 				<div className="min-h-fit text-accent my-6 text-3xl">
@@ -274,7 +278,6 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 										</div>
 										<div className="flex flex-col w-full gap-4">
 											<label className="min-w-fit">{textData._LeftSideBar._components._Settings.WindowBGOpacity}</label>
-
 											<Slider
 												defaultValue={[settings.global.bgOpacity * 100]}
 												max={100}
@@ -386,11 +389,12 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 														key={lang.Code}
 														className={`hover:brightness-150 -mt-2 flex-col flex items-center justify-center gap-1 text-sm duration-300 cursor-pointerx select-none`}
 														onClick={() => {
-															if (settings.global.lang == lang.Code) return;
+															if (savedLang == lang.Code) return;
 															setLangAlertData({
-																prev: (settings.global.lang as keyof typeof TEXT) || "en",
+																prev: savedLang || "en",
 																new: lang.Code as keyof typeof TEXT,
 															});
+															setAlertType("lang");
 															setAlertOpen(true);
 														}}
 													>
@@ -398,7 +402,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 														<span
 															className="text-accent whitespace-nowrap absolute mt-12 overflow-hidden duration-200"
 															style={{
-																opacity: settings.global.lang == lang.Code ? "1" : "0",
+																opacity: savedLang == lang.Code ? "1" : "0",
 															}}
 														>
 															{lang.Name}
@@ -469,14 +473,22 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 										</div>
 										<div className="flex flex-col w-full gap-4">
 											<div className="flex items-center gap-1">
-												{textData._LeftSideBar._components._Settings.LaunchGame}
+												{textData._LeftSideBar._components._Settings.LaunchSettings}
 												<Tooltip>
 													<TooltipTrigger>
 														<InfoIcon className="text-muted-foreground hover:text-gray-300 w-4 h-4" />
 													</TooltipTrigger>
 													<TooltipContent>
-														<div className="flex flex-col items-center gap-1">
-															<div>{textData._LeftSideBar._components._Settings._LaunchGame.LaunchMsg1}</div>
+														<div className="flex flex-col gap-1">
+															<div>
+																<b>{textData._LeftSideBar._components._Settings._AutoReload.Disable} -</b> {textData._LeftSideBar._components._Settings._LaunchSettings.NoChanges}
+															</div>
+															<div>
+																<b>IMM -</b> {textData._LeftSideBar._components._Settings._LaunchSettings.LaunchGame}
+															</div>
+															<div>
+																<b>{settings.global.game}MI -</b> {textData._LeftSideBar._components._Settings._LaunchSettings.LaunchIMM.replace("<game/>", settings.global.game)}
+															</div>
 														</div>
 													</TooltipContent>
 												</Tooltip>
@@ -493,21 +505,29 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 														: {}
 												}
 												onValueChange={(e) => {
+													let val = parseInt(e) as 0 | 1 | 2;
+													if (val == 2 || settings.game.launch == 2) setPrePostLaunch(settings.global.game, val == 2);
+													if (val == 2) {
+														setAlertType("xxmi");
+														setAlertOpen(true);
+													}
 													setSettings((prev) => {
-														prev.game.launch = parseInt(e) as 0 | 1;
+														prev.game.launch = val;
 														return { ...prev };
 													});
 													saveConfigs();
 												}}
 											>
 												<TabsList className="bg-background/50 w-full">
-													<TabsTrigger value="0" className="w-1/2 h-10">
+													<TabsTrigger value="0" className="w-1/3 h-10">
 														<XIcon className=" rotate-y-180 w-4" />
 														{textData._LeftSideBar._components._Settings._AutoReload.Disable}
 													</TabsTrigger>
-													<TabsTrigger value="1" className="w-1/2 h-10">
-														<CheckIcon className=" w-4" />{" "}
-														{textData._LeftSideBar._components._Settings._AutoReload.Enable}
+													<TabsTrigger value="1" className="w-1/3 h-10">
+														<CheckIcon className=" w-4" /> IMM
+													</TabsTrigger>
+													<TabsTrigger value="2" className="w-1/3 h-10">
+														<Gamepad2Icon className=" w-4" /> {settings.global.game}MI
 													</TabsTrigger>
 												</TabsList>
 											</Tabs>
@@ -545,7 +565,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 													<DownloadIcon className="w-4 h-4" />
 													{textData._LeftSideBar._components._Settings._ImportExport.Import}
 												</Button>
-												<Button onClick={exportConfig} className="h-9 w-1/2 text-sm">
+												<Button onClick={()=>exportConfig(settings,textData)} className="h-9 w-1/2 text-sm">
 													<UploadIcon className="w-4 h-4" />
 													{textData._LeftSideBar._components._Settings._ImportExport.Export}
 												</Button>

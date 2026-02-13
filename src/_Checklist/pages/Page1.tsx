@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { LANG_LIST } from "@/utils/consts";
 import { resetWithBackup } from "@/utils/filesys";
 import TEXT from "@/textData.json";
-import { LANG, MAIN_FUNC_STATUS, SETTINGS } from "@/utils/vars";
+import { MAIN_FUNC_STATUS, SAVED_LANG } from "@/utils/vars";
 import { useAtom, useAtomValue } from "jotai";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
@@ -15,11 +15,10 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 	const [currentLangIndex, setCurrentLangIndex] = useState(-1);
 	const mainFuncStatus = useAtomValue(MAIN_FUNC_STATUS);
 	const escPressRef = useRef({ count: 0, lastTime: 0 });
-	const lang = useAtomValue(LANG);
-	const [settings, setSettings] = useAtom(SETTINGS);
 	const languageKeys = ["en", "cn", "ru", "jp", "kr"] as const;
+	const [savedLang, setSavedLang] = useAtom(SAVED_LANG);
 	useEffect(() => {
-		if (settings.global.lang && !timer) {
+		if (savedLang && mainFuncStatus=="fin" && !timer) {
 			timer = setTimeout(
 				() => {
 					setPage(1);
@@ -28,7 +27,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 				loadTime ? Math.max(0, 1500 - (Date.now() - loadTime)) : 1500
 			);
 		}
-	}, [settings.global.lang]);
+	}, [savedLang,mainFuncStatus]);
 	useEffect(() => {
 		loadTime = Date.now();
 		interval = setInterval(() => {
@@ -91,7 +90,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 
 			<div className="fade-in justify-evenly absolute bottom-0 flex flex-col items-center h-64 gap-8">
 				<AnimatePresence mode="wait">
-					{mainFuncStatus === "fin" && !lang && currentLangIndex > -1 && (
+					{mainFuncStatus === "fin" && !savedLang && currentLangIndex > -1 && (
 						<motion.div
 							key={currentLangIndex}
 							initial={{ opacity: 0, y: 0 }}
@@ -106,7 +105,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 				</AnimatePresence>
 
 				<AnimatePresence>
-					{mainFuncStatus === "fin" && !lang && currentLangIndex > -1 && (
+					{mainFuncStatus === "fin" && !savedLang && currentLangIndex > -1 && (
 						<motion.div
 							initial={{ opacity: 0 }}
 							animate={{ opacity: 1 }}
@@ -165,7 +164,7 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 					)}
 				</AnimatePresence>
 				<AnimatePresence mode="wait">
-					{mainFuncStatus === "fin" && !lang && currentLangIndex > -1 && selectedIndex > 0 && (
+					{mainFuncStatus === "fin" && !savedLang && currentLangIndex > -1 && selectedIndex > 0 && (
 						<motion.div
 							key={selectedIndex}
 							initial={{ opacity: 0, y: 0 }}
@@ -182,10 +181,10 @@ function Page1({ setPage }: { setPage: (page: number) => void }) {
 
 				<Button
 					className="w-fit "
-					style={{ opacity: mainFuncStatus !== "fin" || !!lang || currentLangIndex < 0 ? 0 : selectedIndex == -1 ? 0.5 : 1 }}
-					disabled={selectedIndex == -1 || !!lang || currentLangIndex < 0 || mainFuncStatus !== "fin"}
+					style={{ opacity: mainFuncStatus !== "fin" || !!savedLang || currentLangIndex < 0 ? 0 : selectedIndex == -1 ? 0.5 : 1 }}
+					disabled={selectedIndex == -1 || !!savedLang || currentLangIndex < 0 || mainFuncStatus !== "fin"}
 					onClick={() => {
-						setSettings((prev) => ({ ...prev, global: { ...prev.global, lang: languageKeys[selectedIndex] } }));
+						setSavedLang(languageKeys[selectedIndex]);
 						setPage(1);
 					}}
 				>

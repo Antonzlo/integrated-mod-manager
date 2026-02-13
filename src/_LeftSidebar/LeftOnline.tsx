@@ -151,10 +151,9 @@ function LeftOnline() {
 										layout
 										transition={{ duration: 0.2 }}
 										key={item.name}
-										className={
-											"w-full min-h-12 button-like zzz-fg-text flex-col justify-center height-in overflow-hidden rounded-lg flex duration-200 " +
-											" bg-input/50 text-accent hover:bg-input/80"
-										}
+										className=
+											"w-full min-h-12 button-like zzz-fg-text flex-col justify-center height-in overflow-hidden rounded-lg flex duration-200 bg-input/50 text-accent hover:bg-input/80"
+										
 										onClick={(e) => {
 											if (e.target === e.currentTarget) {
 												setSelected(modRouteFromURL(item.source));
@@ -165,6 +164,7 @@ function LeftOnline() {
 											height: leftSidebarOpen ? "" : "2.5rem",
 											width: leftSidebarOpen ? "" : "2.5rem",
 											padding: leftSidebarOpen ? "" : "0px",
+											background: item.modStatus === 2 ? "color-mix(in oklab, var(--accent) 20%, transparent)" : "",
 										}}
 									>
 										{leftSidebarOpen ? (

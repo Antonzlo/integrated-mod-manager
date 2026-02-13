@@ -115,7 +115,7 @@ export function normalizeHotkey(hotkey: string): string {
 		.replaceAll("shift", "Shift")
 		.replaceAll("key", "")
 		.replaceAll("digit", "")
-		.replaceAll("numpad", "");
+		.replaceAll("numpad", "Num ");
 }
 export async function registerGlobalHotkeys(): Promise<void> {
 	try {

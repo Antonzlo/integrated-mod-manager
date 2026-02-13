@@ -57,7 +57,7 @@
 @custom-variant data-wuwa (&:is([data-theme="wuwa"] *));
 @custom-variant data-gi (&:is([data-theme="gi"] *));
 @custom-variant data-sr (&:is([data-theme="sr"] *));
-@custom-variant data-sr (&:is([data-theme="ef"] *));
+@custom-variant data-ef (&:is([data-theme="ef"] *));
 @theme inline {
 	--color-wuwa-accent: var(--wuwa-accent);
 	--color-zzz-accent: var(--zzz-accent);
@@ -164,11 +164,11 @@
 	--game-font-cn: wuwa;
 	--game-font-jp: wuwa;
 	--game-font-kr: wuwa;
-	--game-font-ru: gi-cn;
+	--game-font-ru: ef;
 	--radius-main: 0.5rem;
 	--border-w-main: 1px;
 	--button: #2d2a28;
-	--background: oklch(0.147 0.004 49.25);
+	--background: #0c0a09;
 	--card: oklch(21.612% 0.00611 55.916);
 	--accent: var(--wuwa-accent);
 	--border: #4e463a;
@@ -302,6 +302,10 @@
 		rgba(31, 31, 31, 50%) 8px,
 		rgba(31, 31, 31, 50%) 10px
 	);
+}
+[data-theme="ef"] .zzz-border {
+	border-style: var(--tw-border-style);
+	border-width: 1px;
 }
 /* ========================================
    GI Theme Specific Styles
@@ -676,11 +680,11 @@ a {
 @keyframes bgx-flash {
 	0%,
 	33% {
-		background-color: var(--accent);
+		background: var(--accent);
 	}
 	66%,
 	100% {
-		background-color: transparent;
+		background: transparent;
 	}
 }
 @keyframes logo-in {

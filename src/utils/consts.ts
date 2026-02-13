@@ -18,6 +18,7 @@ export const IMAGE_SERVER = "http://127.0.0.1:1469/preview";
 export const OLD_RESTORE = "DISABLED_RESTORE";
 export const RESTORE = "RESTORE";
 export const IGNORE = "IGNORE";
+export const PREFS = ".USER_PREFS";
 export const DISCORD_LINK = "https://discord.gg/QGkKzNapXZ";
 export const BANANA_LINK = "https://gamebanana.com/mods/593490";
 export const UNCATEGORIZED = "Uncategorized";
@@ -35,7 +36,15 @@ export const GAME_GB_IDS: { [key: number]: Games } = {
 	21842: "EF",
 	0: "",
 };
-export const GAME_NAMES: { [key in Games]: string } = { WW: "WuWa", ZZ: "Z·Z·Z", "": "Integrated", GI: "Genshin", SR: "Star Rail", EF: "Endfield" };
+export const GAME_NAMES: { [key in Games]: string } = {
+	WW: "WuWa",
+	ZZ: "Z·Z·Z",
+	"": "Integrated",
+	GI: "Genshin",
+	SR: "Star Rail",
+	EF: "Endfield",
+};
+export const exts = ["png", "jpg", "jpeg", "webp", "gif"];
 export const PRIORITY_KEYS = ["Alt", "Ctrl", "Shift", "Capslock", "Tab", "Up", "Down", "Left", "Right"] as const;
 export const LANG_LIST: { Name: string; Flag: string; Code: Language }[] = [
 	{
@@ -112,15 +121,28 @@ export const DEFAULTS = {
 	TYPES: [] as Category[],
 	CHANGES: { before: [], after: [], map: {}, skip: false, title: "" } as ChangeInfo,
 	DOWNLOAD_LIST: {
-		...{ queue: [] as DownloadItem[], downloading: null as DownloadItem | null, completed: [] as DownloadItem[], extracting: [] as DownloadItem[]},
+		...{
+			queue: [] as DownloadItem[],
+			downloading: null as DownloadItem | null,
+			completed: [] as DownloadItem[],
+			extracting: [] as DownloadItem[],
+		},
 	},
 	ONLINE: false,
 	CURRENT_PRESET: -1,
 	MOD_LIST: [] as Mod[],
 	SELECTED: "",
-	FILTER: new Set(["st:all", "src:any", "tag:fav=any", "tag:nsfw=any"]),
+	FILTER: {
+		st: "all",
+		src: "any",
+		tag: {
+			fav: "any",
+			nsfw: "any",
+		},
+		upd: "any",
+	} as Record<string, string | { [key: string]: string }>,
 	SORT: "default",
-	CATEGORY: "All",
+	CATEGORY: new Set([]) as Set<string>,
 	SEARCH: "",
 	INSTALLED_ITEMS: [] as InstalledItem[],
 	ONLINE_DATA: {} as OnlineData,
@@ -177,5 +199,4 @@ export const SORT_OPTIONS = Object.fromEntries(
 		// },
 	].map((opt) => [opt.value, opt.label])
 );
-info(SORT_OPTIONS)
-
+info(SORT_OPTIONS);

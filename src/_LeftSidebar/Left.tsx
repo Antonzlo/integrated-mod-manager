@@ -16,6 +16,7 @@ import { launchGame } from "@/utils/init";
 import Restore from "./components/Restore";
 import { Label } from "@/components/ui/label";
 import { saveConfigs } from "@/utils/filesys";
+import Remove from "./components/Remove";
 function LeftSidebar() {
 	const leftSidebarOpen = useAtomValue(LEFT_SIDEBAR_OPEN);
 	const textData = useAtomValue(TEXT_DATA);
@@ -45,9 +46,7 @@ function LeftSidebar() {
 								opacity: leftSidebarOpen ? "" : "0",
 							}}
 						>
-							<label className="text-2xl text-[#eaeaea] min-w-fit">	
-								{GAME_NAMES[game] || "Integrated"}
-							</label>
+							<label className="text-2xl text-[#eaeaea] min-w-fit">{GAME_NAMES[game] || "Integrated"}</label>
 							<label className="min-w-fit text-accent textaccent text-sm opacity-75">Mod Manager</label>
 						</div>
 					</div>
@@ -56,7 +55,7 @@ function LeftSidebar() {
 						<SidebarGroupLabel className="justify-between">
 							{textData._LeftSideBar._Left.Mode}{" "}
 							<Label className="text-[10px] min-w-fit opacity-50 text-accent flex items-center">
-								{textData._LeftSideBar._LeftOnline.Chk}{" "}:
+								{textData._LeftSideBar._LeftOnline.Chk} :
 								<Button
 									onClick={() => {
 										setSettings({
@@ -72,7 +71,7 @@ function LeftSidebar() {
 										color: settings.global.chkModUpdates ? "var(--background)" : "",
 										backgroundColor: settings.global.chkModUpdates ? "var(--accent)" : "",
 									}}
-									className="aspect-square pb-1.5 h-4 w-8 text-[10px]"
+									className="aspect-square pb-2.25 h-4 w-8 text-[10px]"
 								>
 									{settings.global.chkModUpdates ? "On" : "Off"}
 								</Button>
@@ -178,6 +177,7 @@ function LeftSidebar() {
 								</div>
 							</>
 						)}
+						<Remove />
 					</SidebarFooter>
 				</div>
 			</SidebarContent>

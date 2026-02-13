@@ -11,13 +11,14 @@ import {
 	restoreFromPoint,
 } from "@/utils/filesys";
 import { Mod } from "@/utils/types";
-import { GAME, TEXT_DATA } from "@/utils/vars";
-import { useAtomValue } from "jotai";
+import { GAME, REMOVE_OPEN, TEXT_DATA } from "@/utils/vars";
+import { useAtomValue, useSetAtom } from "jotai";
 import { FileIcon, FolderCogIcon, FolderIcon, PlusIcon, SaveAllIcon, Trash2Icon } from "lucide-react";
 import { useEffect, useState } from "react";
 function Restore({ leftSidebarOpen, disabled = false }: { leftSidebarOpen: boolean; disabled?: boolean }) {
 	const textData = useAtomValue(TEXT_DATA);
 	const [dialogOpen, setDialogOpen] = useState(false);
+	const setRemoveOpen = useSetAtom(REMOVE_OPEN)
 	const [restorePoints, setRestorePoints] = useState<string[]>([]);
 	const [selectedRestorePoint, setSelectedRestorePoint] = useState<number>(-1);
 	const [alertOpen, setAlertOpen] = useState(false);
@@ -212,6 +213,18 @@ function Restore({ leftSidebarOpen, disabled = false }: { leftSidebarOpen: boole
 					</div>
 				</div>
 				<div className="flex items-center justify-end w-full h-10 mt-2">
+					<Button
+						className="w-28"
+						variant="destructive"
+						onClick={()=>{
+							setTimeout(()=>{
+								setRemoveOpen(true);
+							},0)
+							setDialogOpen(false)
+						}}
+					>
+						{textData._LeftSideBar._components._RemoveIMM.RemoveIMM}
+					</Button>
 					<div className="text-muted-foreground w-full">
 						{disabled && textData._LeftSideBar._components._Restore.Restricted}
 					</div>

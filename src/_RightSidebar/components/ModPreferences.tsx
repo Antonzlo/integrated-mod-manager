@@ -3,38 +3,89 @@ import { DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { openFile, saveConfigs, updateIniVars } from "@/utils/filesys";
-// import { formatHotkeyDisplay, normalizeHotkey } from "@/utils/hotkeyUtils";
 import { join } from "@/utils/hotreload";
 import { ModHotKeys } from "@/utils/types";
 
-import { DATA, MOD_LIST } from "@/utils/vars";
+import { DATA, MOD_LIST, TEXT_DATA } from "@/utils/vars";
 
-import { useSetAtom } from "jotai";
-import { ArrowUpRightFromSquareIcon, InfoIcon, IterationCcwIcon } from "lucide-react";
+import { useAtomValue, useSetAtom } from "jotai";
+import {
+	ArrowUpRightFromSquareIcon,
+	ChevronLeftIcon,
+	ChevronRightIcon,
+	FileIcon,
+	InfoIcon,
+	IterationCcwIcon,
+} from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { info } from "@/lib/logger";
-
-function ModPreferences({ item }: { item: any }) {
-	// const textData = useAtomValue(TEXT_DATA);
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent } from "@/components/ui/popover";
+import { PopoverTrigger } from "@radix-ui/react-popover";
+let prevItemPath = "";
+const pageLimit = 20;
+let lastKeyList: string = "";
+function ModPreferences({ item, details }: { item: any; details: any }) {
 	const setData = useSetAtom(DATA);
 	const setModList = useSetAtom(MOD_LIST);
 	const [keys, setKeys] = useState([] as any);
+	const [fileMode, setFileMode] = useState(false);
+	const [selectedFile, setSelectedFile] = useState("");
+	const [selectedFileData, setSelectedFileData] = useState([] as any);
+	const [popoverOpen, setPopoverOpen] = useState(false);
+	const [pageNo, setPageNo] = useState(0);
+	const textData = useAtomValue(TEXT_DATA);
+	const [forceKeyUpdate, setForceKeyUpdate] = useState(0);
 	useEffect(() => {
+		if (prevItemPath !== item?.path || (!details?.files?.hasOwnProperty(selectedFile) && selectedFile)) {
+			setSelectedFile("");
+			setPageNo(0);
+			prevItemPath = item?.path;
+		}
+	}, [item, details, selectedFile]);
+	useEffect(() => {
+		setPageNo(0);
+		setSelectedFileData([] as any);
+	}, [selectedFile]);
+	useEffect(() => {
+		// console.log(pageNo, selectedFileData[pageNo]);
+		let source = (fileMode ? (selectedFileData.length && selectedFileData[pageNo]) || [] : details?.keys) || [];
 		const k = {} as any;
-		item.keys.forEach((keyConfig: ModHotKeys) => {
-			if(!keyConfig.default) return;
+		let keyListStr = [] as any;
+		source.forEach((keyConfig: ModHotKeys) => {
+			if (!keyConfig.default) return;
 			if (!k[keyConfig.file]) {
 				k[keyConfig.file] = [];
 			}
 			k[keyConfig.file].push(keyConfig);
+			keyListStr.push(`${keyConfig.file}|${keyConfig.target}`);
 		});
 		setKeys(
 			Object.keys(k).map((key) => {
 				return { file: key, keys: k[key] };
 			})
 		);
-	}, [item]);
-	info('Mod Preferences', {keys});
+		keyListStr = keyListStr.join(",");
+		if (lastKeyList !== keyListStr) {
+			setForceKeyUpdate((prev) => prev + 1);
+		}
+		lastKeyList = keyListStr;
+	}, [details, fileMode, selectedFileData, pageNo]);
+	useEffect(() => {
+		if (!selectedFile && details?.files && Object.keys(details.files).length == 1) {
+			const onlyFile = Object.keys(details.files)[0];
+			setSelectedFile(onlyFile);
+			return;
+		}
+		if (fileMode && details?.files && details.files[selectedFile]) {
+			const fileData = details.files[selectedFile] || [];
+			const pagenatedData = [] as any;
+			for (let i = 0; i < fileData.length; i += pageLimit) {
+				pagenatedData.push(fileData.slice(i, i + pageLimit));
+			}
+			setSelectedFileData(pagenatedData);
+		}
+	}, [details, fileMode, selectedFile]);
 	const setVal = useCallback(
 		(type = "pref" as "pref" | "reset" | "name", file: string, target: string, value: any) => {
 			setData((prev: any) => {
@@ -65,7 +116,7 @@ function ModPreferences({ item }: { item: any }) {
 			});
 			saveConfigs();
 		},
-		[item.path, setData]
+		[item?.path, setData]
 	);
 	return (
 		<DialogContent className="min-w-250">
@@ -74,55 +125,173 @@ function ModPreferences({ item }: { item: any }) {
 				<TooltipContent className="opacity-0"></TooltipContent>
 			</Tooltip>
 
-			<div className="min-h-fit text-accent my-6 text-3xl">Edit Mod Configurations</div>
-			<div className="max-h-110 min-h-110 flex flex-col w-full h-full p-2 pt-0 overflow-x-hidden overflow-y-scroll text-gray-300 rounded-sm">
-				<div className="bg-background/80 button-like text-border backdrop-blur border-muted/20 sticky top-0 z-10 flex w-full px-8 py-2 border rounded-md">
-					<Tooltip>
-						<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2 mr-2 -ml-2">
-							<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" />
-							Name
-						</TooltipTrigger>
-						<TooltipContent className="w-48 px-1 text-center">
-							{"This only will only reflect in the UI and will not affect any mod/ini files."}
-						</TooltipContent>
-					</Tooltip>
-					|{/* <div className="text-accent w-1/5 text-center">Target Var</div>| */}
-					<Tooltip>
-						<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2">
-							<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" />
-							Default Value
-						</TooltipTrigger>
-						<TooltipContent className="w-48 px-1 text-center">
-							{"The default value of the variable in the mod/ini file. Changes will be written to the mod/ini file."}
-						</TooltipContent>
-					</Tooltip>
-					|
-					<Tooltip>
-						<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2">
-							<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" />
-							Preference
-						</TooltipTrigger>
-						<TooltipContent className="w-48 px-1 text-center">
-							{
-								"To set your preferred settings directly for the mod injector user preferences. This will not affect any mod/ini files."
-							}
-						</TooltipContent>
-					</Tooltip>
-					|
-					<Tooltip>
-						<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2 -mr-4">
-							{/* <InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" /> */}
-							Expected Values
-						</TooltipTrigger>
-						{/* <TooltipContent className="w-48 px-1 text-center">
+			<div className="min-h-fit text-accent my-6 text-3xl">
+				{" "}
+				{textData._RightSideBar._components._ModPreferences.EditConfig}
+			</div>
+
+			<div className="text-sm flex items-center gap-2">
+				<Checkbox checked={fileMode} onCheckedChange={(checked) => setFileMode(!!checked)} />{" "}
+				{textData._RightSideBar._components._ModPreferences.ShowVars}
+			</div>
+			<div
+				style={{
+					opacity: fileMode ? 1 : 0,
+					pointerEvents: fileMode ? "auto" : "none",
+					userSelect: fileMode ? "auto" : "none",
+					minHeight: fileMode ? "2.75rem" : 0,
+					marginBottom: fileMode ? 0 : "-1.5rem",
+					marginTop: fileMode ? 0 : "-1.5rem",
+				}}
+				className="flex items-center duration-300 overflow-hidden w-full gap-2"
+			>
+				<Popover
+					open={popoverOpen}
+					onOpenChange={(open) => {
+						setPopoverOpen(open);
+					}}
+				>
+					<PopoverTrigger>
+						<div className="min-w-179 button-like zzz-border w-full hover:brightness-150 bg-sidebar cursor-pointerx flex items-center justify-center h-full gap-1 p-2 text-xs duration-300 rounded-md select-none">
+							{selectedFile ? (
+								<>
+									<FileIcon className="w-3 h-3" />
+									{selectedFile}
+								</>
+							) : (
+								textData._RightSideBar._components._ModPreferences.Select
+							)}
+						</div>
+					</PopoverTrigger>
+					<PopoverContent
+						className="p-0 max-h-100 min-w-175 overflow-y-scroll scroll-auto z-100 pointer-events-auto"
+						onWheel={(e) => {
+							e.currentTarget.scrollBy({
+								top: e.deltaY,
+							});
+						}}
+					>
+						{details?.files &&
+							Object.keys(details.files).map((file: string, index: number) => (
+								<div
+									key={index}
+									className="cursor-pointer hover:bg-background/50 px-4 py-2 text-sm"
+									onClick={() => {
+										setSelectedFile(file);
+										const fileData = details.files[file] || [];
+										const pagenatedData = [] as any;
+										for (let i = 0; i < fileData.length; i += pageLimit) {
+											pagenatedData.push(fileData.slice(i, i + pageLimit));
+										}
+										setSelectedFileData(pagenatedData);
+										setPageNo(0);
+										setPopoverOpen(false);
+									}}
+								>
+									{file}
+								</div>
+							))}
+					</PopoverContent>
+				</Popover>
+				<div className="flex w-full gap-2">
+					<Button
+						onClick={() => {
+							setPageNo((prev) => Math.max(prev - 1, 0));
+						}}
+					>
+						<ChevronLeftIcon className="w-3 h-3" />
+					</Button>
+					<div className="text-sm text-muted-foreground flex items-center justify-center min-w-fit">
+						{textData._RightSideBar._components._ModPreferences.Page}
+						<Input
+							key={pageNo}
+							defaultValue={pageNo + 1}
+							onBlur={(e) => {
+								const val = Number(e.currentTarget.value);
+								if (isNaN(val) || val - 1 >= details.files[selectedFile]?.length / pageLimit) {
+									e.currentTarget.value = String(pageNo + 1);
+									return;
+								}
+								setPageNo(val - 1);
+							}}
+							className="text-center w-12 mx-2 p-1"
+						/>
+						{textData._RightSideBar._components._ModPreferences.Of} {details.files[selectedFile]?.length ? Math.ceil(details.files[selectedFile].length / pageLimit) : 1}
+					</div>
+					<Button
+						onClick={() => {
+							setPageNo((prev) =>
+								Math.min(
+									prev + 1,
+									details.files[selectedFile]?.length
+										? Math.ceil(details.files[selectedFile].length / pageLimit) - 1
+										: 0
+								)
+							);
+						}}
+					>
+						<ChevronRightIcon className="w-3 h-3" />
+					</Button>
+				</div>
+			</div>
+			<div className="bg-background/80 button-like text-border backdrop-blur border-muted/20 sticky top-0 z-10 flex w-full px-8 py-2 border rounded-md">
+				<Tooltip>
+					<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2 mr-2 -ml-2">
+						<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" />
+						{textData._RightSideBar._components._ModPreferences.Name}
+					</TooltipTrigger>
+					<TooltipContent className="w-48 px-1 text-center">
+						{ textData._RightSideBar._components._ModPreferences.NameTip }
+					</TooltipContent>
+				</Tooltip>
+				|{/* <div className="text-accent w-1/5 text-center">Target Var</div>| */}
+				<Tooltip>
+					<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2">
+						<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" />
+						{textData._RightSideBar._components._ModPreferences.DefVal}
+					</TooltipTrigger>
+					<TooltipContent className="w-48 px-1 text-center">
+						{textData._RightSideBar._components._ModPreferences.DefValTip}
+					</TooltipContent>
+				</Tooltip>
+				|
+				<Tooltip>
+					<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2">
+						<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" />
+						{textData._RightSideBar._components._ModPreferences.Pref}
+					</TooltipTrigger>
+					<TooltipContent className="w-48 px-1 text-center">
+						{
+							textData._RightSideBar._components._ModPreferences.PrefTip
+						}
+					</TooltipContent>
+				</Tooltip>
+				|
+				<Tooltip>
+					<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2 -mr-4">
+						{/* <InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" /> */}
+						{textData._RightSideBar._components._ModPreferences.Expected}
+					</TooltipTrigger>
+					{/* <TooltipContent className="w-48 px-1 text-center">
 							{
 								"Shows the current key-binding for this variable. Future versions of IMM may allow changing key-bindings here."
 							}
 						</TooltipContent> */}
-					</Tooltip>
-				</div>
+				</Tooltip>
+			</div>
+			<label className="text-xs text-accent/50 -my-3">{textData._RightSideBar._components._ModPreferences.Priority}</label>
+			<div
+				className="max-h-90 min-h-90 flex flex-col w-full h-full p-2 pt-0 overflow-x-hidden overflow-y-scroll text-gray-300 rounded-sm"
+				key={"" + fileMode + pageNo + selectedFile + keys.length + forceKeyUpdate}
+			>
 				{keys.map((file: any, index: number) => (
-					<div key={index} className="min-h-fit flex flex-col w-full px-4 py-2 mt-2 border rounded-md">
+					<div
+						key={index}
+						className="min-h-fit flex flex-col w-full px-4 py-2 mt-2 border rounded-md"
+						style={{
+							marginTop: index === 0 ? "0px" : "",
+						}}
+					>
 						<div className="text-accent flex items-center gap-1 mb-2 text-sm">
 							<Button
 								className="aspect-square mt-0.5 max-h-5 max-w-5"
@@ -155,31 +324,32 @@ function ModPreferences({ item }: { item: any }) {
 												if (val == keyConfig.name || (!val && !keyConfig.name)) {
 													return;
 												}
+												if (val === keyConfig.target) {
+													setVal("name", keyConfig.file, keyConfig.target, null);
+													return;
+												}
 												setVal("name", keyConfig.file, keyConfig.target, val);
 											}}
 										/>
-										<Tooltip>
-											<TooltipTrigger
-												className="duration-300"
-												style={{
-													pointerEvents: nameDefault ? "none" : "auto",
-													opacity: nameDefault ? 0 : 1,
-												}}
-												onClick={(e) => {
-													const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
-													if (prev) {
-														prev.focus();
-														prev.value = keyConfig.target;
-														prev.blur();
-													}
-												}}
-											>
-												<Button variant="ghost" className=" h-8 w-8">
-													<IterationCcwIcon className="max-h-4 rotate-180" />
-												</Button>
-											</TooltipTrigger>
-											<TooltipContent className="max-w-xs">Reset Name</TooltipContent>
-										</Tooltip>
+
+										<Button
+											variant="ghost"
+											className=" h-7 w-7 ml-0.75"
+											style={{
+												pointerEvents: nameDefault ? "none" : "auto",
+												opacity: nameDefault ? 0 : 1,
+											}}
+											onClick={(e) => {
+												const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
+												if (prev) {
+													prev.focus();
+													prev.value = keyConfig.target;
+													prev.blur();
+												}
+											}}
+										>
+											<IterationCcwIcon className="max-h-4 rotate-180" />
+										</Button>
 									</div>
 									<div className="w-full min-w-[24.5%] flex items-center">
 										<Input
@@ -199,7 +369,11 @@ function ModPreferences({ item }: { item: any }) {
 												} else if (val === keyConfig.reset) {
 													setVal("reset", keyConfig.file, keyConfig.target, null);
 												}
-												info("Updating ini", {src: join(item.path, keyConfig.file), target: keyConfig.target, content: val });
+												info("Updating ini", {
+													src: join(item.path, keyConfig.file),
+													target: keyConfig.target,
+													content: val,
+												});
 												updateIniVars(join(item.path, keyConfig.file), {
 													[keyConfig.target.toLowerCase()]: val,
 												}).then((success) => {
@@ -226,28 +400,24 @@ function ModPreferences({ item }: { item: any }) {
 												});
 											}}
 										/>
-										<Tooltip>
-											<TooltipTrigger
-												className="duration-300"
-												style={{
-													pointerEvents: defDefault ? "none" : "auto",
-													opacity: defDefault ? 0 : 1,
-												}}
-												onClick={(e) => {
-													const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
-													if (prev) {
-														prev.focus();
-														prev.value = keyConfig.reset;
-														prev.blur();
-													}
-												}}
-											>
-												<Button variant="ghost" className=" h-8 w-8">
-													<IterationCcwIcon className="max-h-4 rotate-180" />
-												</Button>
-											</TooltipTrigger>
-											<TooltipContent className="max-w-xs">Reset Default Value</TooltipContent>
-										</Tooltip>
+										<Button
+											variant="ghost"
+											className=" h-7 w-7 ml-0.75"
+											style={{
+												pointerEvents: defDefault ? "none" : "auto",
+												opacity: defDefault ? 0 : 1,
+											}}
+											onClick={(e) => {
+												const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
+												if (prev) {
+													prev.focus();
+													prev.value = keyConfig.reset;
+													prev.blur();
+												}
+											}}
+										>
+											<IterationCcwIcon className="max-h-4 rotate-180" />
+										</Button>
 									</div>
 									<div className="w-full min-w-[24.5%] flex items-center">
 										<Input
@@ -262,35 +432,32 @@ function ModPreferences({ item }: { item: any }) {
 												if (val == keyConfig.pref || (!val && !keyConfig.pref)) {
 													return;
 												}
-												setVal("pref", keyConfig.file, keyConfig.target, val);
+												setVal("pref", keyConfig.namespace ? "namespace" : keyConfig.file, keyConfig.target, val);
 											}}
-											placeholder="Default Value"
+											placeholder={keyConfig.state ? `${textData._RightSideBar._components._ModPreferences.AutoSaved} ${keyConfig.state}` : textData._RightSideBar._components._ModPreferences.Default}
 										/>
-										<Tooltip>
-											<TooltipTrigger
-												className="duration-300"
-												style={{
-													pointerEvents: prefDefault ? "none" : "auto",
-													opacity: prefDefault ? 0 : 1,
-												}}
-												onClick={(e) => {
-													const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
-													if (prev) {
-														prev.focus();
-														prev.value = "";
-														prev.blur();
-													}
-												}}
-											>
-												<Button variant="ghost" className=" h-8 w-8">
-													<IterationCcwIcon className="max-h-4 rotate-180" />
-												</Button>
-											</TooltipTrigger>
-											<TooltipContent className="max-w-xs">Reset Default Value</TooltipContent>
-										</Tooltip>
+
+										<Button
+											variant="ghost"
+											className=" h-7 w-7 ml-0.75"
+											style={{
+												pointerEvents: prefDefault ? "none" : "auto",
+												opacity: prefDefault ? 0 : 1,
+											}}
+											onClick={(e) => {
+												const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
+												if (prev) {
+													prev.focus();
+													prev.value = "";
+													prev.blur();
+												}
+											}}
+										>
+											<IterationCcwIcon className="max-h-4 rotate-180" />
+										</Button>
 									</div>
 									<div className="text-muted-foreground flex items-center justify-center w-full min-w-[24.5%]">
-										{keyConfig.values.toSorted().join(" , ") || "Unspecified"}
+										{(keyConfig.values.toSorted().join(" , ") || "unknown").replace("unknown",textData._RightSideBar._components._ModPreferences.Unknown)}
 									</div>
 								</div>
 							);

@@ -26,7 +26,7 @@ export interface GlobalSettings {
 	chkModUpdates: boolean;
 }
 export interface GameSettings {
-	launch: 0 | 1;
+	launch: 0 | 1 | 2;
 	hotReload: 0 | 1 | 2;
 	onlineType: string;
 	customCategories: { [key: string]: CustomCategory };
@@ -56,6 +56,7 @@ export interface ModData {
 	viewedAt?: number;
 	tags?: string[];
 	note?: string;
+	namespace?: string;
 	// state?: { [key: string]: any };
 	vars?: { [key: string]: any };
 }
@@ -105,6 +106,7 @@ export interface ModHotKeys {
 	values: string[];
 	default: string;
 	file: string;
+	namespace: string;
 	pref: string | null;
 	reset: string | null;
 }
@@ -114,6 +116,8 @@ export interface Mod {
 	parent: string;
 	path: string;
 	keys: ModHotKeys[];
+	files?: Record<string, ModHotKeys[]>;
+	namespace?: string;
 	enabled: boolean;
 	children: Mod[];
 	depth: number;
@@ -198,6 +202,7 @@ export interface OnlineMod {
 	_nViewCount?: number;
 	_bIsOwnedByAccessor?: boolean;
 	_sImageUrl?: string;
+	_aComments?: any[];
 	_sPeriod?: "today" | "yesterday" | "week" | "month" | "3month" | "6month" | "year" | "alltime";
 }
 export interface OnlineData {

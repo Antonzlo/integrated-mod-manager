@@ -1,27 +1,32 @@
 import { addToast } from "@/_Toaster/ToastProvider";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { managedSRC, UNCATEGORIZED } from "@/utils/consts";
-import { applyChanges, createManagedDir, createRestorePoint, folderSelector, verifyDirStruct } from "@/utils/filesys";
+import { UNCATEGORIZED } from "@/utils/consts";
+import { applyChanges, createManagedDir, createRestorePoint } from "@/utils/filesys";
 import { ChangeInfo } from "@/utils/types";
 import { CHANGES, FIRST_LOAD, HELP_OPEN, INIT_DONE, SOURCE, TEXT_DATA } from "@/utils/vars";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { ChevronRightIcon, FileIcon, Folder, FolderCogIcon } from "lucide-react";
+import { ChevronRightIcon, FileIcon, Folder, FolderCogIcon, HelpCircleIcon } from "lucide-react";
 import { motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 let checked = false;
 function getChecked() {
 	return checked;
 }
+let onConfirm = () => {};
 function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 	const textData = useAtomValue(TEXT_DATA);
 	const [changes, setChanges] = useAtom(CHANGES);
-	const [source, setSource] = useAtom(SOURCE);
+	const [source, _] = useAtom(SOURCE);
 	const setInitDone = useSetAtom(INIT_DONE);
 	const firstLoad = useAtomValue(FIRST_LOAD);
 	const setHelpOpen = useSetAtom(HELP_OPEN);
+	const [alertOpen, setAlertOpen] = useState(false);
+	const [alertType, setAlertType] = useState<"info" | "warn">("warn");
+	const [loading, setLoading] = useState(false);
 	useEffect(() => {
 		if (!changes.skip) return;
 		afterInit().then(() => {
@@ -51,22 +56,47 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 				opacity: 1,
 			}}
 		>
-			<div className="w-180 h-164 bg-background/50 border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg">
+			<AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
+				{alertType == "warn" ? (
+					<AlertDialogContent className="max-w-100">
+						<div className="text-accent min-h-fit my-4 text-3xl">{textData.Note}</div>
+						<div className="text-center text-destructive">{textData._Changes.WillBeOrg}</div>
+						<div className="flex w-full justify-between">
+							<AlertDialogAction>{textData.Back}</AlertDialogAction>
+							<AlertDialogCancel
+								onClick={() => {
+									onConfirm();
+								}}
+							>
+								{textData.IUnd}
+							</AlertDialogCancel>
+						</div>
+					</AlertDialogContent>
+				) : (
+					<AlertDialogContent className="min-h-fit min-w-fit mt-4">
+						<img src="/tutorials/RemoveIMM/1.png" className="max-h-125 rounded-md" />
+						<label className="text-accent text-sm text-center max-w-132 ">{textData._Changes.RemIMM}</label>
+						<AlertDialogAction className="-my-2">
+							{textData.Back}
+						</AlertDialogAction>
+					</AlertDialogContent>
+				)}
+			</AlertDialog>
+			<div className="w-180 h-166 bg-background/50 border-border flex flex-col items-center mt-8 gap-4 p-4 overflow-hidden border-2 rounded-lg">
 				<div className="text-accent min-h-fit my-6 text-3xl">{textData._Changes.ConfirmChanges}</div>
 				<div className="flex flex-row items-center w-full gap-2 px-2">
 					<Button
-						className="aspect-square flex items-center justify-center w-10 h-10"
-						onClick={async () => {
-							let path = ((await folderSelector(source)) as string) || source || "";
-							setSource(path.endsWith(managedSRC) ? path.split(managedSRC)[0] : path);
-							setChanges(await verifyDirStruct());
-						}}
+						className="aspect-square flex pointer-events-none items-center justify-center w-10 h-10"
 					>
 						<Folder className="aspect-square w-5" />
 					</Button>
 					<div className=" w-157 max-w-157 bg-input/50 min-h-10 flex items-center px-2 text-gray-200 rounded-md">
 						<Label className=" max-w-full duration-200">{source}</Label>
 					</div>
+				</div>
+				<div className=" flex items-center -my-2 gap-2">
+					<Checkbox id="checkbox" className=" checked:bg-accent bgaccent" />
+					<label className="text-accent text-sm opacity-75">{textData._Changes.CreateRestore}</label>
 				</div>
 				<div className="h-100 flex items-center w-full p-0">
 					<div className="flex flex-col w-1/2 h-full overflow-x-hidden overflow-y-auto text-gray-300 border rounded-sm">
@@ -160,7 +190,7 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 						))}
 					</div>
 				</div>
-				<div className="flex justify-between w-full h-10 mt-2">
+				<div className="flex justify-between w-full h-10">
 					<Button
 						variant="destructive"
 						className="w-28"
@@ -172,30 +202,54 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 					>
 						{textData.Skip}
 					</Button>
-					<div className="flex flex-col items-center justify-center w-full">
-						<div className=" flex items-center gap-2">
-							<Checkbox id="checkbox" className=" checked:bg-accent bgaccent" />
-							<label className="text-accent text-sm opacity-75">{textData._Changes.CreateRestore}</label>
-						</div>
+					<div
+						className="flex text-xs items-center text-accent/75 hover:text-accent justify-center duration-200"
+						onClick={() => {
+							setAlertType("info");
+							setAlertOpen(true);
+						}}
+					>
+						<HelpCircleIcon className="h-4 -mt-0.5" />
+						<label className="text-sm">{textData._Changes.WhatIfRem}</label>
+
+						{/* <Tooltip>
+							<TooltipTrigger className="flex items-center justify-center text-accent/75 duration-200">
+								
+								
+							</TooltipTrigger>
+							<TooltipContent className="p-1 max-w-8 group flex flex-col  rounded-md text-sm">
+								<label className="bg-accent rounded px-2">{textData._Changes.RemIMM}</label>
+							</TooltipContent>
+						</Tooltip> */}
 					</div>
 					<Button
 						className="w-28 "
+						disabled={loading}
 						onClick={async () => {
 							checked = document.getElementById("checkbox")?.getAttribute("aria-checked") == "true";
 							//info("Is first load:", firstLoad);
 							if (firstLoad) setHelpOpen(true);
 
-							if (checked) await createRestorePoint("ORG-");
-							else {
-								// updateInfo("Optimizing dir structure...");
-								// setConsentOverlayData((prev) => ({ ...prev, next: true }));
-								addToast({ type: "info", message: textData._Toasts.ApplyingChanges });
-								await applyChanges();
-								setChanges((prev) => ({ ...prev, skip: true }));
-							}
+							onConfirm = async () => {
+								setLoading(true);
+								try {
+									let cont = true;
+									if (checked) cont = await createRestorePoint("ORG-");
+									if (cont) {
+										addToast({ type: "info", message: textData._Toasts.ApplyingChanges });
+										await applyChanges();
+										setChanges((prev) => ({ ...prev, skip: true }));
+									}
+								} catch (e) {
+									console.error(e);
+								}
+								setLoading(false);
+							};
+							setAlertType("warn");
+							setAlertOpen(true);
 						}}
 					>
-						{textData.Confirm}
+						{loading ? "Processing..." : textData.Confirm}
 					</Button>
 				</div>
 			</div>

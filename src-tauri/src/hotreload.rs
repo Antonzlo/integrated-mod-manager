@@ -445,7 +445,6 @@ fn is_game_window(title: &str, process_name: &str) -> bool {
 #[cfg(windows)]
 async fn window_monitor_loop() {
     let mut last_game_state = false;
-    let mut f10_press_count = 0;
 
     while MONITORING_ACTIVE.load(Ordering::SeqCst) {
         if !HOTRELOAD_ENABLED.load(Ordering::SeqCst) {
@@ -472,21 +471,19 @@ async fn window_monitor_loop() {
 
         if is_game && CHANGE.load(Ordering::SeqCst) {
             CHANGE.store(false, Ordering::SeqCst);
-            if let Err(e) = send_f10_key() {
-                tracing::error!("Failed to send F10 key: {}", e);
-            } else {
-                f10_press_count += 1;
-                if f10_press_count % 10 == 0 {
-                    tracing::debug!("F10 pressed {} times for game window", f10_press_count);
-                }
-            }
+            tokio::spawn(send_f10_async());
         }
 
         tokio::time::sleep(Duration::from_millis(100)).await;
     }
 
-    tracing::info!(
-        "Window monitoring stopped. Total F10 presses: {}",
-        f10_press_count
-    );
+    tracing::info!("Window monitoring stopped.");
+}
+
+#[cfg(windows)]
+async fn send_f10_async() {
+    tokio::time::sleep(Duration::from_millis(100)).await;
+    if let Err(e) = send_f10_key() {
+        tracing::error!("Failed to send F10 key: {}", e);
+    }
 }

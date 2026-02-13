@@ -9,9 +9,7 @@ import {
 	ONLINE,
 	openConflict,
 	SELECTED,
-	SETTINGS,
 	SOURCE,
-	store,
 	TEXT_DATA,
 } from "@/utils/vars";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -43,12 +41,12 @@ import { cn } from "@/lib/utils";
 import {
 	changeModName,
 	deleteMod,
+	getModDetails,
 	installFromArchives,
 	refreshModList,
 	saveConfigs,
 	savePreviewImage,
 	selectPath,
-	setGame,
 } from "@/utils/filesys";
 import { Label } from "@/components/ui/label";
 import { Games, Mod } from "@/utils/types";
@@ -61,18 +59,18 @@ import { AnimatePresence, motion } from "motion/react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent } from "@/components/ui/alert-dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { main } from "@/utils/init";
 import { addToast } from "@/_Toaster/ToastProvider";
 import ModPreferences from "./components/ModPreferences";
 import { info } from "@/lib/logger";
 
 let text = "";
 let curUrlIndex = 0;
+let cachcedDetails: any = {};
+const timeKey = Date.now().toString();
 function RightLocal() {
 	const [tab, setTab] = useState<"notes" | "hotkeys">("hotkeys");
 	const setOnline = useSetAtom(ONLINE);
 	const game = useAtomValue(GAME);
-	const lang = useAtomValue(SETTINGS).global.lang;
 	const initDone = useAtomValue(INIT_DONE);
 	// const setSettings = useSetAtom(SETTINGS);
 
@@ -89,38 +87,33 @@ function RightLocal() {
 				url[1] = url[1].join("/");
 				urls[urls.length - 1] = url.join("/");
 				if (urlGame && urlGame != game) {
-					while (!store.get(SETTINGS).global.lang) {
-						await new Promise((res) => setTimeout(res, 100));
-					}
 					addToast({
-						message: `Switching to game: ${urlGame}`,
+						message: textData._Toasts.SwitchGame.replace("<game/>", urlGame),
 					});
-					await setGame(urlGame);
-					setTimeout(() => {
-						main();
-					}, 100);
+					sessionStorage.setItem("imm-deep-link-game", urlGame);
+					console.log("Setting deep link game in sessionStorage:", urls[urls.length - 1]);
+					sessionStorage.setItem("imm-session-timestamp", timeKey);
+					sessionStorage.setItem("imm-deep-link-url", urls[urls.length - 1]);
+					window.location.reload();
+				} else {
+					throw new Error("Invalid game in URL or same as current game.");
 				}
 			} else if (final.includes("/mode/")) {
 				const urlGame = final.split("/mode/")[1].split("/")[0].toUpperCase();
 				if (urlGame && urlGame != game && GAMES.includes(urlGame as Games)) {
-					while (!store.get(SETTINGS).global.lang) {
-						await new Promise((res) => setTimeout(res, 100));
-					}
-					await setGame(urlGame);
-					setTimeout(() => {
-						main();
-					}, 100);
-					// setSettings((prev) => ({ ...prev, global: { ...prev.global, game: urlGame as Games } }));
-					// await saveConfigs(true);
-					// setTimeout(() => {
-					// 	main();
-					// }, 0);
+					sessionStorage.setItem("imm-deep-link-game", urlGame);
+					window.location.reload();
+				} else {
+					throw new Error("Invalid game in URL or same as current game.");
 				}
 			}
 		},
-		[game, lang]
+		[game]
 	);
 	useEffect(() => {
+		if (!game) {
+			return () => {};
+		}
 		let unlisten: (() => void) | undefined;
 
 		const initDeepLink = async () => {
@@ -130,20 +123,21 @@ function RightLocal() {
 			// as the CLI args (returned by getCurrent) persist for the process lifetime.
 			const initialUrls = await getCurrent();
 			const isDeepLinkHandled = sessionStorage.getItem("deep-link-initial-handled");
-
-			if (initialUrls && !isDeepLinkHandled && lang) {
+			console.log("Initial URLs:", initialUrls, "Handled:", isDeepLinkHandled);
+			if (initialUrls && !isDeepLinkHandled) {
 				info("Launched with URLs:", initialUrls);
-				await handleURLGame(initialUrls);
-				setUrls((prev) => [...prev, ...initialUrls]);
 				sessionStorage.setItem("deep-link-initial-handled", "true");
+				await handleURLGame(initialUrls).catch(() => {
+					setUrls((prev) => [...prev, ...initialUrls]);
+				});
 			}
-
 			// 2. Listen for deep links while app is running
 			// The single-instance plugin forwards Windows deep links here automatically
 			unlisten = await onOpenUrl(async (newUrls) => {
 				info("Received new URLs:", newUrls);
-				await handleURLGame(newUrls);
-				setUrls((prev) => [...prev, ...newUrls]);
+				await handleURLGame(newUrls).catch(() => {
+					setUrls((prev) => [...prev, ...newUrls]);
+				});
 			});
 		};
 
@@ -152,9 +146,18 @@ function RightLocal() {
 		return () => {
 			if (unlisten) unlisten();
 		};
-	}, [handleURLGame]);
+	}, [handleURLGame, game]);
 	useEffect(() => {
-		if (!initDone || urls.length === 0 || curUrlIndex >= urls.length) return;
+		if (!initDone) return;
+		console.log("Checking URLs after init:", sessionStorage.getItem("imm-deep-link-url"), urls);
+		if (sessionStorage.getItem("imm-deep-link-url") && timeKey != sessionStorage.getItem("imm-session-timestamp")) {
+			const url = sessionStorage.getItem("imm-deep-link-url")!;
+			info("Processing pending deep link URL from sessionStorage:", url);
+			handleInAppLink(url);
+			sessionStorage.removeItem("imm-deep-link-url");
+			return;
+		}
+		if (urls.length === 0 || curUrlIndex >= urls.length) return;
 		info("Processing URLs after init:", urls);
 		handleInAppLink(urls[urls.length - 1]);
 		setUrls([]);
@@ -187,6 +190,7 @@ function RightLocal() {
 	const [dialogType, setDialogType] = useState("");
 	const [alertOpen, setAlertOpen] = useState(false);
 	const [popoverOpen, setPopoverOpen] = useState(false);
+	const [details, setDetails] = useState<any>({});
 	useEffect(() => {
 		if (!alertOpen) {
 			setDeleteItemData(null);
@@ -210,22 +214,29 @@ function RightLocal() {
 	const [category, setCategory] = useState({ name: "-1", icon: "" });
 	const lastUpdated = useAtomValue(LAST_UPDATED);
 	function renameMod(path: string, newPath: string) {
-		changeModName(path, newPath).then((newPath) => {
-			if (newPath) {
-				const name = newPath.split("\\").pop();
-				name &&
-					newPath &&
-					setModList((prev) => {
-						return prev.map((m) => {
-							if (m.path == path) {
-								return { ...m, path: newPath, name, parent: newPath.split("\\")[0] };
-							}
-							return m;
+		changeModName(path, newPath)
+			.then((newPath) => {
+				if (newPath) {
+					const name = newPath.split("\\").pop();
+					name &&
+						newPath &&
+						setModList((prev) => {
+							return prev.map((m) => {
+								if (m.path == path) {
+									return { ...m, path: newPath, name, parent: newPath.split("\\")[0] };
+								}
+								return m;
+							});
 						});
-					});
-				setSelected(newPath);
-			}
-		});
+					setSelected(newPath);
+				}
+			})
+			.catch(() => {
+				addToast({
+					message: textData._Toasts.FailedRename,
+					type: "error",
+				});
+			});
 	}
 	useEffect(() => {
 		text = "";
@@ -233,21 +244,55 @@ function RightLocal() {
 			const mod = { ...modList.find((m) => m.path == selected) } as Mod;
 			text = mod?.note || "";
 			if (mod) {
-				const modData = data[mod.path]?.vars;
-				if (modData) {
-					info("Mod data found for selected mod:", { modData });
-					mod.keys = mod.keys.map((key) => {
-						if (modData[key.file] && modData[key.file][key.target]) {
-							key.pref = modData[key.file][key.target].pref;
-							key.reset = modData[key.file][key.target].reset;
-							key.name = modData[key.file][key.target].name || key.target;
-						}
-
-						return key;
+				setItem(mod);
+				if (cachcedDetails[mod.path]) {
+					setDetails(cachcedDetails[mod.path]);
+				} else {
+					setDetails({
+						keys: item?.keys || [],
+						files: item?.files || {},
 					});
 				}
+				getModDetails(mod.path).then((details) => {
+					// cachcedDetails[mod.path] = details;
+					const modData = data[mod.path]?.vars;
+					if (modData) {
+						details.keys = details.keys.map((key: any) => {
+							if (modData[key.file] && modData[key.file][key.target]) {
+								key.pref = modData[key.file][key.target].pref;
+								key.reset = modData[key.file][key.target].reset;
+								key.name = modData[key.file][key.target].name || key.target;
+								key.state = modData[key.file][key.target].state || null;
+							}
+							if (key.namespace && modData["namespace"] && modData["namespace"][key.target]) {
+								key.pref = modData["namespace"][key.target].pref;
+								key.state = modData["namespace"][key.target].state || null;
+							}
+							return key;
+						});
+						Object.keys(details.files).forEach((file) => {
+							details.files[file] = details.files[file].map((key: any) => {
+								if (modData[file] && modData[file][key.target]) {
+									key.pref = modData[file][key.target].pref;
+									key.reset = modData[file][key.target].reset;
+									key.name = modData[file][key.target].name || key.target;
+									key.state = modData[file][key.target].state || null;
+								}
+								if (key.namespace && modData["namespace"] && modData["namespace"][key.target]) {
+									key.pref = modData["namespace"][key.target].pref;
+									key.state = modData["namespace"][key.target].state || null;
+								}
+								return key;
+							});
+						});
+					}
+					details.keys = details.keys
+						.map((key: any) => ({ ...key, key: formatHotkeyDisplay(normalizeHotkey(key.key)) }))
+						.sort((a: any, b: any) => a.key.localeCompare(b.key));
 
-				setItem(mod);
+					setDetails(details);
+					cachcedDetails[mod.path] = details;
+				});
 				return;
 			}
 		}
@@ -266,12 +311,16 @@ function RightLocal() {
 	return (
 		<Sidebar side="right" className="pt-8 duration-300">
 			<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-				{dialogType == "edit-mod-config" && item?.keys ? <ModPreferences item={item} /> : <ManageCategories />}
+				{dialogType == "edit-mod-config" && details ? (
+					<ModPreferences item={item} details={details} />
+				) : (
+					<ManageCategories />
+				)}
 			</Dialog>
 			<AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
 				<AlertDialogContent>
 					<div className="max-w-96 flex flex-col items-center gap-6 mt-6 text-center">
-						<div className="max-w-96 text-xl text-gray-200 break-words">
+						<div className="max-w-96 text-xl text-gray-200 wrap-break-words">
 							{textData._Main._MainLocal.Delete} <span className="text-accent ">{deleteItemData?.name}</span>?
 						</div>
 						<div className="text-destructive">{textData._Main._MainLocal.Irrev}</div>
@@ -300,10 +349,6 @@ function RightLocal() {
 								});
 								setAlertOpen(false);
 								setSelected("");
-								// let items = await refreshRootDir("");
-								// setRightSidebarOpen(false);
-								// setLocalModList(items);
-								// saveConfig();
 							}}
 						>
 							{textData._Main._MainLocal.Delete}
@@ -439,8 +484,6 @@ function RightLocal() {
 														))}
 													</CommandGroup>
 												</CommandList>
-
-												{/* <div className="pr-5">{manageCategoriesButton({})}</div> */}
 											</Command>
 										</PopoverContent>
 									</Popover>
@@ -681,22 +724,21 @@ function RightLocal() {
 									>
 										{tab == "hotkeys" ? (
 											<div className="text-gray-300 h-full max-h-[calc(100vh-39.75rem)] flex flex-col w-full overflow-y-scroll overflow-x-hidden">
-												{item?.keys?.map((hotkey, index) => (
-													<div
-														key={index + item.path}
-														className={
-															"flex border-b justify-center text-border items-center gap-2 w-full min-h-10 px-4 py-2 bg-pat" +
-															(1 + (index % 2))
-														}
-													>
-														<label className="min-w-1/3 max-w-1/3 text-accent flex-1 text-sm truncate">
-															{hotkey.name}
-														</label>
-														|
-														<div className=" flex items-center w-2/3 gap-1">
-															{formatHotkeyDisplay(normalizeHotkey(hotkey.key))
-																.split(" ﹢ ")
-																.map((key, i, arr) => (
+												{item &&
+													details?.keys?.map((hotkey: any, index: number) => (
+														<div
+															key={index + item.path}
+															className={
+																"flex border-b justify-center text-border items-center gap-2 w-full min-h-10 px-4 py-2 bg-pat" +
+																(1 + (index % 2))
+															}
+														>
+															<label className="min-w-1/3 max-w-1/3 text-accent flex-1 text-sm truncate">
+																{hotkey.name}
+															</label>
+															|
+															<div className=" flex items-center w-2/3 gap-1">
+																{(hotkey.key as string).split(" ﹢ ").map((key, i, arr) => (
 																	<span key={i} className="flex items-center">
 																		<kbd className="text-accent bg-sidebar border-border min-w-8 px-2 py-1 text-sm font-semibold text-center border rounded-md shadow-sm">
 																			{key}
@@ -706,9 +748,9 @@ function RightLocal() {
 																		)}
 																	</span>
 																))}
+															</div>
 														</div>
-													</div>
-												))}
+													))}
 											</div>
 										) : (
 											<div className="w-full h-full p-2">
@@ -762,7 +804,7 @@ function RightLocal() {
 								}}
 							>
 								<Settings2Icon className="w-4 h-4" />
-								Edit Mod Config(s)
+								{textData._RightSideBar._components._ModPreferences.EditConf}
 							</Button>
 						)}
 
@@ -781,7 +823,7 @@ function RightLocal() {
 								}}
 							>
 								<DownloadIcon className="w-4 h-4" />
-								Manual Install
+								{textData._RightSideBar._RightLocal.ManualInstall}
 							</Button>
 							<Button
 								className="w-38.75 h-12"
@@ -791,7 +833,7 @@ function RightLocal() {
 								}}
 							>
 								<SwordsIcon className="w-4 h-4" />
-								Conflicts
+								{textData._RightSideBar._RightLocal.Conflicts}
 							</Button>
 						</div>
 					</SidebarGroup>

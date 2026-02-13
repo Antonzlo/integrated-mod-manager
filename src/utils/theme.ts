@@ -34,20 +34,17 @@ export function switchGameTheme(theme: Games): void {
  * Switch language and update data attribute
  * @param language - The language to switch to ('en' | 'cn' | 'jp' | 'kr' | 'ru')
  */
-export function switchLanguage(language: Language): void {
+export function switchLanguage(): void {
+	const language = getCurrentLanguage();
+	console.log(`[IMM] Switching language to ${language.toUpperCase()}...`);
 	const root = document.documentElement;
-
 	// Set the language data attribute
 	root.setAttribute("data-lang", language);
-
-	// Store language preference in localStorage
-	localStorage.setItem("app-language", language);
-
-	//info(`Switched to ${language.toUpperCase()} language`);
+	console.log(`Switched to ${language.toUpperCase()} language`);
 }
 
 store.sub(LANG, () => {
-	switchLanguage(store.get(LANG) as Language);
+	switchLanguage();
 });
 
 /**
@@ -67,11 +64,12 @@ export function getCurrentTheme(): GameTheme {
  * @returns The current language ('en' | 'cn' | 'jp' | 'kr' | 'ru')
  */
 export function getCurrentLanguage(): Language {
-	const root = document.documentElement;
-	const currentLang = root.getAttribute("data-lang") as Language;
-
-	// Default to 'en' if no language is set
-	return currentLang || "en";
+	try {
+		const savedLanguage = JSON.parse(localStorage.getItem("imm-lang") || "null") as Language;
+		return savedLanguage || "en";
+	} catch {
+		return "en";
+	}
 }
 
 /**
@@ -81,17 +79,10 @@ export function initializeThemes(): void {
 	const savedTheme = localStorage.getItem("game-theme") as GameTheme;
 	const themeToUse = savedTheme || "wuwa";
 	switchGameTheme(themeToGame(themeToUse));
-	initializeLanguage();
+	switchLanguage();
 }
 
-/**
- * Initialize language from localStorage or default to English
- */
-export function initializeLanguage(): void {
-	const savedLanguage = localStorage.getItem("app-language") as Language;
-	const languageToUse = savedLanguage || "en";
-	switchLanguage(languageToUse);
-}
+
 
 /**
  * Toggle between WuWa and ZZZ themes

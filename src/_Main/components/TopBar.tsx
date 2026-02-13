@@ -33,6 +33,7 @@ import Notice from "./Notice";
 import { addToast } from "@/_Toaster/ToastProvider";
 import { refreshModList } from "@/utils/filesys";
 import { SORT_OPTIONS } from "@/utils/consts";
+import { handleInAppLink } from "@/utils/utils";
 const searched = {
 	online: "",
 	offline: "",
@@ -55,6 +56,17 @@ function TopBar() {
 	useEffect(() => {
 		const handler = setTimeout(
 			() => {
+				if (term?.startsWith("http")) {
+					handleInAppLink(term);
+					const searchInput = (document.getElementById("search-input") as HTMLInputElement) || null;
+					if(searchInput){
+						searchInput.value = "";
+					searchInput.blur();
+					}
+					if (online) setOnlinePath("home&_type=" + onlineType);
+					else setSearch("");
+					return;
+				}
 				if (online) {
 					if (term.trim() === "") {
 						setOnlinePath("home&type=" + onlineType);
@@ -153,7 +165,7 @@ function TopBar() {
 										}[onlineSort]
 									)
 								) : (
-									<>{SORT_OPTIONS[sort]}</>
+									<>{SORT_OPTIONS[sort].replace("Default",textData._Main._components._TopBar.Default).replace("Favourite",textData._Tags.Favorite)}</>
 								)}
 							</div>
 						</PopoverTrigger>
@@ -234,7 +246,7 @@ function TopBar() {
 												setSort(value);
 											}}
 										>
-											{label}
+											{label.replace("Default",textData._Main._components._TopBar.Default).replace("Favourite",textData._Tags.Favorite)}
 										</div>
 									))
 								)}
@@ -269,9 +281,7 @@ function TopBar() {
 				}}
 				className="bg-sidebar flex items-center justify-center w-12 h-12 gap-0 duration-200 border rounded-lg"
 			>
-				{/* <Tooltip> */}
 				<RefreshCwIcon></RefreshCwIcon>
-				{/* </Tooltip> */}
 			</Button>
 		</div>
 	);

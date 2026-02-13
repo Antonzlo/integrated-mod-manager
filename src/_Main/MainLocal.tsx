@@ -35,6 +35,7 @@ let searchDB: any = null;
 let prev = "prev";
 let prevEnabled = "noData";
 let filterChangeCount = 0;
+let timeout: any = null;
 function MainLocal() {
 	const initDone = useAtomValue(INIT_DONE);
 	const textData = useAtomValue(TEXT_DATA);
@@ -85,7 +86,12 @@ function MainLocal() {
 				.map((m) => m.path)
 				.join(",");
 			if (prevEnabled !== enabled) {
-				setChange();
+				if (timeout) {
+					clearTimeout(timeout);
+				}
+				timeout = setTimeout(() => {
+					setChange();
+				}, 250);
 			}
 
 			prevEnabled = enabled;
@@ -123,26 +129,23 @@ function MainLocal() {
 					newCols[key].add(p);
 				});
 			});
-			const modsInvolved = {} as Record<string,number>;
-			newCols = Object.keys(newCols).map((key,i) => {
-				const paths = [key, ...[...newCols[key]]]
+			const modsInvolved = {} as Record<string, number>;
+			newCols = Object.keys(newCols).map((key, i) => {
+				const paths = [key, ...[...newCols[key]]];
 				paths.forEach((p) => {
 					modsInvolved[p] = modsInvolved[p] || i;
 				});
 				return paths;
 			});
-			
-			
 
 			if (collisions.length > 0 && JSON.stringify(conflicts.conflicts) !== JSON.stringify(newCols)) {
 				addToast({
 					type: "error",
-					message: `Collisions detected for enabled mods`,
+					message: textData._Toasts.CollisionsDetected,
 					onClick: openConflict,
 				});
 				setConflicts({ conflicts: newCols, mods: modsInvolved });
-			}
-			else if (collisions.length == 0 ) {
+			} else if (collisions.length == 0) {
 				setConflicts({ conflicts: [], mods: {} });
 			}
 		}
@@ -167,9 +170,7 @@ function MainLocal() {
 		// if (enb != "All") {
 		// 	newList = newList.filter((mod) => mod.enabled == (enb == "Enabled"));
 		// }
-
-		filter.forEach((f) => {
-			const [key, value] = f.split(":");
+		Object.entries(filter).forEach(([key, value]) => {
 			let modifier = (mod: Mod) => !!mod;
 			switch (key) {
 				case "src":
@@ -179,15 +180,22 @@ function MainLocal() {
 					modifier = (mod) => value == "all" || (value == "enabled" ? mod.enabled : !mod.enabled);
 					break;
 				case "tag":
-					const [tag, val] = value.split("=");
-					switch (val) {
-						case "has":
-							modifier = (mod) => (mod.tags || []).includes(tag);
-							break;
-						case "lacks":
-							modifier = (mod) => !(mod.tags || []).includes(tag);
-							break;
-					}
+					const valObj = value as { [key: string]: string };
+					modifier = (mod) => {
+						return Object.entries(valObj).every(([tag, val]) => {
+							switch (val) {
+								case "has":
+									return (mod.tags || []).includes(tag);
+								case "lacks":
+									return !(mod.tags || []).includes(tag);
+								default:
+									return true;
+							}
+						});
+					};
+					break;
+				case "upd":
+					modifier = (mod) => value == "any" || (value == "has" ? !!updateObj[mod.path] : !updateObj[mod.path]);
 					break;
 				default:
 					return;
@@ -195,10 +203,9 @@ function MainLocal() {
 			newList = newList.filter((mod) => modifier(mod));
 		});
 
-		if (category != "All") {
-			newList = newList.filter((mod) => mod.parent == category);
+		if (category.size > 0) {
+			newList = newList.filter((mod) => category.has(mod.parent));
 		}
-
 		switch (sort) {
 			case "fav-asc":
 				newList.sort((a, b) => {
@@ -219,22 +226,27 @@ function MainLocal() {
 		setFilteredList(newList);
 	}, [modList, filter, category, search, filterChangeCount, sort]);
 
-	const handleClick = (e: MouseEvent, mod: Mod) => {
+	const handleClick = async (e: MouseEvent, mod: Mod) => {
 		const click = e.button;
 		let tag = (e.target as HTMLElement).tagName.toLowerCase();
 		if (tag == "button") {
 			return;
 		}
 		if (click == toggleOn) {
-			toggleMod(mod.path, !mod.enabled);
-			setModList((prev) => {
-				return prev.map((m) => {
-					if (m.path == mod.path) {
-						return { ...m, enabled: !m.enabled };
-					}
-					return m;
+			const ct = (e.currentTarget as HTMLDivElement)?.firstElementChild?.firstElementChild
+				?.nextElementSibling as HTMLImageElement;
+			ct && (ct.style.filter = mod.enabled ? "brightness(0.5) saturate(0.5)" : "brightness(1) ");
+			let success = await toggleMod(mod.path, !mod.enabled);
+			console.log("Toggled mod:", mod.path, "New state:", !mod.enabled, "Success:", success);
+			if (success)
+				setModList((prev) => {
+					return prev.map((m) => {
+						if (m.path == mod.path) {
+							return { ...m, enabled: !m.enabled };
+						}
+						return m;
+					});
 				});
-			});
 		} else setSelected(mod.path == selected ? "" : mod.path);
 	};
 	const handleScroll = useCallback(() => {
@@ -300,7 +312,7 @@ function MainLocal() {
 			</div>
 		);
 	}, [modList, source]);
-	info(conflicts)
+	// info(conflicts);
 	return (
 		<>
 			<div

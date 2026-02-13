@@ -46,7 +46,7 @@ function Page3({ setPage }: { setPage: (page: number) => void }) {
 						<p className="text-foreground w-108 text-lg text-center opacity-75">
 							{textData._Checklist.XXMIConfErrMsg.replace("<game/>", game)}
 						</p>
-						<div className="w-128 flex items-center justify-between">
+						<div className="w-lg flex items-center justify-between">
 							<Button
 								className={"w-32 scale-110 my-6"}
 								onClick={async () => {

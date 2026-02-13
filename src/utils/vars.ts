@@ -1,6 +1,6 @@
 import { atom, createStore } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 export const store = createStore();
-// import { initGame } from "./init";
 import TEXT from "@/textData.json";
 import { DEFAULTS, VERSION } from "./consts";
 import {
@@ -29,6 +29,7 @@ const MAIN_FUNC_STATUS = atom("" as String);
 const FIRST_LOAD = atom(false);
 const GAME = atom<Games>("");
 const LANG = atom<Language>("en");
+const SAVED_LANG = atomWithStorage<Language | "">("imm-lang","");
 const LAST_UPDATED = atom(Date.now());
 const SETTINGS = atom<Settings>({
 	global: {
@@ -103,6 +104,7 @@ const NOTICE = atom({
 const HELP_OPEN = atom(false);
 const TUTORIAL_OPEN = atom(false);
 const NOTICE_OPEN = atom(false);
+const REMOVE_OPEN = atom(false);
 const CONFLICTS_OPEN = atom(false);
 const CONFLICTS = atom({
 	conflicts: [] as string[][],
@@ -165,6 +167,7 @@ export {
 	TUTORIAL_OPEN,
 	NOTICE,
 	NOTICE_OPEN,
+	REMOVE_OPEN,
 	UPDATER_OPEN,
 	CONFLICTS_OPEN,
 	CONFLICT_INDEX,
@@ -188,6 +191,7 @@ export {
 	INIT_DONE,
 	MAIN_FUNC_STATUS,
 	LANG,
+	SAVED_LANG,
 	SETTINGS,
 	TEXT_DATA,
 	SOURCE,

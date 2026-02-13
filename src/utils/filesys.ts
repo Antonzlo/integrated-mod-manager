@@ -1,12 +1,14 @@
 import defConfig from "../default.json";
 import { copyFile, exists, mkdir, readDir, readTextFile, remove, rename, writeTextFile } from "@tauri-apps/plugin-fs";
 import {
+	exts,
 	IGNORE,
 	managedSRC,
 	managedTGT,
 	OLD_managedSRC,
 	OLD_managedTGT,
 	OLD_RESTORE,
+	PREFS,
 	RESTORE,
 	UNCATEGORIZED,
 	VERSION,
@@ -33,8 +35,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { join } from "./utils";
 import { main, updateConfig } from "./init";
 import { addToast } from "@/_Toaster/ToastProvider";
+import MiniSearch from "minisearch";
 import {
-	Category,
 	ChangeInfo,
 	DirEntry,
 	GameConfig,
@@ -45,7 +47,7 @@ import {
 	Settings,
 } from "./types";
 import { openPath } from "@tauri-apps/plugin-opener";
-import { error, info } from "@/lib/logger";
+import { error, info, warn } from "@/lib/logger";
 import { addToExtracts } from "@/_LeftSidebar/components/Downloads";
 export async function setGame(game: string) {
 	try {
@@ -102,7 +104,26 @@ store.sub(SOURCE, () => {
 store.sub(TARGET, () => {
 	tgt = store.get(TARGET);
 });
-
+let catDB: MiniSearch | null = null;
+store.sub(CATEGORIES, () => {
+	try {
+		const categories = store.get(CATEGORIES) || [];
+		catDB = new MiniSearch({
+			idField: "_sName",
+			fields: ["_sName"],
+			storeFields: ["_sName", "_sIconUrl"],
+			searchOptions: {
+				boost: { name: 2 },
+				fuzzy: 0.2,
+			},
+		});
+		catDB.addAll([...categories, { _sName: UNCATEGORIZED, _sIconUrl: "" }]);
+		console.log("Building category search index...", categories);
+		console.log("test", catDB.search("sword", { prefix: true, fuzzy: 0.2 }));
+	} catch (e) {
+		console.error("Error building category search index:", e);
+	}
+});
 export async function setConfig(config: any) {
 	info("[IMM] Setting config...");
 	if (!config) return;
@@ -222,7 +243,11 @@ async function copyDir(src: string, dest: string, withProgress = false) {
 		const entries = (await readDir(src)).filter(
 			(item) =>
 				!withProgress ||
-				(item.name !== RESTORE && item.name !== IGNORE && item.name !== managedSRC && item.name !== managedTGT)
+				(item.name !== RESTORE &&
+					item.name !== IGNORE &&
+					item.name !== PREFS &&
+					item.name !== managedSRC &&
+					item.name !== managedTGT)
 		);
 		for (const entry of entries) {
 			if (withProgress && canceled) {
@@ -258,7 +283,9 @@ async function copyDir(src: string, dest: string, withProgress = false) {
 }
 
 async function countFilesInDir(path: string) {
-	let entries = (await readDir(join(path, ""))).filter((item) => item.name != RESTORE && item.name != IGNORE);
+	let entries = (await readDir(join(path, ""))).filter(
+		(item) => item.name != RESTORE && item.name != IGNORE && item.name != PREFS
+	);
 	for (let entry of entries) {
 		if (entry.isDirectory) {
 			await countFilesInDir(join(path, entry.name));
@@ -433,7 +460,7 @@ export async function createRestorePoint(prefix = "") {
 	try {
 		await mkdir(join(modRoot, RESTORE, restorePointName));
 	} catch (e) {
-		return null;
+		return false;
 	}
 	result = "Ok";
 	await copyDir(root, join(modRoot, RESTORE, restorePointName), true);
@@ -452,7 +479,7 @@ export async function createRestorePoint(prefix = "") {
 		open: prev.open,
 		name: prefix,
 	}));
-	return null;
+	return result == "Ok";
 }
 export async function checkOldVerDirs(src: string) {
 	try {
@@ -469,23 +496,29 @@ export async function checkOldVerDirs(src: string) {
 		return false;
 	}
 }
+
 export async function categorizeDir(src: string, modifyIni = false) {
 	info("[IMM] Categorizing directory:", src, "Skip restore:", modifyIni);
 	const d3dx_path = join(...tgt.split("\\").slice(0, -1), "d3dx_user.ini");
 	let d3dx = "" as any;
 	try {
 		info("[IMM] Reading d3dx_user.ini...", await exists(d3dx_path));
+		const backupPath = join(...tgt.split("\\").slice(0, -1), `d3dx_user_pre_imm.ini.bak`);
+		if (!(await exists(backupPath))) {
+			await copyFile(d3dx_path, backupPath);
+		}
 		if (modifyIni) d3dx = await readTextFile(d3dx_path);
 	} catch {
 		info("[IMM] d3dx_user.ini not found or could not be read.");
 	}
+
 	try {
 		const categories = [...store.get(CATEGORIES), { _sName: UNCATEGORIZED }].map((cat) => cat._sName);
+
 		const reqCategories: Record<string, Array<{ name: string; isDirectory: boolean }>> = {};
 		const entries = await readDir(src);
-		const ignore = [IGNORE, managedSRC, managedTGT, RESTORE];
-
-		// First pass: categorize items
+		const ignore = [IGNORE, managedSRC, managedTGT, RESTORE, PREFS];
+		let fullDirectoryRenames: string[] = []; // First pass: categorize items
 		for (const item of entries) {
 			if (item.isDirectory && ignore.includes(item.name)) continue;
 			if (item.name === OLD_RESTORE) {
@@ -498,19 +531,23 @@ export async function categorizeDir(src: string, modifyIni = false) {
 				continue;
 			}
 			if (categories.includes(item.name)) {
+				fullDirectoryRenames.push(item.name);
 				continue;
 			}
-			const category =
-				categories.find((cat: string) =>
-					cat
-						.toLowerCase()
-						.split(" ")
-						.some(
-							(catPart: string) =>
-								catPart.includes(item.name.toLowerCase()) || item.name.toLowerCase().includes(catPart)
-						)
-				) || UNCATEGORIZED;
-			if (item.isDirectory && item.name === category) continue;
+			const category = catDB?.search(item.name, { prefix: true, fuzzy: 0.2 })[0]?._sName || UNCATEGORIZED;
+			// categories.find((cat: string) =>
+			// 	cat
+			// 		.toLowerCase()
+			// 		.split(" ")
+			// 		.some(
+			// 			(catPart: string) =>
+			// 				catPart.includes(item.name.toLowerCase()) || item.name.toLowerCase().includes(catPart)
+			// 		)
+			// ) || UNCATEGORIZED;
+			if (item.isDirectory && item.name === category) {
+				fullDirectoryRenames.push(category);
+				continue;
+			}
 
 			if (!reqCategories[category]) {
 				reqCategories[category] = [];
@@ -527,15 +564,28 @@ export async function categorizeDir(src: string, modifyIni = false) {
 		// Move items to categories
 		const renamePromises: Promise<void>[] = [];
 		const changesToD3dx: Record<string, string> = {};
+		async function renameWithTry(key: string, name: string) {
+			try {
+				await rename(join(src, name), join(src, key, name));
+				const oldPath = join(src, name);
+				const newPath = join(src, key, name);
+				info("[IMM] Renamed:", oldPath, "->", newPath);
+				changesToD3dx[oldPath] = join(tgt, key, name);
+			} catch (error) {
+				warn("Error renaming:", key, "\\", name, error);
+			}
+			return;
+		}
+		// console.log("Full directory renames:", fullDirectoryRenames);
+		(await Promise.all(fullDirectoryRenames.map((dir) => readDirRecr(src, dir, 0)))).flat().forEach((entry: any) => {
+			const oldPath = join(src, entry.path);
+			const newPath = join(tgt, entry.path);
+			changesToD3dx[oldPath] = newPath;
+		});
+
 		for (const [key, list] of Object.entries(reqCategories)) {
 			for (const item of list) {
-				const oldPath = join(src, item.name);
-				const newPath = join(src, key, replaceDisabled(item.name));
-				renamePromises.push(
-					rename(oldPath, newPath).then(() => {
-						changesToD3dx[oldPath] = newPath;
-					})
-				);
+				renamePromises.push(renameWithTry(key, item.name));
 			}
 		}
 		await Promise.all(renamePromises);
@@ -543,7 +593,11 @@ export async function categorizeDir(src: string, modifyIni = false) {
 			d3dx = d3dx.split("\n");
 			for (const [oldPath, newPath] of Object.entries(changesToD3dx)) {
 				const op = join("$\\mods", oldPath.replaceAll(tgt, "").replaceAll("/", "\\")).toLowerCase();
-				const np = join("$\\mods\\", managedTGT, newPath.replaceAll(tgt, "").replaceAll("/", "\\")).toLowerCase();
+				const np = join(
+					"$\\mods\\",
+					managedTGT,
+					replaceDisabled(newPath).replaceAll(tgt, "").replaceAll("/", "\\")
+				).toLowerCase();
 				info("[IMM] Updating d3dx_user.ini:", op, "->", np);
 				d3dx = d3dx.map((line: string) => (line.startsWith(op) ? line.replace(op, np) : line));
 			}
@@ -627,10 +681,10 @@ export async function verifyDirStruct() {
 			status.skip = true;
 		}
 		if (status.skip) throw new Error("Migration done, please verify the directories again");
-		const categories: Category[] = [
-			...store.get(CATEGORIES),
-			{ _sName: UNCATEGORIZED, _sIconUrl: "", _idRow: 0, _nItemCount: 0, _nCategoryCount: 0, _sUrl: "" },
-		];
+		// const categories: Category[] = [
+		// 	...store.get(CATEGORIES),
+		// 	{ _sName: UNCATEGORIZED, _sIconUrl: "", _idRow: 0, _nItemCount: 0, _nCategoryCount: 0, _sUrl: "" },
+		// ];
 		const reqCategories: Record<string, DirEntry> = {};
 
 		const srcEntries = await readDir(src);
@@ -662,19 +716,9 @@ export async function verifyDirStruct() {
 		// Batch read directories for items that need it
 		const readPromises: Promise<{ item: any; entries: any[] }>[] = [];
 		for (const item of before) {
+			console.log("Processing item:", item.name, catDB?.search(item.name, { prefix: true, fuzzy: 0.2 }));
 			const category =
-				categories.find(
-					(cat: Category) =>
-						cat._sName === item.name ||
-						(!categories.some((c) => c._sName === item.name) &&
-							cat._sName
-								.toLowerCase()
-								.split(" ")
-								.some(
-									(catPart: string) =>
-										catPart.includes(item.name.toLowerCase()) || item.name.toLowerCase().includes(catPart)
-								))
-				) ||
+				catDB?.search(item.name, { prefix: true, fuzzy: 0.2 })[0] ||
 				(item.name === RESTORE || item.name === OLD_RESTORE
 					? { _sName: RESTORE, _sIconUrl: "" }
 					: { _sName: UNCATEGORIZED, _sIconUrl: "" });
@@ -733,18 +777,7 @@ export async function verifyDirStruct() {
 					const category =
 						item.name === RESTORE
 							? { _sName: RESTORE, _sIconUrl: "" }
-							: categories.find(
-									(cat) =>
-										cat._sName === item.name ||
-										(!categories.some((c) => c._sName === item.name) &&
-											cat._sName
-												.toLowerCase()
-												.split(" ")
-												.some(
-													(catPart: string) =>
-														catPart.includes(item.name.toLowerCase()) || item.name.toLowerCase().includes(catPart)
-												))
-								);
+							: catDB?.search(item.name, { prefix: true, fuzzy: 0.2 })[0] || { _sName: UNCATEGORIZED, _sIconUrl: "" };
 
 					if (category) {
 						modDirReadPromises.push(
@@ -816,6 +849,7 @@ export async function applyChanges(isMigration = false) {
 		info("[IMM] Target exists, creating managed directories...");
 		await mkdir(join(src, managedSRC), { recursive: true });
 		await mkdir(join(tgt, managedTGT), { recursive: true });
+		console.log("[IMM] Managed directories created. Processing source directory...");
 		await categorizeDir(src, true);
 
 		const entries = true ? (await readDir(src)).map((item) => item.name) : Object.keys(map);
@@ -823,7 +857,7 @@ export async function applyChanges(isMigration = false) {
 		info("[IMM] Processing entries:", entries);
 		// Batch process entries
 		for (const key of entries) {
-			if (key === IGNORE || key === managedSRC || key === managedTGT) continue;
+			if (key === IGNORE || key === managedSRC || key === managedTGT || key === PREFS) continue;
 
 			if (key === RESTORE || key === OLD_RESTORE) {
 				try {
@@ -888,7 +922,7 @@ async function readDirRecr(root: string, path: string, maxDepth = 2, depth = 0, 
 		return [];
 	}
 	const filePromises = entries.map(async (entry) => {
-		if ((entry.name == RESTORE || entry.name == IGNORE) && def && depth == 0) return null;
+		if ((entry.name == RESTORE || entry.name == IGNORE || entry.name == PREFS) && def && depth == 0) return null;
 		let children: Mod[] = [];
 		if (entry.isDirectory) children = await readDirRecr(root, join(path, entry.name), maxDepth, depth + 1);
 		return {
@@ -905,17 +939,119 @@ async function readDirRecr(root: string, path: string, maxDepth = 2, depth = 0, 
 	const files = (await Promise.all(filePromises)).filter((file) => file !== null) as Mod[];
 	return files.sort(sortMods);
 }
+export async function remSaveModData() {
+	const modSrc = join(src, managedSRC);
+	const entries = (await readDirRecr(modSrc, "", 1))
+		.map((entry) => entry.children || [])
+		.flat()
+		.filter((child) => child.isDir);
+	const data = store.get(DATA) || {};
+	const promises = entries.map(async (entry) => {
+		const modPath = join(modSrc, entry.path, "mod.json");
+
+		if (data[entry.path]) {
+			const modData = data[entry.path];
+			delete modData.viewedAt;
+			delete modData.updatedAt;
+			await writeTextFile(modPath, JSON.stringify(modData, null, 2));
+		}
+	});
+	await Promise.all(promises);
+}
+export async function remSavePresets() {
+	const presets = store.get(PRESETS) || {};
+	const presetFolder = join(tgt, "Presets");
+	await mkdir(presetFolder, { recursive: true });
+	const promises = presets.map(async (preset) => {
+		const presetPath = join(presetFolder, `${preset.name}.txt`);
+		await writeTextFile(presetPath, preset.data.join("\n"));
+	});
+	await Promise.all(promises);
+}
+export async function remMoveMods(categoryMode = true, enable = 0) {
+	const allEntries = await readDirRecr(join(src, managedSRC), "", 1);
+	const categories = allEntries
+		.filter((entry) => entry.isDir && entry.children && entry.children.length > 0)
+		.map((entry) => entry.name);
+	if (categoryMode) {
+		const categoryPromises = categories.map(async (category) => mkdir(join(tgt, category), { recursive: true }));
+		await Promise.all(categoryPromises);
+	}
+	const entries = allEntries.map((entry) => entry.children || []).flat();
+	const enabled = new Set(enable == 1 ? entries.map((entry) => entry.path) : []) as Set<string>;
+	if (enable == 0) {
+		const existsPromises = entries.map(async (entry) => {
+			const targetPath = join(tgt, managedTGT, entry.path);
+			if (await exists(targetPath)) {
+				enabled.add(entry.path);
+			}
+		});
+		await Promise.all(existsPromises);
+	}
+	const iniChanges: Record<string, string> = {};
+	const movePromises = entries.map(async (entry) => {
+		const srcPath = join(src, managedSRC, entry.path);
+		const tgtPath = join(
+			`${categoryMode ? entry.parent + "\\" : ""}${enabled.has(entry.path) ? "" : "DISABLED "}${entry.name}`
+		);
+		let finalTgt = tgtPath;
+		let counter = 1;
+		while (await exists(finalTgt)) {
+			finalTgt = tgtPath + `_${counter}`;
+			counter++;
+		}
+		await rename(srcPath, join(tgt, finalTgt));
+		if (enabled.has(entry.path)) {
+			iniChanges[join("$\\mods", managedTGT, entry.path).toLowerCase()] = join("$\\mods", finalTgt).toLowerCase();
+		}
+	});
+	await Promise.all(movePromises);
+	// console.log("All entries moved. Updating d3dx_user.ini if needed...", iniChanges);
+	const d3dxPath = join(...tgt.split("\\").slice(0, -1), "d3dx_user.ini");
+	try {
+		if (await exists(d3dxPath)) {
+			let d3dx = await readTextFile(d3dxPath);
+			for (const [oldPath, newPath] of Object.entries(iniChanges)) {
+				d3dx = d3dx.split(oldPath).join(newPath);
+			}
+			await writeTextFile(d3dxPath, d3dx);
+		}
+	} catch (e) {
+		error("Error updating d3dx_user.ini:", e);
+	}
+	try {
+		await remove(join(tgt, managedTGT), { recursive: true });
+	} catch {}
+	const removeSrcPromises = allEntries.map(async (entry) => {
+		try {
+			await remove(join(src, managedSRC, entry.path));
+		} catch {}
+	});
+	await Promise.all(removeSrcPromises);
+	try {
+		await remove(join(src, managedSRC, RESTORE));
+	} catch {}
+	try {
+		await remove(join(src, managedSRC, PREFS));
+	} catch {}
+	try {
+		await remove(join(src, managedSRC));
+	} catch {}
+}
 async function detectHotkeys(
 	entries: Mod[],
 	data: ModDataObj,
 	src: string,
-	depth = 0
-): Promise<[Mod[], any, ModHotKeys[]]> {
+	depth = 0,
+	def = true
+): Promise<[Mod[], any, ModHotKeys[], string, any]> {
+	let namespace = "";
+	let namespaces = {} as Record<string, string>;
 	const entryPromises = entries.map(async (entry) => {
 		let hkData: ModHotKeys[] = [];
 		let hashes = new Set() as any;
 		try {
-			// Apply stored data to entry
+			// // Apply stored data to entry
 			if (data[entry.path]) {
 				for (const key of Object.keys(data[entry.path])) {
 					// @ts-ignore
@@ -938,9 +1074,9 @@ async function detectHotkeys(
 					let tempKey = "";
 					let tempVal = "";
 					let section = "";
-					let vars: Record<string, any> = {};
-					let globalVars: Record<string, any> = {};
-					let fileData: ModHotKeys[] = [];
+					let fileNamespace = "";
+					let globalVars: Record<string, ModHotKeys> = {};
+					let fileData: Record<string, ModHotKeys> = {};
 					for (let line of lines) {
 						let ln = line
 							.trim()
@@ -949,14 +1085,37 @@ async function detectHotkeys(
 						if (ln.startsWith("[") && ln.endsWith("]")) {
 							section = ln.slice(1, -1).toLowerCase();
 						}
-						if (section === "constants" && ln.includes("$") && ln.includes("=")) {
+						if (ln.startsWith("namespace=")) {
+							fileNamespace = ln.split("=")[1]?.trim() || "";
+							namespace = namespace || fileNamespace.toLowerCase();
+							// console.log("Detected namespace:", namespace);
+							continue;
+						}
+						if (section === "constants" && ln.includes("global")) {
+							const afterGlobal = ln.split("global")[1];
+							if (!afterGlobal.includes("$")) continue;
+							const afterDlr = afterGlobal.split("$")[1];
+							if (!afterDlr.includes("=")) continue;
 							try {
 								[tempKey, tempVal] = ln
 									.split("$")[1]
 									.split("=")
 									.map((part) => part.trim());
-								if (!vars.hasOwnProperty(tempKey)) vars[tempKey] = tempVal;
-								if (!globalVars.hasOwnProperty(tempKey)) globalVars[tempKey] = tempVal;
+								if (fileData.hasOwnProperty(tempKey)) {
+									fileData[tempKey].default = tempVal;
+								} else if (!globalVars.hasOwnProperty(tempKey))
+									globalVars[tempKey] = {
+										target: tempKey,
+										file: entry.path.split("\\").slice(2).join("\\").toLowerCase(),
+										namespace: fileNamespace.toLowerCase(),
+										name: tempKey,
+										default: tempVal,
+										pref: null,
+										reset: null,
+										key: "",
+										type: "",
+										values: ["unknown"],
+									};
 							} catch {}
 						}
 						if (ln.startsWith("hash=")) {
@@ -987,25 +1146,30 @@ async function detectHotkeys(
 							[target, values] = line.split("=").map((part) => part.trim());
 							target = target?.slice(1) || "";
 							counter = 0;
-							fileData.push({
-								key,
-								type,
-								target,
-								file: entry.path.split("\\").slice(2).join("\\").toLowerCase(),
-								name: target,
-								values: values.split(",").map((v) => v.trim()) || "",
-								default: "",
-								pref: null,
-								reset: null,
-							});
+							if (!fileData.hasOwnProperty(target))
+								fileData[target] = {
+									...(globalVars[target] || {
+										target,
+										file: entry.path.split("\\").slice(2).join("\\").toLowerCase(),
+										name: target,
+										namespace: fileNamespace.toLowerCase(),
+										default: "",
+										pref: null,
+										reset: null,
+									}),
+									key,
+									type,
+									values:
+										values
+											.split(",")
+											.map((v) => v.trim())
+											.filter((v) => v) || "",
+								};
+							delete globalVars[target];
 						}
 					}
-					hkData.push(
-						...fileData.map((hk) => {
-							hk.default = vars[hk.target] || "";
-							return hk;
-						})
-					);
+
+					hkData.push(...Object.values(fileData), ...Object.values(globalVars));
 				} catch (iniError) {
 					//console.error(`Error parsing .ini file ${entry.name}:`, iniError);
 				}
@@ -1013,17 +1177,43 @@ async function detectHotkeys(
 
 			// Recursively process children
 			if (entry.isDir && entry.children.length > 0) {
-				const [updatedChildren, childHashes, childHK] = await detectHotkeys(entry.children, data, src, depth + 1);
-				hashes = new Set([...Array.from(hashes), ...Array.from(childHashes)]);
-				entry.children = updatedChildren;
-				if (childHK.length > 0 && depth > 0) {
-					hkData = [...hkData, ...childHK];
+				try {
+					if (depth == 1 && def) {
+						const hashFile = await readTextFile(join(src, entry.path, ".imm-collision-checklist"));
+						if (Math.random() < 0.1) throw new Error("Rechecking hashes for " + entry.path);
+						hashes = new Set(
+							hashFile
+								.split("\n")
+								.map((h) => h.trim())
+								.filter((h) => h)
+						);
+					} else {
+						throw new Error("Not depth 1");
+					}
+				} catch {
+					const [updatedChildren, childHashes, childHK, namespace, newNamespaces] = await detectHotkeys(
+						entry.children,
+						data,
+						src,
+						depth + 1,
+						def
+					);
+					hashes = new Set([...Array.from(hashes), ...Array.from(childHashes)]);
+					entry.children = updatedChildren;
+					if (childHK.length > 0 && depth > 0) {
+						hkData = [...hkData, ...childHK];
+					}
+					if (depth == 1 && def) {
+						writeTextFile(join(src, entry.path, ".imm-collision-checklist"), Array.from(hashes).join("\n"));
+						if (namespace) namespaces[entry.path] = namespace;
+					}
+					if (depth < 2) {
+						namespaces = { ...namespaces, ...newNamespaces };
+					}
 				}
 			}
 			if (depth == 1) {
 				entry.keys = hkData;
-			}
-			if (depth == 1) {
 				entry.hashes = Array.from(hashes);
 			}
 		} catch (entryError) {
@@ -1036,7 +1226,61 @@ async function detectHotkeys(
 	const processedEntries = results.map((r) => r.entry);
 	const hotkeyData = depth < 2 ? [] : results.flatMap((r) => r.hkData);
 	const hashes = new Set<string>(results.flatMap((r) => Array.from(r.hashes)));
-	return [processedEntries, hashes, hotkeyData];
+	return [processedEntries, hashes, hotkeyData, namespace, namespaces];
+}
+export async function getModDetails(relPath: string) {
+	const [category, modName] = relPath.split("\\");
+	const modSrc = join(src, managedSRC);
+	console.log("Getting mod details for:", relPath, "at", modSrc);
+	try {
+		const entries = await readDirRecr(modSrc, relPath, 5, 0, false);
+		const new_entries = (
+			await detectHotkeys(
+				[
+					{
+						name: category,
+						isDir: true,
+						parent: "",
+						path: category,
+						keys: [],
+						enabled: false,
+						children: [
+							{
+								name: modName,
+								isDir: true,
+								parent: category,
+								path: relPath,
+								keys: [],
+								enabled: false,
+								children: entries,
+								depth: 1,
+								hashes: [],
+							},
+						],
+						depth: 0,
+						hashes: [],
+					},
+				],
+				{},
+				modSrc,
+				0,
+				false
+			)
+		)[0] as Mod[];
+		const allVars = new_entries[0].children[0].keys || [];
+		const keys = allVars.filter((v) => v.key);
+		const files = {} as Record<string, ModHotKeys[]>;
+		for (const varData of allVars) {
+			if (!files[varData.file]) files[varData.file] = [];
+			files[varData.file].push(varData);
+		}
+		Object.keys(files).forEach((file) => {
+			files[file] = files[file].sort((a, b) => a.target.localeCompare(b.target));
+		});
+		return { keys, files };
+	} catch {
+		return { keys: [], files: {} };
+	}
 }
 export async function refreshModList() {
 	info("[IMM] Refreshing mod list...");
@@ -1045,20 +1289,78 @@ export async function refreshModList() {
 		const data = store.get(DATA);
 		const modSrc = join(src, managedSRC);
 		const modTgt = join(tgt, managedTGT);
-
+		let categories = new Set([...store.get(CATEGORIES), { _sName: UNCATEGORIZED }].map((cat) => cat._sName));
+		while (categories.size < 10) {
+			await new Promise((res) => setTimeout(res, 100));
+			categories = new Set([...store.get(CATEGORIES), { _sName: UNCATEGORIZED }].map((cat) => cat._sName));
+		}
 		await categorizeDir(modSrc);
-
+		// console.log(await readDirRecr(modSrc, "", 3));
 		const ret = await detectHotkeys(await readDirRecr(modSrc, "", 3), data, modSrc);
-		info("Hashes detected:", ret[1]);
-		const entries = ret[0]
-			.map((entry) => entry.children)
-			.flat()
-			.map((entry) => {
-				if (entry.depth == 1) entry.children = [];
-				return entry;
-			})
-			.filter((entry) => entry.depth < 2)
-			.sort(sortMods);
+		const namespaces = ret[4];
+		if (Object.keys(namespaces).length > 0) {
+			store.set(DATA, (prev) => {
+				Object.keys(namespaces).forEach((key) => {
+					if (prev[key]) {
+						prev[key].namespace = namespaces[key];
+					}
+				});
+				return { ...prev };
+			});
+			saveConfigs();
+		}
+		let hasErr = "";
+		const entries = (
+			ret[0]
+				.map((entry) =>
+					categories.has(entry.name)
+						? entry.children
+						: (() => {
+								hasErr = entry.name;
+								return null;
+							})()
+				)
+				.flat()
+				.map((entry) => {
+					if (entry && entry.depth == 1) entry.children = [];
+					if (entry) {
+						const allVars = entry.keys || [];
+						const keys = allVars.filter((v) => v.key);
+						const files = {} as Record<string, ModHotKeys[]>;
+						for (const varData of allVars) {
+							if (!files[varData.file]) files[varData.file] = [];
+							files[varData.file].push(varData);
+						}
+						entry.keys = keys;
+						entry.files = files;
+					}
+					return entry;
+				})
+				.filter((entry) => entry !== null && entry.depth < 2 && entry.name != ".imm-collision-checklist") as Mod[]
+		).sort(sortMods);
+
+		// const entries = (await readDirRecr(modSrc, "", 2))
+		// 	.map((entry) =>
+		// 		categories.has(entry.name)
+		// 			? entry.children.map((entry) => {
+		// 					if (data[entry.path]) {
+		// 						for (const key of Object.keys(data[entry.path])) {
+		// 							// @ts-ignore
+		// 							entry[key as "source" | "updatedAt" | "note"] =
+		// 								data[entry.path as keyof typeof data][key as "source" | "updatedAt" | "note"] ||
+		// 								(key === "updatedAt" ? 0 : "");
+		// 						}
+		// 					}
+		// 					return entry;
+		// 				})
+		// 			: (() =>{hasErr = entry.name; return null;})()
+		// 	)
+		// 	.flat()
+		// 	.filter((entry) => entry!==null)
+		// 	.sort(sortMods);
+		if (hasErr) {
+			addToast({ type: "error", message: textData._Toasts.UnableCat.replace("<item/>", hasErr) });
+		}
 
 		// Batch process entries - separate rename operations from exists checks
 		const renameOperations: Promise<void>[] = [];
@@ -1097,7 +1399,10 @@ export async function refreshModList() {
 			entry.enabled = enabled;
 		}
 		//info(recentlyDownloaded);
-		info("[IMM] Mod list refreshed:", entries);
+		info(
+			"[IMM] Mod list refreshed:",
+			entries.map((e) => ({ path: e.path, enabled: e.enabled }))
+		);
 		info("[IMM] Mod list refresh took", Date.now() - before, "ms");
 		return entries
 			.filter((entry) => recentlyDownloaded.includes(entry.path))
@@ -1122,9 +1427,13 @@ export async function createModDownloadDir(cat: string, dir: string) {
 export async function validateModDownload(path: string, skip = false) {
 	try {
 		const entries = await readDir(path);
-		const previewCount = entries.filter((entry) => entry.name.startsWith("preview.") && !entry.isDirectory).length;
-
-		if (entries.length - previewCount === 1) {
+		// const previewCount = entries.filter((entry) => entry.name.startsWith("preview.") && !entry.isDirectory).length;
+		const txtCount = entries.filter((entry) => entry.name.endsWith(".txt") && !entry.isDirectory).length;
+		const imgCount = entries.filter((entry: any) => {
+			const ext = entry.name.split(".").slice(-1)[0].toLowerCase();
+			return exts.includes(ext) && !entry.isDirectory;
+		}).length;
+		if (entries.length - txtCount - imgCount === 1) {
 			let hasIni = false;
 			const dirs: string[] = [];
 
@@ -1215,7 +1524,8 @@ export async function changeModName(path: string, newPath: string, add = false) 
 			return prev;
 		});
 		saveConfigs();
-		await updateD3DXIniFromData(newPath);
+		console.log("Mod name changed from", path, "to", newPath);
+		await updatePrefsIniFromData(newPath, path);
 		if (enabled) await toggleMod(newPath, true);
 		return newPath;
 	} catch (err) {
@@ -1265,55 +1575,144 @@ export async function deleteMod(path: string) {
 		throw error;
 	}
 }
-async function updateDataFromD3DXIni(modPath: string) {
+async function updateDataFromD3DXIni(modPaths: string | string[]) {
+	let mods = [] as string[];
+	if (Array.isArray(modPaths)) {
+		mods = modPaths;
+	} else {
+		mods = [modPaths];
+	}
 	const root = join(...tgt.split("\\").slice(0, -1), "d3dx_user.ini");
+	const lines = [] as string[];
+	if (await exists(root)) {
+		lines.push(
+			...(await readTextFile(root))
+				.toLowerCase()
+				.split("\n")
+				.map((line: string) => line.trim())
+				.filter((line: string) => line && !line.startsWith(";") && line.includes("="))
+		);
+	}
+	// const rawData = {
+	//	lines: [] as string[],
+	// 	vars: {} as Record<string, string>,
+	// };
+	// if (await exists(root)) {
+	// 	(await readTextFile(root))
+	// 		.toLowerCase()
+	// 		.split("\n")
+	// 		.forEach((line: string) => {
+	// 			line = line.trim();
+	// 			if (line && !line.startsWith(";") && line.includes("=")) {
+	// 				const [key, value] = line.split("=").map((part: string) => part.trim());
+	// 				rawData.vars[key] = value;
+	// 			} else {
+	// 				rawData.lines.push(line);
+	// 			}
+	// 		});
+	// }
+
+	// console.log("Updating data from ini for mod:", modPath, "Reading from:", root);
 	const data = store.get(DATA);
-	const modData: Record<string, Record<string, any>> = data[modPath]?.vars || {};
-	if (!(await exists(root))) return;
-	const lines = (await readTextFile(root)).split("\n");
-	// const data: Record<string, Record<string, any>> =
-	for (let line of lines) {
-		if (!line.includes(modPath.toLowerCase() + "\\")) continue;
-		const split = line.trim().split("=");
-		const [KeyVar, Val] = [split[0].split(modPath.toLowerCase() + "\\")[1].split("\\"), split[1]];
-		const Var = (KeyVar.pop() || "").toLowerCase().trim();
-		const Key = KeyVar.join("\\");
-		if (Key && Var && Val) {
-			if (!modData.hasOwnProperty(Key)) modData[Key] = {};
-			if (!modData[Key].hasOwnProperty(Var)) modData[Key][Var] = {};
-			modData[Key.trim()][Var.toLowerCase().trim()].state = Val.trim();
+	let modified = false;
+	for (let modPath of mods) {
+		data[modPath] = data[modPath] || {};
+		data[modPath].vars = data[modPath].vars || {};
+		try {
+			remove(join(tgt, managedTGT, PREFS, modPath + ".ini"));
+		} catch {}
+		const path = `mods\\${managedTGT}\\${modPath}\\`.toLowerCase();
+		const namespace = data[modPath]?.namespace ? data[modPath].namespace.toLowerCase() + "\\" : "";
+		// console.log("Updating data from ini for mod:", modPath, "Using modKey:");
+		for (let line of lines) {
+			const mode = line.includes(path) ? 0 : namespace && line.includes(namespace) ? 1 : -1;
+			if (mode == -1) continue;
+			const lineKey = mode ? namespace : path;
+			// const split = line.split("=");
+			const [KeyVar, Val] = line
+				.split("=")
+				.map((part: string, i: number) => (i ? part.trim() : part.trim().split(lineKey)[1])); //[split[0].split(lineKey)[1], split[1]];
+			const Var = (mode ? KeyVar : KeyVar.split("\\").pop() || "").toLowerCase().trim();
+			const Key = mode ? "namespace" : KeyVar.split("\\").slice(0, -1).join("\\").toLowerCase().trim();
+			if (Key && Var && Val) {
+				if (!data[modPath].vars.hasOwnProperty(Key)) data[modPath].vars[Key] = {};
+				if (!data[modPath].vars[Key].hasOwnProperty(Var)) data[modPath].vars[Key][Var] = {};
+				data[modPath].vars[Key.trim()][Var.toLowerCase().trim()].state = Val.trim();
+				modified = true;
+			}
 		}
 	}
-	if (modData && Object.keys(modData).length > 0) {
+	if (modified) {
 		store.set(DATA, (prev) => {
-			prev[modPath] = {
-				...prev[modPath],
-				vars: modData,
-			};
-			return { ...prev };
+			prev = { ...prev };
+			mods.forEach((modPath) => {
+				if (Object.keys(data[modPath].vars || {}).length > 0) {
+					prev[modPath]={
+						...prev[modPath],
+						vars:data[modPath].vars
+					} as any;
+				}
+			});
+			return prev;
 		});
 		saveConfigs();
 	}
+
+	// if (modData && Object.keys(modData).length > 0) {
+	// 	store.set(DATA, (prev) => {
+	// 		prev[modPath] = {
+	// 			...prev[modPath],
+	// 			vars: modData,
+	// 		};
+	// 		return { ...prev };
+	// 	});
+	// 	saveConfigs();
+	// }
 	info("[IMM] Updating data from ini for mod data:", data);
 }
-async function updateD3DXIniFromData(modPath: string) {
+async function updatePrefsIniFromData(modPath: string, oldPath = "") {
 	const data = store.get(DATA)[modPath];
+	// console.log("Updating ini from data for mod:", modPath, "with oldPath:", oldPath, "Data:", data);
 	if (!data || !data.vars) return;
-	const root = join(...tgt.split("\\").slice(0, -1), "d3dx_user.ini");
-	if (!(await exists(root))) return;
-	const lines = (await readTextFile(root)).split("\n").filter((l) => !l.includes(modPath.toLowerCase() + "\\"));
-	for (let key of Object.keys(data.vars)) {
-		for (let Var of Object.keys(data.vars[key])) {
-			const x = data.vars[key][Var.toLowerCase()];
-			const line = `$\\mods\\${managedTGT}\\${modPath.toLowerCase()}\\${key}\\${Var} = ${x.pref ?? x.state}`;
-			lines.push(line);
-			info(`[IMM] Updating Mod: ${modPath} | File: ${key} | Added Line: ${line}`);
+	const [category, name] = modPath.split("\\");
+	const dir = join(tgt, managedTGT, PREFS, category);
+	await mkdir(dir, { recursive: true });
+	const root = join(dir, `${name}.ini`);
+	if (oldPath) {
+		const oldRoot = join(tgt, managedTGT, PREFS, oldPath);
+		if (!(await exists(oldRoot))) return;
+		await writeTextFile(root, (await readTextFile(oldRoot)).split(oldPath.toLowerCase()).join(modPath.toLowerCase()));
+		remove(oldRoot);
+		// lines = lines.split(oldPath.toLowerCase()).join(modPath.toLowerCase());
+		// await writeTextFile(root, lines);
+	} else {
+		const lines = {} as Record<string, string>;
+		for (let key of Object.keys(data.vars)) {
+			for (let Var of Object.keys(data.vars[key])) {
+				const x = data.vars[key][Var];
+				const line =
+					`$\\${key == "namespace" ? data.namespace : `mods\\${managedTGT}\\${modPath}\\${key}`}\\${Var}`.toLowerCase();
+				lines[line] = x.pref ?? x.state;
+				info(`[IMM] Updating Mod: ${modPath} | File: ${key} | Added Line: ${line}`);
+			}
 		}
+		await writeTextFile(
+			root,
+			[
+				";-- set by imm --",
+				"[constants]",
+				...Object.entries(lines).map(([key, value]) => `${key}=${value}`),
+				";-- end imm --",
+			].join("\n")
+		);
 	}
-	await writeTextFile(root, lines.join("\n"));
 }
 export async function updateIniVars(relPath: string, keyVals: Record<string, string>) {
 	const path = join(modRoot, relPath);
+	console.log("Updating ini vars for:", relPath, "at", path, "with keyVals:", keyVals);
+	if (!(await exists(path + ".bak"))) {
+		await copyFile(path, path + ".bak");
+	}
 	const file = await readTextFile(path);
 	const lines = file.split("\n");
 	try {
@@ -1345,8 +1744,8 @@ export async function updateIniVars(relPath: string, keyVals: Record<string, str
 export function openFile(relPath: string) {
 	openPath(join(modRoot, relPath));
 }
-export async function toggleMod(path: string, enabled: boolean) {
-	info("[IMM] Toggling mod:", path, "Enabled:", enabled);
+export async function toggleMod(path: string, enabled: boolean): Promise<boolean> {
+	info("[IMM] Togglingx mod:", path, "Enabled:", enabled);
 	try {
 		const modSrc = join(src, managedSRC, path);
 		const modTgt = join(tgt, managedTGT, path);
@@ -1354,7 +1753,7 @@ export async function toggleMod(path: string, enabled: boolean) {
 		if (enabled) {
 			const [srcExists, tgtExists] = await Promise.all([exists(modSrc), exists(modTgt)]);
 			if (srcExists && !tgtExists) {
-				await updateD3DXIniFromData(path);
+				await updatePrefsIniFromData(path);
 				await mkdir(join(tgt, managedTGT, ...path.split("\\").slice(0, -1)), { recursive: true });
 				try {
 					await invoke("create_symlink", {
@@ -1375,11 +1774,12 @@ export async function toggleMod(path: string, enabled: boolean) {
 				return false;
 			}
 		}
-		return true;
 	} catch (err) {
 		error("[IMM] Error toggling mod:", err);
 		return false;
 	}
+	console.log(`Success Mod ${enabled ? "enabled" : "disabled"}:`, path);
+	return true;
 }
 export async function savePreviewImage(path: string) {
 	try {
@@ -1387,13 +1787,13 @@ export async function savePreviewImage(path: string) {
 		const file = await open({
 			multiple: false,
 			directory: false,
-			filters: [{ name: "Image", extensions: ["png", "jpg", "jpeg", "webp", "gif"] }],
+			filters: [{ name: "Image", extensions: exts }],
 		});
 
 		if (!file) return;
 
 		// Remove existing preview images in parallel
-		const exts = ["png", "jpg", "jpeg", "webp", "gif"];
+
 		const removePromises = exts.map((ext) =>
 			remove(path + "\\" + "preview." + ext).catch(() => {
 				// Ignore errors if file doesn't exist
@@ -1489,10 +1889,10 @@ export async function installFromArchives(archives: string[]) {
 			success++;
 		} catch (err) {
 			error("[IMM] Error extracting archive:", err);
-			addToast({ type: "error", message: `Error installing ${name}` });
+			addToast({ type: "error", message: textData._Toasts.ErrInstall.replace("<item/>", name) });
 		}
 	}
 	const extractPromises = archives.map((archive) => extractArchive(archive));
 	await Promise.all(extractPromises);
-	addToast({ type: "success", message: `${success}/${archives.length} mod(s) installed successfully.` });
+	addToast({ type: "success", message: textData._Toasts.SuccessInstall.replace("<success/>", success.toString()).replace("<total/>", archives.length.toString()) });
 }

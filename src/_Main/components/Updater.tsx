@@ -29,7 +29,7 @@ function Updater() {
 			interval = setInterval(() => {
 				if (ref3.current)
 					ref3.current.innerHTML = textData._Main._components._Updater.In.replace(
-						"<time>",
+						"<s/>",
 						Math.ceil(counter / 10).toString()
 					);
 				counter--;
@@ -247,21 +247,17 @@ function Updater() {
 											case "Started":
 												contentLength = event.data.contentLength;
 												setUpdate((prev) => (prev ? { ...prev, status: "downloading" } : prev));
-												//info(`started downloading ${event.data.contentLength} bytes`);
 												break;
 											case "Progress":
 												downloaded += event.data.chunkLength;
 												prev = Math.floor((downloaded / contentLength) * 100);
 												if (ref1.current) ref1.current.style.width = prev + "%";
 												if (ref2.current) ref2.current.innerHTML = `${prev}%`;
-
-												//info(`downloaded ${downloaded} from ${contentLength}`);
 												break;
 											case "Finished":
 												counter = 3000;
 												setUpdate((prev) => (prev ? { ...prev, status: "ready" } : prev));
 												setUpdaterOpen(true);
-												//info("download finished");
 												break;
 										}
 									});

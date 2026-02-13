@@ -4,10 +4,10 @@ import { DialogContent } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { toggleMod } from "@/utils/filesys";
 
-import { CONFLICT_INDEX, CONFLICTS, MOD_LIST } from "@/utils/vars";
+import { CONFLICT_INDEX, CONFLICTS, MOD_LIST, TEXT_DATA } from "@/utils/vars";
 
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { AnimatePresence , motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
 function ModConflicts() {
@@ -15,9 +15,10 @@ function ModConflicts() {
 	const { conflicts } = useAtomValue(CONFLICTS);
 	const [curIndex, setCurIndex] = useAtom(CONFLICT_INDEX);
 	const [curSelected, setCurSelected] = useState(-1);
-	const [nextSide, setNextSide] = useState<"left"|"right">("right");
+	const [nextSide, setNextSide] = useState<"left" | "right">("right");
+	const textData = useAtomValue(TEXT_DATA);
 	useEffect(() => {
-		setCurSelected(-1);	
+		setCurSelected(-1);
 	}, [curIndex]);
 	return (
 		<DialogContent>
@@ -26,27 +27,28 @@ function ModConflicts() {
 				<TooltipContent className="opacity-0"></TooltipContent>
 			</Tooltip>
 
-			<div className="min-h-fit text-accent mt-6 text-3xl">Resolve Mod Conflicts</div>
+			<div className="min-h-fit text-accent mt-6 text-3xl">{textData._Main._components._ModConflicts.ResModConf}</div>
 			<AnimatePresence mode="wait">
 				{conflicts.length > 0 ? (
-					<motion.div className="max-h-100 relative min-h-100 flex flex-col w-full h-full p-2 pt-6 overflow-x-hidden overflow-y-scroll text-gray-300 rounded-sm"
-					key = {conflicts[curIndex][0]}
-					initial={{
-						opacity:0,
-						left:nextSide === "right" ? "10%" : "-10%"
-					}}
-					animate={{
-						opacity:1,
-						left:0
-					}}
-					exit={{
-						opacity:0,
-						left:nextSide === "right" ? "-10%" : "10%"
-					}}
-					transition={{
-						duration:0.3,
-						ease:"easeInOut"
-					}}
+					<motion.div
+						className="max-h-100 relative min-h-100 flex flex-col w-full h-full p-2 pt-6 overflow-x-hidden overflow-y-scroll text-gray-300 rounded-sm"
+						key={conflicts[curIndex][0]}
+						initial={{
+							opacity: 0,
+							left: nextSide === "right" ? "10%" : "-10%",
+						}}
+						animate={{
+							opacity: 1,
+							left: 0,
+						}}
+						exit={{
+							opacity: 0,
+							left: nextSide === "right" ? "-10%" : "10%",
+						}}
+						transition={{
+							duration: 0.3,
+							ease: "easeInOut",
+						}}
 					>
 						<div className="min-h-fit flex flex-row flex-wrap gap-10 justify-center w-full py-4">
 							{conflicts[curIndex]?.map((path, idx) => (
@@ -79,25 +81,27 @@ function ModConflicts() {
 						</div>
 					</motion.div>
 				) : (
-					<motion.div className="text-center w-full h-100 justify-center items-center flex text-gray-400" key="no-conflict" 
-					initial={{
-						opacity:0,
-						scale:1.1
-					}}
-					animate={{
-						opacity:1,
-						scale:1
-					}}
-					exit={{
-						opacity:0,
-						scale:0.9
-					}}
-					transition={{
-						duration:0.3,
-						ease:"easeInOut"
-					}}
+					<motion.div
+						className="text-center w-full h-100 justify-center items-center flex text-gray-400"
+						key="no-conflict"
+						initial={{
+							opacity: 0,
+							scale: 1.1,
+						}}
+						animate={{
+							opacity: 1,
+							scale: 1,
+						}}
+						exit={{
+							opacity: 0,
+							scale: 0.9,
+						}}
+						transition={{
+							duration: 0.3,
+							ease: "easeInOut",
+						}}
 					>
-						No Conflicts Detected
+						{textData._Main._components._ModConflicts.NoConf}
 					</motion.div>
 				)}
 			</AnimatePresence>
@@ -121,7 +125,7 @@ function ModConflicts() {
 					}}
 					className="min-w-24"
 				>
-					Prev
+					{textData.Prev}
 				</Button>
 				<div className="w-full text-xs text-muted-foreground flex flex-col items-center justify-center">
 					<div className="flex flex-row text-accent gap-1 mb-2 text-sm items-center justify-center px-10 w-full">
@@ -140,8 +144,8 @@ function ModConflicts() {
 							></div>
 						))}
 					</div>
-					<div>To resolve conflicts, choose one to keep enabled.</div>
-					<div>Remaining will be disabled. You may ignore conflicts if you wish.</div>
+					<div>{textData._Main._components._ModConflicts.Msg1}</div>
+					<div>{textData._Main._components._ModConflicts.Msg2}</div>
 				</div>
 				<Button
 					disabled={curIndex >= conflicts.length - 1 && curSelected === -1}
@@ -165,13 +169,13 @@ function ModConflicts() {
 							let newIndex = curIndex + 1;
 							setNextSide("right");
 							setTimeout(() => {
-							setCurIndex(newIndex);
+								setCurIndex(newIndex);
 							}, 50);
 						}
 					}}
 					className="min-w-24"
 				>
-					{curSelected >= 0 ? "Resolve" : "Skip"}
+					{curSelected >= 0 ? textData._Main._components._ModConflicts.Resolve : textData.Skip}
 				</Button>
 			</div>
 		</DialogContent>

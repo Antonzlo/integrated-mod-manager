@@ -9,7 +9,7 @@ import { Separator } from "@radix-ui/react-separator";
 import { useAtom, useAtomValue } from "jotai";
 import { CheckIcon, CircleIcon, EditIcon, PlusIcon, SaveIcon, XIcon } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 let focusedPreset = -1;
 function LeftLocal() {
 	const leftSidebarOpen = useAtomValue(LEFT_SIDEBAR_OPEN);
@@ -61,17 +61,65 @@ function LeftLocal() {
 
 		saveConfigs();
 	};
-	const filterFunction = useCallback(
-		(val: string, arr: any[]) => {
-			let newFilter = new Set(filter);
-			arr.forEach((f:any) => {
-				newFilter.delete(f.name);
-			});
-			newFilter.add(val);
-			setFilter(newFilter);
+	const filterParams = [
+		{
+			key: "src",
+			sub: "",
+			label: textData._RightSideBar._RightLocal.Source,
 		},
-		[filter, setFilter]
+		{
+			key: "upd",
+			sub: "",
+			label: textData.Update,
+		},
+		{
+			key: "tag",
+			sub: "fav",
+			label: textData._Tags.Favorite,
+		},
+		{
+			key: "tag",
+			sub: "nsfw",
+			label: textData._Tags.NSFW,
+		},
+	];
+	const filterFunction = useCallback(
+		(key: string, val: string, subkey = "", reset = false) => {
+			setFilter((prev: any) => {
+				if (reset) {
+					filterParams.forEach((item) => {
+						if (item.sub) {
+							prev[item.key][item.sub] = "any";
+						} else {
+							prev[item.key] = "any";
+						}
+					});
+				}
+				if (subkey && (reset || prev[key][subkey] !== val)) {
+					prev[key][subkey] = val;
+				} else if (!subkey && (reset || prev[key] !== val)) {
+					prev[key] = val;
+				} else {
+					return prev;
+				}
+				return { ...prev };
+			});
+		},
+		[filter, setFilter, filterParams]
 	);
+	const activeFilters = useMemo(() => {
+		return Object.keys(filter).some((key) => {
+			if (key === "st") return false;
+			if (typeof filter[key as keyof typeof filter] === "string") {
+				if (filter[key as keyof typeof filter] !== "any") return true;
+			} else {
+				if (Object.values(filter[key as keyof typeof filter] as Record<string, string>).some((v) => v !== "any"))
+					return true;
+			}
+			return false;
+		});
+	}, [filter]);
+
 	return (
 		<>
 			<SidebarGroup className=" p-0">
@@ -80,17 +128,16 @@ function LeftLocal() {
 					<Dialog>
 						<DialogTrigger>
 							<div
-								onClickCapture={async () => {
-									// setCurrentPreset(-1);
-									// applyPreset([]);
-									// setModList(await refreshModList());
+								className="min-w-fit px-1 rounded hover:text-accent cursor-pointerx active:scale-95 text-accent/50 text-xs duration-200 select-none"
+								style={{
+									background: activeFilters ? "var(--accent)" : "",
+									color: activeFilters ? "var(--background)" : "",
 								}}
-								className="min-w-fit hover:text-accent cursor-pointerx active:scale-95 text-accent/50 text-xs duration-200 select-none"
 							>
 								{textData._LeftSideBar._LeftLocal._Filter.Advanced}
 							</div>
 						</DialogTrigger>
-						<DialogContent className="max-h-110 min-h-110">
+						<DialogContent className="max-h-120 min-h-120">
 							<div className="min-h-fit text-accent my-6 text-3xl">
 								{textData._LeftSideBar._LeftLocal._Filter.AdvFilOpt}
 								<Tooltip>
@@ -100,52 +147,50 @@ function LeftLocal() {
 							</div>
 
 							<div className="flex flex-row mb-8 gap-4 items-center">
-								{
-									[
-										{
-											icon: <CircleIcon className="aspect-square h-4 text-accent" />,
-											text: textData._LeftSideBar._LeftLocal._Filter.All,
-										},
-										{
-											icon: <CheckIcon className="aspect-square h-4 text-success" />,
-											text: textData._LeftSideBar._LeftLocal._Filter.Yes,
-										},
-										{
-											icon: <XIcon className="aspect-square h-4 text-destructive" />,
-											text: textData._LeftSideBar._LeftLocal._Filter.No,
-										},
-									].map((fil) => (
-										<div key={fil.text} className="flex flex-row gap-1 items-center">
-											{fil.icon}
-											<label>{fil.text}</label>
-										</div>
-									))
-								}
+								{[
+									{
+										icon: <CircleIcon className="aspect-square h-4 text-accent" />,
+										text: textData._LeftSideBar._LeftLocal._Filter.All,
+									},
+									{
+										icon: <CheckIcon className="aspect-square h-4 text-success" />,
+										text: textData._LeftSideBar._LeftLocal._Filter.Yes,
+									},
+									{
+										icon: <XIcon className="aspect-square h-4 text-destructive" />,
+										text: textData._LeftSideBar._LeftLocal._Filter.No,
+									},
+								].map((fil) => (
+									<div key={fil.text} className="flex flex-row gap-1 items-center">
+										{fil.icon}
+										<label>{fil.text}</label>
+									</div>
+								))}
 							</div>
 							<div className="flex flex-row gap-4 items-center">
 								<label className="min-w-24 text-center">{textData._LeftSideBar._LeftLocal._Filter.Enabled}</label>
 								<div className="flex flex-row gap-1 w-full">
 									{[
 										{
-											name: "st:all",
+											val: "all",
 											icon: <CircleIcon className="aspect-square h-4" />,
 										},
 										{
-											name: "st:enabled",
+											val: "enabled",
 											icon: <CheckIcon className="aspect-square h-4" />,
 										},
 										{
-											name: "st:disabled",
+											val: "disabled",
 											icon: <XIcon className="aspect-square h-4" />,
 										},
-									].map((fil, _, arr) => (
+									].map((fil) => (
 										<Button
-											key={"filter " + fil.name}
+											key={"filter " + fil.val}
 											onClick={() => {
-												filterFunction(fil.name, arr);
+												filterFunction("st", fil.val);
 											}}
 											className={
-												"w-25 data-zzz:text-xs " + (filter.has(fil.name) ? "bg-accent bgaccent text-background " : "")
+												"w-25 data-zzz:text-xs " + (filter.st == fil.val ? "bg-accent bgaccent text-background " : "")
 											}
 											style={{ width: leftSidebarOpen ? "" : "2.5rem" }}
 										>
@@ -154,102 +199,47 @@ function LeftLocal() {
 									))}
 								</div>
 							</div>
-							<div className="flex flex-row gap-4 items-center">
-								<label className="min-w-24 text-center">{textData._RightSideBar._RightLocal.Source}</label>
-								<div className="flex flex-row gap-1 w-full">
-									{[
-										{
-											name: "src:any",
-											icon: <CircleIcon className="aspect-square h-4" />,
-										},
-										{
-											name: "src:has",
-											icon: <CheckIcon className="aspect-square h-4" />,
-										},
-										{
-											name: "src:none",
-											icon: <XIcon className="aspect-square h-4" />,
-										},
-									].map((fil, _, arr) => (
-										<Button
-											key={"filter " + fil.name}
-											onClick={() => {
-												filterFunction(fil.name, arr);
-											}}
-											className={
-												"w-25 data-zzz:text-xs " + (filter.has(fil.name) ? "bg-accent bgaccent text-background " : "")
-											}
-											style={{ width: leftSidebarOpen ? "" : "2.5rem" }}
-										>
-											{fil.icon}
-										</Button>
-									))}
-								</div>
-							</div>
-							<div className="flex flex-row gap-4 items-center">
-								<label className="min-w-24 text-center">{textData._Tags.Favorite}</label>
-								<div className="flex flex-row gap-1 w-full">
-									{[
-										{
-											name: "tag:fav=any",
-											icon: <CircleIcon className="aspect-square h-4" />,
-										},
-										{
-											name: "tag:fav=has",
-											icon: <CheckIcon className="aspect-square h-4" />,
-										},
-										{
-											name: "tag:fav=lacks",
-											icon: <XIcon className="aspect-square h-4" />,
-										},
-									].map((fil, _, arr) => (
-										<Button
-											key={"filter " + fil.name}
-											onClick={() => {
-												filterFunction(fil.name, arr);
-											}}
-											className={
-												"w-25 data-zzz:text-xs " + (filter.has(fil.name) ? "bg-accent bgaccent text-background " : "")
-											}
-											style={{ width: leftSidebarOpen ? "" : "2.5rem" }}
-										>
-											{fil.icon}
-										</Button>
-									))}
-								</div>
-							</div>
-							<div className="flex flex-row gap-4 items-center">
-								<label className="min-w-24 text-center">{textData._Tags.NSFW}</label>
-								<div className="flex flex-row gap-1 w-full">
-									{[
-										{
-											name: "tag:nsfw=any",
-											icon: <CircleIcon className="aspect-square h-4" />,
-										},
-										{
-											name: "tag:nsfw=has",
-											icon: <CheckIcon className="aspect-square h-4" />,
-										},
-										{
-											name: "tag:nsfw=lacks",
-											icon: <XIcon className="aspect-square h-4" />,
-										},
-									].map((fil, _, arr) => (
-										<Button
-											key={"filter " + fil.name}
-											onClick={() => {
-												filterFunction(fil.name, arr);
-											}}
-											className={
-												"w-25 data-zzz:text-xs " + (filter.has(fil.name) ? "bg-accent bgaccent text-background " : "")
-											}
-											style={{ width: leftSidebarOpen ? "" : "2.5rem" }}
-										>
-											{fil.icon}
-										</Button>
-									))}
-								</div>
-							</div>
+							{filterParams.map((item) => {
+								return (
+									<div className="flex flex-row gap-4 items-center">
+										<label className="min-w-24 text-center">{item.label}</label>
+										<div className="flex flex-row gap-1 w-full">
+											{[
+												{
+													val: "any",
+													icon: <CircleIcon className="aspect-square h-4" />,
+												},
+												{
+													val: "has",
+													icon: <CheckIcon className="aspect-square h-4" />,
+												},
+												{
+													val: "lacks",
+													icon: <XIcon className="aspect-square h-4" />,
+												},
+											].map((fil) => (
+												<Button
+													key={"filter " + fil.val}
+													onClick={() => {
+														filterFunction(item.key, fil.val, item.sub);
+													}}
+													className={
+														"w-25 data-zzz:text-xs " +
+														((item.sub
+															? (filter[item.key as keyof typeof filter] as Record<string, string>)[item.sub]
+															: filter[item.key as keyof typeof filter]) === fil.val
+															? "bg-accent bgaccent text-background "
+															: "")
+													}
+													style={{ width: leftSidebarOpen ? "" : "2.5rem" }}
+												>
+													{fil.icon}
+												</Button>
+											))}
+										</div>
+									</div>
+								);
+							})}
 						</DialogContent>
 					</Dialog>
 				</SidebarGroupLabel>
@@ -261,27 +251,30 @@ function LeftLocal() {
 				>
 					{[
 						{
-							name: "st:all",
+							name: "all",
 							icon: <CircleIcon className="aspect-square h-4" />,
 							text: textData.All,
 						},
 						{
-							name: "st:enabled",
+							name: "enabled",
 							icon: <CheckIcon className="aspect-square h-4" />,
 							text: textData._LeftSideBar._LeftLocal._Filter.Enabled,
 						},
 						{
-							name: "st:disabled",
+							name: "disabled",
 							icon: <XIcon className="aspect-square h-4" />,
 							text: textData._LeftSideBar._LeftLocal._Filter.Disabled,
 						},
-					].map((fil, _, arr) => (
+					].map((fil) => (
 						<Button
 							key={"filter " + fil.name}
 							onClick={() => {
-								filterFunction(fil.name, arr);
+								filterFunction("st", fil.name, "", true);
 							}}
-							className={"w-25 data-zzz:text-xs " + (filter.has(fil.name) ? "bg-accent bgaccent text-background " : "")}
+							className={
+								"w-25 data-zzz:text-xs " +
+								(filter.st == fil.name && !activeFilters ? "bg-accent bgaccent text-background " : "")
+							}
 							style={{ width: leftSidebarOpen ? "" : "2.5rem" }}
 						>
 							{fil.icon}
@@ -291,7 +284,7 @@ function LeftLocal() {
 				</SidebarContent>
 			</SidebarGroup>
 			<Separator
-				className="w-full ease-linear duration-200 min-h-[1px] my-2.5 bg-border"
+				className="w-full ease-linear duration-200 min-h-px my-2.5 bg-border"
 				style={{
 					opacity: leftSidebarOpen ? "0" : "",
 					height: leftSidebarOpen ? "0px" : "",
@@ -348,9 +341,11 @@ function LeftLocal() {
 											<div
 												className={
 													"w-full text-accent button-like duration-200 rounded-lg px-2  items-center flex gap-1 " +
-													(currentPreset == index ? " bg-accent bgaccent text-background" : "zzz-fg-text bg-input/10 hover:bg-input/20")
+													(currentPreset == index
+														? " bg-accent bgaccent text-background"
+														: "zzz-fg-text bg-input/10 hover:bg-input/20")
 												}
-												onClick={(e)=>e.currentTarget.parentElement?.click()}
+												onClick={(e) => e.currentTarget.parentElement?.click()}
 												style={{
 													transitionProperty: "background-color, border-radius",
 												}}

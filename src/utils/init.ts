@@ -12,6 +12,7 @@ import {
 	ONLINE_DATA,
 	PRESETS,
 	resetAtoms,
+	SAVED_LANG,
 	SETTINGS,
 	SOURCE,
 	store,
@@ -47,6 +48,7 @@ import { resetPageCounts } from "@/_Main/MainOnline";
 import { info } from "@/lib/logger";
 // import { v2_0_4_migration } from "./filesys";
 const paths = {
+	"": "",
 	exe: "",
 	WW: "",
 	ZZ: "",
@@ -54,6 +56,14 @@ const paths = {
 	SR: "",
 	XX: "",
 	EF: "",
+};
+const isInPrePostLaunch = {
+	WW: false,
+	ZZ: false,
+	GI: false,
+	SR: false,
+	EF: false,
+	"": false,
 };
 
 export function getPaths() {
@@ -66,16 +76,59 @@ let appData = "";
 let prevGame = "";
 let categories: Category[] = [];
 let isInitialized = false;
+async function getXXMIConfig(path = store.get(XXMI_DIR)) {
+	try {
+		return JSON.parse(await readTextFile(join(path, "XXMI Launcher Config.json")));
+	} catch (e) {
+		info("[IMM] Failed to read XXMI Launcher config:", e);
+		return null;
+	}
+}
+export async function setPrePostLaunch(game: Games, value: boolean) {
+	const data = await getXXMIConfig();
+	if (!data) return;
+	if (!data.Importers[game + "MI"]) return;
+	const cmd = `start imm://mode/${game.toLowerCase()}`;
+	if (value) {
+		if (!data.Importers[game + "MI"].Importer.run_pre_launch.includes(cmd))
+			data.Importers[game + "MI"].Importer.run_pre_launch = [
+				cmd,
+				...data.Importers[game + "MI"].Importer.run_pre_launch.split(" && "),
+			]
+				.filter((x: string) => x.trim() !== "")
+				.join(" && ");
+	} else {
+		if (data.Importers[game + "MI"].Importer.run_pre_launch.includes(cmd)) {
+			data.Importers[game + "MI"].Importer.run_pre_launch = data.Importers[game + "MI"].Importer.run_pre_launch
+				.split(" && ")
+				.filter((x: string) => x.trim() !== cmd)
+				.join(" && ");
+		}
+		if (data.Importers[game + "MI"].Importer.run_post_load.includes(cmd)) {
+			data.Importers[game + "MI"].Importer.run_post_load = data.Importers[game + "MI"].Importer.run_post_load
+				.split(" && ")
+				.filter((x: string) => x.trim() !== cmd)
+				.join(" && ");
+		}
+	}
+	await writeTextFile(join(store.get(XXMI_DIR), "XXMI Launcher Config.json"), JSON.stringify(data, null, 2));
+}
 export async function readXXMIConfig(path: string) {
-	if (path && path != "" && (await exists(join(path, "XXMI Launcher Config.json")))) {
-		const data = JSON.parse(await readTextFile(join(path, "XXMI Launcher Config.json")));
+	if (path && path != "") {
+		const data = await getXXMIConfig(path);
+		if (!data) return;
 		info("[IMM] Loaded XXMI Launcher config:", data);
 		GAMES.forEach((game) => {
 			if (data.Importers[game + "MI"]) {
-				const xxPath = data.Importers[game + "MI"].Importer.importer_folder || "";
+				const xxPath = (data.Importers[game + "MI"].Importer.importer_folder || "").replace(/\\/g, "/");
 				info(`[IMM] Resolved ${game}MI path:`, xxPath);
-				paths[game as "WW" | "ZZ" | "GI" | "SR" | "EF"] =
-					xxPath == `${game}MI/` ? join(path, `${game}MI`) : join(...xxPath.split("/"));
+				paths[game as Games] = xxPath == `${game}MI/` ? join(path, `${game}MI`) : join(...xxPath.split("/"));
+				const startCmd = `start imm://mode/${game.toLowerCase()}`;
+				if (
+					data.Importers[game + "MI"].Importer?.run_pre_launch.includes(startCmd) ||
+					data.Importers[game + "MI"].Importer?.run_post_load.includes(startCmd)
+				)
+					isInPrePostLaunch[game as Games] = true;
 			}
 		});
 		paths.XX = path;
@@ -174,8 +227,8 @@ export async function updateConfig(oconfig = null as any) {
 	store.set(FIRST_LOAD, true);
 	return config;
 }
-export async function verifyGameDir(game: any) {
-	const XXPath = paths[game as "WW" | "ZZ" | "GI" | "SR" | "EF"];
+export async function verifyGameDir(game: Games) {
+	const XXPath = paths[game];
 	const dirs = {
 		targetDir: "",
 		sourceDir: "",
@@ -196,7 +249,7 @@ export async function verifyGameDir(game: any) {
 	}
 	return dirs;
 }
-export async function initGame(game: Games) {
+export async function initGame(game: Games, status=true) {
 	info(`[IMM] Initializing game: ${game}...`);
 	store.set(ONLINE_DATA, {});
 	if (await exists(`config${game}.json`)) {
@@ -209,6 +262,8 @@ export async function initGame(game: Games) {
 		}
 	});
 	configXX.game = game;
+	if (configXX.settings.launch === 2 && !isInPrePostLaunch[game]) configXX.settings.launch = 0;
+	else if (isInPrePostLaunch[game]) configXX.settings.launch = 2;
 	switchGameTheme(game);
 
 	if (!configXX.custom) {
@@ -218,19 +273,19 @@ export async function initGame(game: Games) {
 	}
 	writeTextFile(`config${game}.json`, JSON.stringify(configXX, null, 2));
 	apiClient.setGame(game as any);
-	await setCategories(game);
+	await setCategories(game,status);
 	invoke("set_window_icon", { game });
 	// Validate source and target dirs
 	if (configXX.sourceDir && !(await exists(join(configXX.sourceDir)))) configXX.sourceDir = "";
 	if (configXX.targetDir && !(await exists(configXX.targetDir))) configXX.targetDir = "";
-	store.set(MAIN_FUNC_STATUS, "Validating source and target directories");
+	status && store.set(MAIN_FUNC_STATUS, "Validating source and target directories");
 	info("[IMM] Validating source and target directories...", configXX.sourceDir, configXX.targetDir);
 	store.set(SOURCE, configXX.sourceDir || "");
 	store.set(TARGET, configXX.targetDir || "");
 	store.set(XXMI_MODE, configXX.custom || 0);
 	store.set(
 		SETTINGS,
-		(prev) => ({ global: { ...prev.global, game }, game: { ...prev.game, ...configXX.settings } } as Settings)
+		(prev) => ({ global: { ...prev.global, game }, game: { ...prev.game, ...configXX.settings } }) as Settings
 	);
 	store.set(TYPES, apiClient.generic.types);
 	store.set(DATA, configXX.data || {});
@@ -243,33 +298,42 @@ store.sub(SETTINGS, async () => {
 		config = { ...config, ...settings.global };
 		configXX = { ...configXX, settings: { ...configXX.settings, ...settings.game } };
 	}
-	const compare = {
-		src: [settings.global.game, settings.global.lang],
-		to: [GAME, LANG],
-		names: ["game", "lang"],
-	};
-	for (let i = 0; i < compare.src.length; i++) {
-		if (compare.src[i] !== store.get(compare.to[i])) {
-			if (compare.names[i] === "lang" && compare.src[i])
-				store.set(TEXT_DATA, TEXT[compare.src[i] as "en"] || TEXT["en"]);
-			// else if (compare.names[i] === "game" && compare.src[i]) await initGame(compare.src[i]);
-			store.set(compare.to[i] as any, compare.src[i]);
-		}
+	if (settings.global.game != store.get(GAME)) store.set(GAME, settings.global.game);
+	// const compare = {
+	// 	src: [settings.global.game, settings.global.lang],
+	// 	to: [GAME, LANG],
+	// 	names: ["game", "lang"],
+	// };
+	// for (let i = 0; i < compare.src.length; i++) {
+	// 	if (compare.src[i] !== store.get(compare.to[i])) {
+	// 		if (compare.names[i] === "lang" && compare.src[i])
+	// 			store.set(TEXT_DATA, TEXT[compare.src[i] as "en"] || TEXT["en"]);
+	// 		// else if (compare.names[i] === "game" && compare.src[i]) await initGame(compare.src[i]);
+	// 		store.set(compare.to[i] as any, compare.src[i]);
+	// 	}
+	// }
+});
+store.sub(SAVED_LANG, () => {
+	const lang = store.get(SAVED_LANG);
+	store.set(TEXT_DATA, TEXT[store.get(SAVED_LANG) as "en"] || TEXT["en"]);
+	if (lang) {
+		
+		store.set(LANG, lang);
 	}
 });
-export async function setCategories(game = prevGame) {
+export async function setCategories(game = prevGame, status=true) {
 	info("[IMM] Setting categories...");
 
 	// await new Promise((resolve) => setTimeout(resolve, 10000));
 	if (!game) return;
 	prevGame = game;
 	try {
-		store.set(MAIN_FUNC_STATUS, "Fetching game categories from Gamebanana");
+		status && store.set(MAIN_FUNC_STATUS, "Fetching game categories from Gamebanana");
 		categories = await apiClient.categories();
 		//info("Fetched categories:", categories);
 		if (!categories || categories.length == 0) throw "No categories found, please verify the directories again";
 	} catch (e) {
-		store.set(MAIN_FUNC_STATUS, "Unable to reach Gamebanana");
+		status && store.set(MAIN_FUNC_STATUS, "Unable to reach Gamebanana");
 		info("[IMM] Failed to fetch categories from API, using local config if available.", e);
 		categories =
 			configXX.categories && configXX.categories.length > 0
@@ -310,7 +374,7 @@ export async function launchGame() {
 }
 async function initHelpers() {
 	info("[IMM] Initializing helpers...");
-	if (configXX.settings.launch && ["WW", "ZZ", "GI", "SR"].includes(config.game)) {
+	if (configXX.settings.launch == 1 && GAMES.includes(config.game)) {
 		launchGame();
 	}
 	setHotreload(configXX.settings.hotReload as 0 | 1 | 2, config.game, configXX.targetDir);
@@ -410,7 +474,7 @@ let cwd = "";
 export function getCwd() {
 	return cwd;
 }
-export async function main() {
+export async function main(useGame = "" as Games) {
 	store.set(MAIN_FUNC_STATUS, "Initializing App");
 	isInitialized = false;
 	info("[IMM] Initializing application...");
@@ -433,6 +497,11 @@ export async function main() {
 	}
 	info("[IMM] Loaded config:", config);
 	store.set(MAIN_FUNC_STATUS, "Config loaded");
+	const savedLang = store.get(SAVED_LANG);
+	if (!savedLang && config.lang) {
+		store.set(SAVED_LANG, config.lang);
+	}
+	config.lang = store.get(SAVED_LANG) || config.lang;
 	if (!config.XXMI && !config.game && !config.lang) {
 		store.set(MAIN_FUNC_STATUS, "First time setup detected, checking for WWMM");
 		info("[IMM] First time setup detected, checking for WWMM...");
@@ -447,6 +516,12 @@ export async function main() {
 		config.XXMI = XXMI;
 	}
 	paths.XX = config.XXMI;
+	config.game = useGame || config.game;
+	if (sessionStorage.getItem("imm-deep-link-game")) {
+		config.game = sessionStorage.getItem("imm-deep-link-game") as Games;
+		config.game = GAMES.includes(config.game) ? config.game : "";
+		sessionStorage.removeItem("imm-deep-link-game");
+	}
 	if (config.game) apiClient.setGame(config.game);
 	if (config.version < "2.1.0") {
 		config = await updateConfig();
@@ -458,8 +533,7 @@ export async function main() {
 	info("[IMM] Initializing game...");
 	if (config.game) configXX = await initGame(config.game);
 	info("[IMM] Setting window type...");
-	if (config.winType > 1)
-	setWindowType(config.winType);
+	if (config.winType > 1) setWindowType(config.winType);
 	const bg = document.querySelector("body");
 	if (bg)
 		bg.style.backgroundColor = "color-mix(in oklab, var(--background) " + config.bgOpacity * 100 + "%, transparent)";
