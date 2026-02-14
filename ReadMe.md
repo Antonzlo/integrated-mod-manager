@@ -90,6 +90,10 @@ Integrated Mod Manager is a desktop application that streamlines mod management 
 - **Changelog Access**: View the changelog for each new version
 - **Update Directly**: Download and install the latest version from within the app
 ---
+- [Gamebanana Page](https://gamebanana.com/mods/593490)
+- [IMM Discord Server](https://discord.gg/QGkKzNapXZ)
+- [Release page for dev/wip/test builds](https://github.com/jpbhatt21/integrated-mod-manager-testing/releases/latest)
+- This application uses 7-Zip (7z.exe), which is open source software licensed under the GNU LGPL. Copyright (C) 1999-2024 Igor Pavlov. 7-Zip is available at [www.7-zip.org](www.7-zip.org)
 ---
 
 ## Development Dependencies
@@ -158,3 +162,4 @@ Build the application for production (needs administrator permissions).
 ```sh
 npx tauri build
 ```
+
