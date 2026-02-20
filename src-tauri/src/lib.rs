@@ -5,7 +5,7 @@ use serde::Serialize;
 use tauri_plugin_shell::ShellExt;
 use std::collections::HashMap;
 use std::fs::{remove_file, File};
-use std::io::{self, BufWriter, Write};
+use std::io::{BufWriter, Write};
 use std::path::Path;
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -15,8 +15,6 @@ use tauri::Emitter;
 use tauri::Manager;
 use tauri_plugin_deep_link::DeepLinkExt;
 use tauri_plugin_tracing::{tracing, Builder as Tracing, LevelFilter, MaxFileSize, Rotation, RotationStrategy};
-use unrar::Archive as RarArchive;
-use zip::ZipArchive;
 
 mod hotreload;
 mod image_server;

@@ -1,5 +1,15 @@
 import defConfig from "../default.json";
-import { copyFile, exists, mkdir, readDir, readTextFile, remove, rename, writeTextFile } from "@tauri-apps/plugin-fs";
+import {
+	copyFile,
+	exists,
+	mkdir,
+	readDir,
+	readTextFile,
+	remove,
+	rename,
+	writeFile,
+	writeTextFile,
+} from "@tauri-apps/plugin-fs";
 import {
 	exts,
 	IGNORE,
@@ -1700,7 +1710,7 @@ export async function updateIniVars(relPath: string, keyVals: Record<string, str
 export function openFile(relPath: string) {
 	openPath(join(modRoot, relPath));
 }
-export async function toggleMod(path: string, enabled: boolean, forced=false): Promise<boolean> {
+export async function toggleMod(path: string, enabled: boolean, forced = false): Promise<boolean> {
 	info("[IMM] Togglingx mod:", path, "Enabled:", enabled);
 	try {
 		const modSrc = join(src, managedSRC, path);
@@ -1708,10 +1718,9 @@ export async function toggleMod(path: string, enabled: boolean, forced=false): P
 
 		if (enabled) {
 			const [srcExists, tgtExists] = await Promise.all([exists(modSrc), exists(modTgt)]);
-			if (srcExists && !tgtExists || forced) {
+			if ((srcExists && !tgtExists) || forced) {
 				await updatePrefsIniFromData(path);
-				if(forced)
-					return true;
+				if (forced) return true;
 				await mkdir(join(tgt, managedTGT, ...path.split("\\").slice(0, -1)), { recursive: true });
 				try {
 					await invoke("create_symlink", {
@@ -1738,6 +1747,35 @@ export async function toggleMod(path: string, enabled: boolean, forced=false): P
 	}
 	console.log(`Success Mod ${enabled ? "enabled" : "disabled"}:`, path);
 	return true;
+}
+export async function savePreviewImageFromData(relPath: string, type: string, data: any) {
+	const path = join(src, managedSRC, relPath);
+	const previewPath = join(path, "preview." + type);
+	console.log("Saving preview image for:", path, "at", previewPath);
+	const removePromises = exts.map((ext) =>
+		remove(path + "\\" + "preview." + ext).catch(() => {
+			// Ignore errors if file doesn't exist
+		})
+	);
+	await Promise.all(removePromises);
+	await writeFile(previewPath, data);
+	store.set(LAST_UPDATED, Date.now());
+	store.set(DATA, (prev) => {
+		if (!prev[relPath]) return prev;
+		delete prev[relPath].crop;
+		return { ...prev };
+	});
+	store.set(MOD_LIST, (prev) => {
+		return prev.map((mod) => {
+			if (mod.path === relPath) {
+				delete mod.crop;
+			}
+			return mod;
+		});
+	});
+	saveConfigs();
+
+	addToast({ type: "success", message: textData._Toasts.ImgSaved });
 }
 export async function savePreviewImage(path: string) {
 	try {
@@ -1767,7 +1805,7 @@ export async function savePreviewImage(path: string) {
 	} catch (err) {
 		//console.error("Error saving preview image:", error);
 		addToast({ type: "error", message: textData._Toasts.ErrOcc });
-		return false
+		return false;
 		throw error;
 	}
 	return true;

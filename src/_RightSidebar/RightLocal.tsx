@@ -44,7 +44,6 @@ import {
 	installFromArchives,
 	refreshModList,
 	saveConfigs,
-	savePreviewImage,
 	selectPath,
 } from "@/utils/filesys";
 import { Label } from "@/components/ui/label";
@@ -423,6 +422,7 @@ function RightLocal() {
 						></img>
 						<img
 							id="preview"
+							
 							className="w-82 h-48 -mb-48 backdrop-blur-md bg-background/50 object-contain peer"
 							onError={(e) => {
 								handleImageError(e);
@@ -438,12 +438,12 @@ function RightLocal() {
 							src={`${getImageUrl(item?.path || "")}?${lastUpdated}`}
 						></img>
 						{item?.path && (
-							<div className="w-82 h-48 flex items-center justify-center text-xs text-accent backdrop-blur-sm bg-background/20 opacity-0 pointer-events-none peer-hover:opacity-100 hover:opacity-100 duration-300">
+							<div key={lastUpdated} className="w-82 h-48 flex items-center justify-center text-xs text-accent backdrop-blur-sm bg-background/20 opacity-0 pointer-events-none peer-hover:opacity-100 hover:opacity-100 duration-300">
 								<Button
 									className="pointer-events-auto"
 									onClick={async (e) => {
 										const current = e.currentTarget;
-										const parent = current.parentElement as HTMLDivElement;
+										// const parent = current.parentElement as HTMLDivElement;
 										if (current.innerText == "Set Preview Image") {
 											setDialogType("preview-blank");
 											// const success = await savePreviewImage(item.path);

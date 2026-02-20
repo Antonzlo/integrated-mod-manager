@@ -97,7 +97,7 @@ function RightOnline({ open }: { open: boolean }) {
 	const selected = useAtomValue(ONLINE_SELECTED);
 	const setRightSlideOverOpen = useSetAtom(RIGHT_SLIDEOVER_OPEN);
 	const [modList, setModList] = useAtom(MOD_LIST);
-	const [data,setData] = useAtom(DATA);
+	const [data, setData] = useAtom(DATA);
 	const [onlineData, setOnlineData] = useAtom(ONLINE_DATA);
 	const [aboutOpen, setAboutOpen] = useState(false);
 	const [updateOpen, setUpdateOpen] = useState(false);
@@ -145,11 +145,14 @@ function RightOnline({ open }: { open: boolean }) {
 					downloadList = [...downloadList, ...prev.queue.map((item: any) => ({ ...item, status: "pending" }))];
 				if (prev?.completed)
 					downloadList = [...downloadList, ...prev.completed.map((item: any) => ({ ...item, status: "completed" }))];
-				while (downloadList.find((x) => x.name == dlitem.name && x.fname == dlitem.fname) || modList.find((m) => m.name == dlitem.name && data[m.name]?.source !== dlitem.source)) {
+				while (
+					downloadList.find((x) => x.name == dlitem.name && x.fname == dlitem.fname) ||
+					modList.find((m) => m.name == dlitem.name && data[m.name]?.source !== dlitem.source)
+				) {
 					dlitem.name = `${item._sName} (${count})`;
 					count++;
 				}
-				
+
 				return {
 					downloading: prev?.downloading || null,
 					completed: prev?.completed || [],
@@ -434,9 +437,14 @@ function RightOnline({ open }: { open: boolean }) {
 									/>
 									{comment.children?.length > 0 && recursiveComments(comment.children, depth + 1)}
 									{comment._nReplyCount > 0 && !comment.children && (
-										<Button variant="outline" size="sm" className="self-start" onClick={async (e) => {
-											viewReplies(e, comment);
-										}}>
+										<Button
+											variant="outline"
+											size="sm"
+											className="self-start"
+											onClick={async (e) => {
+												viewReplies(e, comment);
+											}}
+										>
 											{textData._RightSideBar._RightOnline.ViewReps}
 										</Button>
 									)}
@@ -754,38 +762,42 @@ function RightOnline({ open }: { open: boolean }) {
 															/>
 														</Button>
 													</CollapsibleTrigger>
-													<CollapsibleContent className="border-accent flex flex-col w-full gap-4 px-2 pt-2 mt-2">
+													<CollapsibleContent className="border-accent flex flex-col w-full gap-4  pt-2 mt-2">
 														{item._aUpdates &&
 															item._aUpdates.length > 0 &&
-															item._aUpdates.map((itm: any) => (
+															item._aUpdates.map((itm: any, index: number) => (
 																<>
-																	<div className="text-accent flex items-center justify-between pb-4 border-b">
-																		{itm._sName}
-																		<label className="flex flex-col text-xs text-gray-300">
-																			{" "}
-																			<label>{itm._sVersion}</label>{" "}
-																			<label className=" text-cyan-200">
-																				{getTimeDifference(now, itm._sDate || 0)}
+																	{index > 0 && <hr className="border-accent/50"/>}
+
+																	<div className="flex rounded flex-col gap-2 bg-input/10 p-2">
+																		<div className="text-accent flex items-center justify-between pb-4 border-b">
+																			{itm._sName}
+																			<label className="flex flex-col text-xs text-gray-300">
+																				{" "}
+																				<label>{itm._sVersion}</label>{" "}
+																				<label className=" text-cyan-200">
+																					{getTimeDifference(now, itm._sDate || 0)}
+																				</label>
 																			</label>
-																		</label>
+																		</div>
+																		<div className=" flex flex-col gap-2">
+																			{itm._aChangeLog &&
+																				itm._aChangeLog.map((changeItem: any, index: number) => (
+																					<div key={index} className="flex items-center gap-2">
+																						<div className="min-w-2 min-h-2 self-start mt-1.75 bg-accent bgaccent   rounded-full" />
+																						<label className=" text-cyan-50 font-sans text-sm">
+																							{changeItem.text}- [{changeItem.cat}]
+																						</label>
+																					</div>
+																				))}
+																		</div>
+																		{itm._sText && (
+																			<div
+																				className="w-full font-sans"
+																				dangerouslySetInnerHTML={{ __html: itm._sText }}
+																			/>
+																		)}
 																	</div>
-																	<div className=" flex flex-col gap-2">
-																		{itm._aChangeLog &&
-																			itm._aChangeLog.map((changeItem: any, index: number) => (
-																				<div key={index} className="flex items-center gap-2">
-																					<div className="min-w-2 min-h-2 self-start mt-1.75 bg-accent bgaccent   rounded-full" />
-																					<label className=" text-cyan-50 font-sans text-sm">
-																						{changeItem.text}- [{changeItem.cat}]
-																					</label>
-																				</div>
-																			))}
-																	</div>
-																	{itm._sText && (
-																		<div
-																			className="w-full font-sans"
-																			dangerouslySetInnerHTML={{ __html: itm._sText }}
-																		/>
-																	)}
 																</>
 															))}
 													</CollapsibleContent>
@@ -854,7 +866,7 @@ function RightOnline({ open }: { open: boolean }) {
 												{item._sText && (
 													<Button
 														className={
-															"w flex justify-between bg-accent bgaccent text-background " +
+															"w flex justify-between bg-accent text-background " +
 															(lastSelected == "about"
 																? "hover:brightness-125"
 																: "bg-input/50 text-accent hover:text-accent hover:bg-input")
@@ -880,7 +892,7 @@ function RightOnline({ open }: { open: boolean }) {
 												{item._eUpdate && (
 													<Button
 														className={
-															"w flex justify-between bg-accent bgaccent text-background " +
+															"w flex justify-between bg-accent text-background " +
 															(lastSelected == "update"
 																? "hover:brightness-125"
 																: "bg-input/50 text-accent hover:text-accent hover:bg-input")
@@ -906,7 +918,7 @@ function RightOnline({ open }: { open: boolean }) {
 												{
 													<Button
 														className={
-															"w flex justify-between bg-accent bgaccent text-background " +
+															"w flex justify-between bg-accent text-background " +
 															(lastSelected == "comments"
 																? "hover:brightness-125"
 																: "bg-input/50 text-accent hover:text-accent hover:bg-input")

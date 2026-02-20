@@ -1,3 +1,4 @@
+import { addToast } from "@/_Toaster/ToastProvider";
 import { Button } from "@/components/ui/button";
 import { DialogContent } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -22,9 +23,9 @@ function ModPreviewCrop({ item, setDialogType }: { item: any, setDialogType: (ty
 	useEffect(() => {
 		console.log(setDialogType)
 		setMouseDown(false);
-		setOffset({ x: (item.crop?.x || 0) * 1.5, y: (item.crop?.y || 0) * 1.5 });
-		setScale(item.crop?.scale || 1);
-		setAspect(item.crop?.vertical ? 0.99 : 1);
+		setOffset({ x: (item?.crop?.x || 0) * 1.5, y: (item?.crop?.y || 0) * 1.5 });
+		setScale(item?.crop?.scale || 1);
+		setAspect(item?.crop?.vertical ? 0.99 : 1);
 	}, [item]);
 	function newMouseEvent(e: React.MouseEvent<HTMLDivElement, MouseEvent>, scale: number) {
 		if (disabled) return;
@@ -99,6 +100,7 @@ function ModPreviewCrop({ item, setDialogType }: { item: any, setDialogType: (ty
 						}}
 						id="prevImg"
 						className="w-full relative h-full brightness-50 object-cover object-center"
+						draggable={false}
 						src={previewUrl}
 						onError={(e) => {
 							handleImageError(e);
@@ -115,6 +117,7 @@ function ModPreviewCrop({ item, setDialogType }: { item: any, setDialogType: (ty
 						setScale(1);
 						setOffset({ x: 0, y: 0 });
 					}}
+					disabled={disabled || (scale == 1 && offset.x == 0 && offset.y == 0)}
 				>
 					<Undo2Icon /> Reset Changes
 				</Button>
@@ -145,8 +148,15 @@ function ModPreviewCrop({ item, setDialogType }: { item: any, setDialogType: (ty
 							return { ...prev };
 						});
 						saveConfigs();
-						setLastUpdated(Date.now() * 2);
+						setLastUpdated(Date.now());
+						addToast({
+							message: "Image updated successfully.",
+							type: "success",
+						});
+						const curDialog = document.getElementById("radix-_r_q_")
+						if (curDialog) (curDialog.lastElementChild as HTMLButtonElement)?.click()
 					}}
+					disabled={disabled || ((scale == item?.crop?.scale || (!item?.crop?.scale && scale==1)) && (offset.x == item?.crop?.x*1.5 || (!item?.crop?.x && !offset.x)) && (offset.y == item?.crop?.y*1.5 || (!item?.crop?.y && !offset.y)))}
 				>
 					<SaveIcon />
 					Apply Changes
