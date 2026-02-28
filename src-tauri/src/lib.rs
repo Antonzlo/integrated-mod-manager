@@ -677,7 +677,7 @@ pub fn run() {
         .plugin(
             Builder::default()
                 // sets the flags to only track and restore size
-                .with_state_flags(StateFlags::SIZE)
+                .with_state_flags(StateFlags::all())
                 .build(),
         )
         .plugin(tauri_plugin_single_instance::init(|_app, argv, _cwd| {
@@ -691,7 +691,6 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_deep_link::init())
-        .plugin(tauri_plugin_window_state::Builder::default().build())
         .setup(|app| {
             let app_handle = app.handle().clone();
             #[cfg(desktop)]
