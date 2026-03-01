@@ -14,7 +14,12 @@ import {
 } from "./types";
 import { info } from "@/lib/logger";
 
-export const IMAGE_SERVER = "http://127.0.0.1:1469/preview";
+let IMAGE_SERVER = "http://127.0.0.1:1469/preview"; // Fallback URL
+
+export const getImageServer = () => IMAGE_SERVER;
+export const setImageServer = (url: string) => {
+	IMAGE_SERVER = url;
+};
 export const OLD_RESTORE = "DISABLED_RESTORE";
 export const RESTORE = "RESTORE";
 export const IGNORE = "IGNORE";

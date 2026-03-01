@@ -185,9 +185,18 @@ export async function setWindowType(type: number) {
 		// window.setFullscreen(true);
 	}
 }
-invoke<string>("get_image_server_url").then((url) => {
-	setImageServer(url + "/preview");
-});
+
+// Fetch image server URL from Tauri backend and set it
+invoke<string>("get_image_server_url")
+	.then((url) => {
+		if (url) {
+			setImageServer(url + "/preview");
+		}
+	})
+	.catch((e) => {
+		error("Failed to get image server URL:", e);
+	});
+
 export async function updateConfig(oconfig = null as any) {
 	if (!oconfig) oconfig = JSON.parse(await readTextFile("config.json"));
 	info("[IMM] Updating config from:", oconfig);

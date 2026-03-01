@@ -22,7 +22,9 @@ mod logger_utils;
 
 const PROGRESS_UPDATE_THRESHOLD: u64 = 1024;
 const BUFFER_SIZE: usize = 8192;
-const IMAGE_SERVER_PORT: u16 = 1469;
+const IMAGE_SERVER_PORT: u16 = 1469; // to be removed after testing, replaced with dynamic port allocation
+
+static IMAGE_SERVER_URL: Lazy<Mutex<String>> = Lazy::new(|| Mutex::new(String::new()));
 
 #[derive(Serialize, Clone)]
 struct DownloadProgress {
@@ -561,7 +563,7 @@ fn exit_app() {
 
 #[tauri::command]
 fn get_image_server_url() -> String {
-    format!("http://127.0.0.1:{}", IMAGE_SERVER_PORT)
+    IMAGE_SERVER_URL.lock().unwrap().clone()
 }
 
 #[tauri::command]
@@ -696,7 +698,8 @@ pub fn run() {
             #[cfg(desktop)]
             app.deep_link().register_all()?;
             tauri::async_runtime::spawn(async move {
-                if let Err(e) = image_server::start_image_server(IMAGE_SERVER_PORT).await {
+                let port = portpicker::pick_unused_port().expect("failed to find unused port");
+                if let Err(e) = image_server::start_image_server(port).await {
                     tracing::error!("Failed to start image server: {}", e);
 
                     if let Err(emit_err) = app_handle.emit(
@@ -706,16 +709,12 @@ pub fn run() {
                         tracing::error!("Failed to emit image server error: {}", emit_err);
                     }
                 } else {
+                    let url = format!("http://127.0.0.1:{}", port);
+                    *IMAGE_SERVER_URL.lock().unwrap() = url.clone();
                     tracing::info!(
                         "Image server started successfully on port {}",
-                        IMAGE_SERVER_PORT
+                        port
                     );
-
-                    if let Err(emit_err) =
-                        app_handle.emit("image-server-ready", get_image_server_url())
-                    {
-                        tracing::error!("Failed to emit image server ready event: {}", emit_err);
-                    }
                 }
             });
             #[cfg(target_os = "windows")]

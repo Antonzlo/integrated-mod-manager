@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { IMAGE_SERVER, managedSRC } from "./consts";
+import { getImageServer, managedSRC } from "./consts";
 import {
 	DATA,
 	FILE_TO_DL,
@@ -26,7 +26,7 @@ import { getConfig } from "./filesys";
 import { save } from "@tauri-apps/plugin-dialog";
 
 export { join };
-let IMAGE_SERVER_URL = IMAGE_SERVER;
+let IMAGE_SERVER_URL = getImageServer();
 export function setImageServer(url: string) {
 	IMAGE_SERVER_URL = url;
 }
