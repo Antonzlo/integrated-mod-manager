@@ -28,11 +28,9 @@ tauri-plugin-http = "2"
 # Optimized reqwest with minimal features for smaller binary size
 reqwest = { version = "0.13.1", features = ["stream"], default-features = false }
 # Use tokio with only required features instead of "full"
-tokio = { version = "1.45.1", features = ["rt-multi-thread", "fs", "io-util", "macros"] }
-zip = "8.3.1"
+tauri-plugin-shell = "2.0.0"
 futures-util = "0.3.31"
-rar-stream = { version = "5", features = ["async"] }
-sevenz-rust2 = "0.20.1"
+tokio = { version = "1.45.1", features = ["rt-multi-thread", "fs", "io-util", "macros"] }
 # HTTP server dependencies
 warp = { version = "0.4.2", features = ["test"] }
 mime_guess = "2.0.4"

@@ -138,6 +138,40 @@
         }
       ]
     },
-    "http:default"
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "cmd": "$RESOURCES/ext/7z.exe",
+          "args": [
+            "x",
+            {
+              "validator": ".*"
+            },
+            {
+              "validator": "-o.*"
+            },
+            "-y"
+          ],
+          "name": "ext/7z.exe"
+        },
+        {
+          "cmd": "$RESOURCES/ext/7zz",
+          "args": [
+            "x",
+            {
+              "validator": ".*"
+            },
+            {
+              "validator": "-o.*"
+            },
+            "-y"
+          ],
+          "name": "ext/7zz"
+        }
+      ]
+    },
+    "http:default",
+    "shell:default"
   ]
 }
