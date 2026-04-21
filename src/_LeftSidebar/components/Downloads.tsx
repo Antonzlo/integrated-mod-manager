@@ -197,8 +197,8 @@ function Downloads() {
 				//info(data[key].source, item.source);
 				if (data[key].source == item.source) {
 					count++;
-					name = key.split("\\")[1];
-					category = key.split("\\")[0];
+					name = key.split(/[/\\]/).pop() || key;
+					category = key.split(/[/\\]/)[0];
 				}
 			}
 			if (count == 1 && !item.addon) {
@@ -271,7 +271,7 @@ function Downloads() {
 			<DialogTrigger asChild>
 				{
 					<Button
-						className="text-ellipsis min-h-12 max-h-12 min-w -80 flex flex-col items-center w-full px-0 overflow-hidden"
+						className="text-ellipsis min-h-12 max-h-12 shrink-0 min-w -80 flex flex-col items-center w-full px-0 overflow-hidden"
 						style={{ width: leftSidebarOpen ? "" : "3rem" }}
 					>
 						{leftSidebarOpen ? (
@@ -389,7 +389,7 @@ function Downloads() {
 													className="focus:border-0 border-border/0 max-w-142 text-ellipsis w-full h-8 overflow-hidden text-white rounded-none cursor-default pointer-events-none"
 													style={{ backgroundColor: "#fff0" }}
 												>
-													{item.name.replaceAll("DISABLED_", "")}
+													{item.name.split(/[/\\]/).slice(-1)[0].replaceAll("DISABLED_", "")}
 												</Label>
 												<div className="flex gap-1 text-xs text-gray-400 capitalize">
 													{`${item.status + (item.status === "extracting" ? ` ${item.fname}` : "")}`}

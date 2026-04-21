@@ -57,7 +57,7 @@ function LeftOnline() {
 	return (
 		<>
 			<div
-				className=" thin flex flex-col w-full p-0 overflow-y-scroll"
+				className=" thin flex shrink-0 flex-col w-full p-0 overflow-hidden"
 				style={{
 					maxHeight: leftSidebarOpen ? "" : "calc(100vh - 29.66rem)",
 					minHeight: leftSidebarOpen ? "fit-content" : "",
@@ -121,7 +121,7 @@ function LeftOnline() {
 				}}
 			/>
 			<SidebarGroup
-				className="flex flex-col h-full pr-1 overflow-hidden"
+				className="flex flex-col flex-1 min-h-0 pr-1 overflow-hidden"
 				style={{
 					height: leftSidebarOpen ? "" : "9rem",
 				}}
@@ -174,7 +174,7 @@ function LeftOnline() {
 													<UploadIcon className="min-h-4 max-h-4 min-w-4 " />,
 												][item.modStatus - 1] || <FolderCheckIcon className="min-h-4 max-h-4 min-w-4" />}
 												<Label className="min-w-69 w-69 pointer-events-none">
-													{item.name.split("\\").slice(-1)[0]}
+													{item.name.split(/[/\\]/).slice(-1)[0]}
 												</Label>
 											</div>
 										) : (

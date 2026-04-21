@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { IMAGE_SERVER, managedSRC } from "./consts";
 import {
 	DATA,
@@ -15,9 +15,10 @@ import {
 	SOURCE,
 	store,
 } from "./vars";
+
 import { useAtom, useAtomValue } from "jotai";
 import { apiClient } from "./api";
-import { join } from "./hotreload";
+import { join, iniPath, getModData } from "./hotreload";
 import { addToast } from "@/_Toaster/ToastProvider";
 import TEXT from "@/textData.json";
 import { error, info } from "@/lib/logger";
@@ -25,7 +26,7 @@ import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { getConfig } from "./filesys";
 import { save } from "@tauri-apps/plugin-dialog";
 
-export { join };
+export { join, iniPath };
 let IMAGE_SERVER_URL = IMAGE_SERVER;
 export function setImageServer(url: string) {
 	IMAGE_SERVER_URL = url;
@@ -286,8 +287,8 @@ export function useInstalledItemsManager() {
 	const [installedItems, setInstalledItems] = useAtom(INSTALLED_ITEMS);
 	const localData = useAtomValue(DATA);
 	const modList = useAtomValue(MOD_LIST);
-	const validPaths = new Set(modList.map((mod) => mod.path));
-	info("[IMM] Valid mod paths:", validPaths);
+	const validPaths = useMemo(() => new Set(modList.map((mod) => mod.path.replace(/[/\\]+/g, "/").replace(/^\/+/, ""))), [modList]);
+	info("[IMM] Valid mod paths:", Array.from(validPaths));
 
 	useEffect(() => {
 		if (installedItems.length == 0) initialCheck = true;
@@ -327,14 +328,20 @@ export function useInstalledItemsManager() {
 			}
 			async function updateInstalledItems(localDataSnapshot: any) {
 				const itemsToProcess = Object.keys(localDataSnapshot)
-					.filter((key) => localDataSnapshot[key].source && validPaths.has(key))
-					.map((key) => ({
-						name: key,
-						source: localDataSnapshot[key].source,
-						updated: localDataSnapshot[key].updatedAt || 0,
-						viewed: localDataSnapshot[key].viewedAt || 0,
-						modStatus: 0,
-					}));
+					.filter((key) => {
+						const modData = getModData(localDataSnapshot, key);
+						return modData && modData.source && validPaths.has(key);
+					})
+					.map((key) => {
+						const modData = getModData(localDataSnapshot, key)!;
+						return {
+							name: key,
+							source: modData.source as string,
+							updated: modData.updatedAt || 0,
+							viewed: modData.viewedAt || 0,
+							modStatus: 0,
+						};
+					});
 				if (initialCheck) {
 					setInstalledItems(itemsToProcess);
 				}
@@ -418,9 +425,9 @@ export function useInstalledItemsManager() {
 						if (flagDiff !== 0) return flagDiff;
 						return a.name
 							.toLocaleLowerCase()
-							.split("\\")
+							.split(/[/\\]/)
 							.slice(-1)[0]
-							.localeCompare(b.name.toLocaleLowerCase().split("\\").slice(-1)[0]);
+							.localeCompare(b.name.toLocaleLowerCase().split(/[/\\]/).slice(-1)[0]);
 					}),
 				]);
 			}

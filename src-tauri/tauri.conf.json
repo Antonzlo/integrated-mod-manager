@@ -23,7 +23,8 @@
 				"transparent": true,
 				"minWidth": 1080,
 				"minHeight": 720,
-				"dragDropEnabled": false
+				"dragDropEnabled": false,
+				"maximized": true
 			}
 		],
 		"security": {
@@ -43,7 +44,7 @@
 	"bundle": {
 		"createUpdaterArtifacts": true,
 		"active": true,
-		"targets": "nsis",
+		"targets": "all",
 		"icon": [
 			"icons/128x128.png",
 			"icons/icon.icns",
