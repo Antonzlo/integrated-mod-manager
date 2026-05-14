@@ -258,16 +258,19 @@ function RightLocal() {
 				getModDetails(mod.path).then((details) => {
 					const modData = data[mod.path]?.vars;
 					if (modData) {
+						console.log("Mod data found for mod details:", modData, details);
 						details.keys = details.keys.map((key: any) => {
+							if (key.namespace && modData[key.namespace] && modData[key.namespace][key.target]) {
+								key.pref = modData[key.namespace][key.target].pref;
+								key.reset = modData[key.namespace][key.target].reset;
+								key.name = modData[key.namespace][key.target].name || key.target;
+								key.state = modData[key.namespace][key.target].state || null;
+							}
 							if (modData[key.file] && modData[key.file][key.target]) {
 								key.pref = modData[key.file][key.target].pref;
 								key.reset = modData[key.file][key.target].reset;
 								key.name = modData[key.file][key.target].name || key.target;
 								key.state = modData[key.file][key.target].state || null;
-							}
-							if (key.namespace && modData["namespace"] && modData["namespace"][key.target]) {
-								key.pref = modData["namespace"][key.target].pref;
-								key.state = modData["namespace"][key.target].state || null;
 							}
 							return key;
 						});
@@ -279,9 +282,11 @@ function RightLocal() {
 									key.name = modData[file][key.target].name || key.target;
 									key.state = modData[file][key.target].state || null;
 								}
-								if (key.namespace && modData["namespace"] && modData["namespace"][key.target]) {
-									key.pref = modData["namespace"][key.target].pref;
-									key.state = modData["namespace"][key.target].state || null;
+								if (key.namespace && modData[key.namespace] && modData[key.namespace][key.target]) {
+									key.pref = modData[key.namespace][key.target].pref;
+									key.reset = modData[key.namespace][key.target].reset;
+									key.name = modData[key.namespace][key.target].name || key.target;
+									key.state = modData[key.namespace][key.target].state || null;
 								}
 								return key;
 							});

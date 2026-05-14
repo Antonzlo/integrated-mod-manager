@@ -6,6 +6,7 @@
     "main"
   ],
   "permissions": [
+    "core:app:allow-version",
     "core:default",
     "core:path:default",
     "core:event:default",
