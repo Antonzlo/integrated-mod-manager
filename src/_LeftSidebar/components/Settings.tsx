@@ -180,6 +180,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 						)}
 					</AlertDialogContent>
 				</AlertDialog>
+				{/* Title */}
 				<div className="min-h-fit text-accent my-6 text-3xl">
 					{textData.Settings}
 					<Tooltip>
@@ -217,6 +218,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							className="min-h-80 flex w-full gap-2"
 						>
 							{globalPage ? (
+								
 								<>
 									<div className="min-w-1/2 justify-evenly flex flex-col min-h-full gap-4 pr-2">
 										<div className="flex flex-col w-full gap-4">

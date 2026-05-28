@@ -104,7 +104,7 @@ store.sub(SETTINGS, () => {
 	check = store.get(SETTINGS).global.chkModUpdates;
 });
 export function getImageUrl(path: string): string {
-	return `${IMAGE_SERVER_URL}/${src}/${managedSRC}/${path}`;
+	return `${IMAGE_SERVER_URL}x/${src}/${managedSRC}/${path}`;
 }
 const PRIORITY_KEYS = ["Alt", "Ctrl", "Shift", "Capslock", "Tab", "Up", "Down", "Left", "Right"];
 const PRIORITY_SET = new Set(PRIORITY_KEYS);
@@ -294,18 +294,19 @@ export function useInstalledItemsManager() {
 	}, [installedItems]);
 	useEffect(() => {
 		if (Object.keys(localData).length > 0) {
+			now = Date.now();
 			async function checkModStatus(item: any) {
-				info("[IMM] Checking mod status for", item.name);
+				// info("[IMM] Checking mod status for", item.name);
 				let modStatus = 0;
 				if (!check) {
 					return 0;
 				}
 				if (checked.hasOwnProperty(item.name) && now - (checked[item.name]?.updated || 0) < oneHour) {
-					info("[IMM] Mod status found in cache for", item.name);
+					// info("[IMM] Mod status found in cache for", item.name);
 					modStatus = item.updated < checked[item.name].status ? (item.viewed < checked[item.name].status ? 2 : 1) : 0;
 				} else {
 					try {
-						// info("[IMM] Fetching mod url ", modRouteFromURL(item.source));
+						info("[IMM] Fetching mod url ", modRouteFromURL(item.source),`inCache: ${checked.hasOwnProperty(item.name)} | updated: ${item.updated} | cacheUpdated: ${checked[item.name]?.updated} | now: ${now}`);
 						const data = (await fetchModNoUpdates(modRouteFromURL(item.source))) as any;
 						// console.log(data, item);
 						// info("[IMM] Fetched mod data for", item.name, data);
@@ -316,13 +317,16 @@ export function useInstalledItemsManager() {
 							});
 							// setUpdateCache((prev) => ({ ...prev, [item.name]: latest }));
 							modStatus = item.updated < latest ? (item.viewed < latest ? 2 : 1) : 0;
-							checked[item.name] = { updated: Date.now(), status: latest };
+							checked[item.name] = { updated: now, status: latest };
+						}
+						else{
+							checked[item.name] = { updated: now, status: 0 };
 						}
 					} catch (error) {
 						return 0;
 					}
 				}
-				info("[IMM] Final mod status for", item.name, "is", modStatus);
+				// info("[IMM] Final mod status for", item.name, "is", modStatus);
 				return modStatus;
 			}
 			async function updateInstalledItems(localDataSnapshot: any) {
@@ -338,6 +342,7 @@ export function useInstalledItemsManager() {
 				if (initialCheck) {
 					setInstalledItems(itemsToProcess);
 				}
+				console.log("cache", checked);
 				// Process items in batches of 10
 				const batchSize = 10;
 				const processedItems: any[] = [];
@@ -347,7 +352,6 @@ export function useInstalledItemsManager() {
 				const modsProgressBar = document.getElementById("mods-progress");
 				const modsCheckedLabel = document.getElementById("mods-checked");
 				const modsTotalLabel = document.getElementById("mods-total");
-				now = Date.now();
 				if (modsProgressContainer && modsTotalLabel) {
 					modsTotalLabel.innerText = totalItems.toString();
 					modsProgressContainer.style.bottom = "0px";

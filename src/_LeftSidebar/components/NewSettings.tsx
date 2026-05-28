@@ -14,13 +14,25 @@ import { join, setHotreload } from "@/utils/hotreload";
 import { getCwd, setPrePostLaunch, setWindowType } from "@/utils/init";
 import TEXT from "@/textData.json";
 import { exportConfig, keySort } from "@/utils/utils";
-import { INIT_DONE, PRESETS, SAVED_LANG, SETTINGS, SOURCE, store, TARGET, TEXT_DATA, XXMI_MODE } from "@/utils/vars";
+import {
+	INIT_DONE,
+	PRESETS,
+	REMOVE_OPEN,
+	SAVED_LANG,
+	SETTINGS,
+	SOURCE,
+	store,
+	TARGET,
+	TEXT_DATA,
+	XXMI_MODE,
+} from "@/utils/vars";
 import { Separator } from "@radix-ui/react-separator";
 import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
 	AppWindowIcon,
+	BadgeXIcon,
 	CheckIcon,
 	CircleSlashIcon,
 	DownloadIcon,
@@ -135,7 +147,9 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 	const [settings, setSettings] = useAtom(SETTINGS);
 	const scrollTimer = useRef<number>(null);
 	const [alertOpen, setAlertOpen] = useState(false);
-	const [globalPage, setGlobalPage] = useState(true);
+	// const [globalPage, setGlobalPage] = useState(true);
+	// const [dialogOpen, setDialogOpen] = useState(false);
+	const setRemoveOpen = useSetAtom(REMOVE_OPEN);
 	const [langAlertData, setLangAlertData] = useState({ prev: "en", new: "en" } as {
 		prev: keyof typeof TEXT;
 		new: keyof typeof TEXT;
@@ -321,13 +335,13 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 					</SettingRow>
 					<SettingRow label={textData._LeftSideBar._LeftOnline.Chk}>
 						<SettingTabs
-							defaultValue={settings.global.chkModUpdates? "1" : "0"}
+							defaultValue={settings.global.chkModUpdates ? "1" : "0"}
 							onValueChange={(e) => {
 								setSettings({
 									...settings,
 									global: {
 										...settings.global,
-										chkModUpdates: e=="1",
+										chkModUpdates: e == "1",
 									},
 								});
 								saveConfigs();
@@ -335,12 +349,12 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							options={[
 								{
 									value: "0",
-									icon:XIcon,
+									icon: XIcon,
 									label: "Off",
 								},
 								{
 									value: "1",
-									icon:CheckIcon,
+									icon: CheckIcon,
 									label: "On",
 								},
 							]}
@@ -624,6 +638,22 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 								{textData._LeftSideBar._components._Settings._ImportExport.Export}
 							</Button>
 						</div>
+					</SettingRow>
+					<SettingRow label={textData._LeftSideBar._components._RemoveIMM.RemoveIMM}>
+						<Button
+							// disabled={disabled}
+							onClick={() => {
+								setTimeout(() => {
+									setRemoveOpen(true);
+								}, 0);
+								setSettingsOpen(false);
+							}}
+							className="h-9 z-1 bg-input/25 text-accent hover:text-background group w-full text-sm"
+							variant="destructive"
+						>
+							<BadgeXIcon className="w-4 h-4" />
+							{textData._LeftSideBar._components._RemoveIMM.RemoveIMM}
+						</Button>
 					</SettingRow>
 				</>
 			),

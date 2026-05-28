@@ -213,18 +213,7 @@ function Restore({ leftSidebarOpen, disabled = false }: { leftSidebarOpen: boole
 					</div>
 				</div>
 				<div className="flex items-center justify-end w-full h-10 mt-2">
-					<Button
-						className="w-28"
-						variant="destructive"
-						onClick={()=>{
-							setTimeout(()=>{
-								setRemoveOpen(true);
-							},0)
-							setDialogOpen(false)
-						}}
-					>
-						{textData._LeftSideBar._components._RemoveIMM.RemoveIMM}
-					</Button>
+					
 					<div className="text-muted-foreground w-full">
 						{disabled && textData._LeftSideBar._components._Restore.Restricted}
 					</div>

@@ -15,8 +15,8 @@ import Downloads from "./components/Downloads";
 import BatchOperations from "./components/Batch";
 import { launchGame } from "@/utils/init";
 import Restore from "./components/Restore";
-import { Label } from "@/components/ui/label";
-import { saveConfigs } from "@/utils/filesys";
+// import { Label } from "@/components/ui/label";
+// import { saveConfigs } from "@/utils/filesys";
 import Remove from "./components/Remove";
 function LeftSidebar() {
 	const leftSidebarOpen = useAtomValue(LEFT_SIDEBAR_OPEN);
@@ -25,7 +25,7 @@ function LeftSidebar() {
 	const customMode = useAtomValue(XXMI_MODE);
 	const setGame = useSetAtom(GAME);
 	const game = useAtomValue(SETTINGS).global.game;
-	const [settings, setSettings] = useAtom(SETTINGS);
+	// const [settings, setSettings] = useAtom(SETTINGS);
 
 	useInstalledItemsManager();
 	return (
@@ -55,7 +55,7 @@ function LeftSidebar() {
 					<div className="duration-200 px-0 w-full mt-2.5">
 						<SidebarGroupLabel className="justify-between">
 							{textData._LeftSideBar._Left.Mode}{" "}
-							<Label className="text-[10px] min-w-fit opacity-50 text-accent flex items-center">
+							{/* <Label className="text-[10px] min-w-fit opacity-50 text-accent flex items-center">
 								{textData._LeftSideBar._LeftOnline.Chk} :
 								<Button
 									onClick={() => {
@@ -76,7 +76,7 @@ function LeftSidebar() {
 								>
 									{settings.global.chkModUpdates ? "On" : "Off"}
 								</Button>
-							</Label>
+							</Label> */}
 						</SidebarGroupLabel>
 						<div
 							className="min-h-fit grid justify-between w-full grid-cols-2 gap-2 px-2 overflow-hidden"

@@ -155,7 +155,7 @@ export async function setConfig(config: any) {
 	addToast({ type: "success", message: textData._Toasts.ConfigLoaded });
 	main();
 }
-export function getConfig(settings: Settings) {
+export function getConfig(settings = store.get(SETTINGS)) {
 	const config: GlobalSettings = settings.global;
 	config["updatedAt"] = new Date().toISOString();
 	config["version"] = VERSION;

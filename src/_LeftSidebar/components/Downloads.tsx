@@ -196,18 +196,8 @@ function Downloads() {
 			let name = item.name;
 			let count = 0;
 			let category = item.category;
-			for (let key in data) {
-				//info(data[key].source, item.source);
-				if (data[key].source == item.source) {
-					count++;
-					name = key.split("\\")[1];
-					category = key.split("\\")[0];
-				}
-			}
-			if (count == 1 && !item.addon) {
-				item.name = name;
-				item.category = category;
-			}
+			if (item.target){}
+			//  
 			setDownloads((prev) => {
 				return {
 					...prev,

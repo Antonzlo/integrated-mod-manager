@@ -105,6 +105,7 @@ export interface DownloadItem {
 	updated: number;
 	name: string;
 	fname: string;
+	target?: string;
 	key?: string;
 }
 export interface DownloadList {

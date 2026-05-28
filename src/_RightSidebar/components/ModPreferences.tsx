@@ -22,13 +22,24 @@ import { info } from "@/lib/logger";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent } from "@/components/ui/popover";
 import { PopoverTrigger } from "@radix-ui/react-popover";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Toggle } from "@/components/ui/toggle";
+import JSONEditor from "@/_Main/components/JSONEditor";
 let prevItemPath = "";
 const pageLimit = 20;
 let lastKeyList: string = "";
+const textData2 = {
+	default: "Def.",
+	state: "Auto",
+	pref: "Pref.",
+	expected: "Exp.",
+	keys: "HKs",
+} as const;
 function ModPreferences({ item, details }: { item: any; details: any }) {
 	const setData = useSetAtom(DATA);
 	const setModList = useSetAtom(MOD_LIST);
 	const [keys, setKeys] = useState([] as any);
+	const [configMode, setConfigMode] = useState(false);
 	const [fileMode, setFileMode] = useState(false);
 	const [selectedFile, setSelectedFile] = useState("");
 	const [selectedFileData, setSelectedFileData] = useState([] as any);
@@ -36,6 +47,13 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 	const [pageNo, setPageNo] = useState(0);
 	const textData = useAtomValue(TEXT_DATA);
 	const [forceKeyUpdate, setForceKeyUpdate] = useState(0);
+	const [toggles, setToggles] = useState({
+		default: true,
+		state: true,
+		pref: true,
+		expected: true,
+		keys: true,
+	} as Record<string, boolean>);
 	useEffect(() => {
 		if (prevItemPath !== item?.path || (!details?.files?.hasOwnProperty(selectedFile) && selectedFile)) {
 			setSelectedFile("");
@@ -126,6 +144,58 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		},
 		[item, setData]
 	);
+	const colCount = 1 + (Object.keys(toggles).filter((key) => toggles[key]).length || 0);
+	const headers = [
+		<Tooltip>
+			<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2">
+				<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4" />
+				{textData._RightSideBar._components._ModPreferences.DefVal}
+			</TooltipTrigger>
+			<TooltipContent className="w-48 px-1 text-center">
+				{textData._RightSideBar._components._ModPreferences.DefValTip}
+			</TooltipContent>
+		</Tooltip>,
+		<Tooltip>
+			<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2">
+				<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4" />
+				{/* {textData._RightSideBar._components._ModPreferences.DefVal} */}
+				Auto Save
+			</TooltipTrigger>
+			<TooltipContent className="w-48 px-1 text-center">
+				{textData._RightSideBar._components._ModPreferences.DefValTip}
+			</TooltipContent>
+		</Tooltip>,
+		<Tooltip>
+			<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2">
+				<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4" />
+				{textData._RightSideBar._components._ModPreferences.Pref}
+			</TooltipTrigger>
+			<TooltipContent className="w-48 px-1 text-center">
+				{textData._RightSideBar._components._ModPreferences.PrefTip}
+			</TooltipContent>
+		</Tooltip>,
+		<Tooltip>
+			<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2">
+				{/* <InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" /> */}
+				{textData._RightSideBar._components._ModPreferences.Expected}
+			</TooltipTrigger>
+			{/* <TooltipContent className="w-48 px-1 text-center">
+							{
+								"Shows the current key-binding for this variable. Future versions of IMM may allow changing key-bindings here."
+							}
+						</TooltipContent> */}
+		</Tooltip>,
+		<Tooltip>
+			<TooltipTrigger className="text-accent  flex items-center justify-center w-full gap-2">
+				<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4" />
+				{/* {textData._RightSideBar._components._ModPreferences.Pref} */}
+				Hot Keys
+			</TooltipTrigger>
+			<TooltipContent className="w-48 px-1 text-center">
+				{textData._RightSideBar._components._ModPreferences.PrefTip}
+			</TooltipContent>
+		</Tooltip>,
+	];
 	return (
 		<DialogContent className="min-w-250">
 			<Tooltip>
@@ -133,14 +203,54 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 				<TooltipContent className="opacity-0"></TooltipContent>
 			</Tooltip>
 
-			<div className="min-h-fit text-accent my-6 text-3xl">
+			<div className="min-h-fit my-6 text-accent text-3xl"
+			>
 				{" "}
 				{textData._RightSideBar._components._ModPreferences.EditConfig}
 			</div>
 
-			<div className="text-sm flex items-center gap-2">
-				<Checkbox checked={fileMode} onCheckedChange={(checked) => setFileMode(!!checked)} />{" "}
-				{textData._RightSideBar._components._ModPreferences.ShowVars}
+			<div className="text-sm flex px-10 w-full items-center gap-2">
+				<div className="text-sm w-1/2 justify-center flex items-center gap-2">
+					{/* <Checkbox checked={fileMode} onCheckedChange={(checked) => setFileMode(!!checked)} />{" "}
+				{textData._RightSideBar._components._ModPreferences.ShowVars} */}
+					View Mode
+					<Tabs
+						value={configMode ? "config" : fileMode ? "file" : "general"}
+						onValueChange={(value) => {
+							if (value === "config") {
+								setConfigMode(true);
+								setFileMode(false);
+							} else if (value === "file") {
+								setConfigMode(false);
+								setFileMode(true);
+							} else {
+								setConfigMode(false);
+								setFileMode(false);
+							}
+						}}
+					>
+						<TabsList className="bg-background/50 button-like rounded-md grid w-full grid-cols-3">
+							<TabsTrigger value="general">Hotkey Only</TabsTrigger>
+							<TabsTrigger value="file">All Vars</TabsTrigger>
+							<TabsTrigger value="config">IMM Config</TabsTrigger>
+						</TabsList>
+					</Tabs>
+				</div>
+				<div className="text-sm flex  w-1/2 justify-center items-center gap-2">
+					{/* <Checkbox checked={fileMode} onCheckedChange={(checked) => setFileMode(!!checked)} />{" "}
+				{textData._RightSideBar._components._ModPreferences.ShowVars} */}
+					Columns
+					<div className="text-sm grid grid-cols-5 items-center gap-2">
+						{Object.keys(toggles).map((key) => (
+							<Toggle
+								pressed={toggles[key]}
+								onPressedChange={(pressed) => setToggles((prev) => ({ ...prev, [key]: pressed }))}
+							>
+								{textData2[key as keyof typeof textData2]}
+							</Toggle>
+						))}
+					</div>
+				</div>
 			</div>
 			<div
 				style={{
@@ -243,54 +353,41 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 					</Button>
 				</div>
 			</div>
-			<div className="bg-background/80 button-like text-border backdrop-blur border-muted/20 sticky top-0 z-10 flex w-full px-8 py-2 border rounded-md">
-				<Tooltip>
-					<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2 mr-2 -ml-2">
-						<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" />
-						{textData._RightSideBar._components._ModPreferences.Name}
-					</TooltipTrigger>
-					<TooltipContent className="w-48 px-1 text-center">
-						{textData._RightSideBar._components._ModPreferences.NameTip}
-					</TooltipContent>
-				</Tooltip>
-				|{/* <div className="text-accent w-1/5 text-center">Target Var</div>| */}
-				<Tooltip>
-					<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2">
-						<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" />
-						{textData._RightSideBar._components._ModPreferences.DefVal}
-					</TooltipTrigger>
-					<TooltipContent className="w-48 px-1 text-center">
-						{textData._RightSideBar._components._ModPreferences.DefValTip}
-					</TooltipContent>
-				</Tooltip>
-				|
-				<Tooltip>
-					<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2">
-						<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" />
-						{textData._RightSideBar._components._ModPreferences.Pref}
-					</TooltipTrigger>
-					<TooltipContent className="w-48 px-1 text-center">
-						{textData._RightSideBar._components._ModPreferences.PrefTip}
-					</TooltipContent>
-				</Tooltip>
-				|
-				<Tooltip>
-					<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2 -mr-4">
-						{/* <InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" /> */}
-						{textData._RightSideBar._components._ModPreferences.Expected}
-					</TooltipTrigger>
-					{/* <TooltipContent className="w-48 px-1 text-center">
-							{
-								"Shows the current key-binding for this variable. Future versions of IMM may allow changing key-bindings here."
-							}
-						</TooltipContent> */}
-				</Tooltip>
+			<div
+			style={{
+					opacity: !configMode ? 1 : 0,
+					pointerEvents: !configMode ? "auto" : "none",
+					userSelect: !configMode ? "auto" : "none",
+					minHeight: !configMode ? "2.75rem" : 0,
+					marginBottom: !configMode ? 0 : "-1.5rem",
+					marginTop: !configMode ? 0 : "-1.5rem",
+				}}
+			className="bg-background/80 button-like text-border duration-200 backdrop-blur border-muted/20 sticky top-0 z-10 w-full px-10 items-center py-2 border rounded-md">
+				<div
+					className="text-border grid w-full -ml-2"
+					style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
+				>
+					<Tooltip>
+						<TooltipTrigger className="text-accent  flex items-center justify-center w-full gap-2">
+							<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4 ml-1" />
+							{textData._RightSideBar._components._ModPreferences.Name}
+						</TooltipTrigger>
+						<TooltipContent className="w-48 px-1 text-center">
+							{textData._RightSideBar._components._ModPreferences.NameTip}
+						</TooltipContent>
+					</Tooltip>
+					{/* <div className="text-accent w-1/5 text-center">Target Var</div>| */}
+					{Object.values(toggles).map((val, i) => val && <>{headers[i]}</>)}
+				</div>
 			</div>
 			<label className="text-xs text-accent/50 -my-3">
 				{textData._RightSideBar._components._ModPreferences.Priority}
 			</label>
-			<div
+			{configMode?<JSONEditor rootJSON={item?.vars} rootKey={item?.path}/>:<div
 				className="max-h-90 min-h-90 flex flex-col w-full h-full p-2 pt-0 overflow-x-hidden overflow-y-scroll text-gray-300 rounded-sm"
+				style={{
+					minHeight: `calc(var(--spacing) * ${fileMode?83:90})`
+				}}
 				key={"" + fileMode + pageNo + selectedFile + keys.length + forceKeyUpdate}
 			>
 				{keys.map((file: any, index: number) => (
@@ -316,12 +413,218 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 							const nameDefault = keyConfig.name == keyConfig.target;
 							const defDefault = keyConfig.reset === null || keyConfig.reset === undefined;
 							const prefDefault = keyConfig.pref === null || keyConfig.pref === undefined;
+							const stateDefault = keyConfig.state === null || keyConfig.state === undefined;
+							const elements = [
+								<div className="w-full flex items-center">
+									<Input
+										className="text-muted-foreground w-full bg-transparent -mr-8.5"
+										style={{
+											textAlign: isNaN(Number(keyConfig.default)) ? "left" : "right",
+											paddingRight: defDefault ? "" : "2rem",
+										}}
+										defaultValue={keyConfig.default}
+										onBlur={(e) => {
+											const val = e.currentTarget.value;
+											if (val == keyConfig.default || (!val && !keyConfig.default)) {
+												return;
+											}
+											if (!val) {
+												e.currentTarget.value = keyConfig.default;
+												return;
+											}
+											if (keyConfig.reset === null || keyConfig.reset === undefined) {
+												setVal("reset", keyConfig.file, keyConfig.target, keyConfig.default);
+											} else if (val === keyConfig.reset) {
+												setVal("reset", keyConfig.file, keyConfig.target, null);
+											}
+											info("Updating ini", {
+												src: join(item.path, keyConfig.file),
+												target: keyConfig.target,
+												content: val,
+											});
+											updateIniVars(join(item.path, keyConfig.file), {
+												[keyConfig.target.toLowerCase()]: val,
+											}).then((success) => {
+												if (success) {
+													setModList((prev: any) => {
+														const newList = prev.map((mod: any) => {
+															if (mod.path === item.path) {
+																mod.keys = mod.keys.map((k: any) => {
+																	if (k.file === keyConfig.file && k.target === keyConfig.target) {
+																		k.default = val;
+																	}
+																	return k;
+																});
+																return {
+																	...mod,
+																};
+															}
+															return mod;
+														});
+														return newList;
+													});
+												} else {
+												}
+											});
+										}}
+									/>
+									<Button
+										variant="ghost"
+										className=" h-7 w-7 ml-0.75"
+										style={{
+											pointerEvents: defDefault ? "none" : "auto",
+											opacity: defDefault ? 0 : 1,
+										}}
+										onClick={(e) => {
+											const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
+											if (prev) {
+												prev.focus();
+												prev.value = keyConfig.reset;
+												prev.blur();
+											}
+										}}
+									>
+										<IterationCcwIcon className="max-h-4 rotate-180" />
+									</Button>
+								</div>,
+								<div className="w-full flex items-center">
+									<Input
+										className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
+										style={{
+											textAlign:
+												!stateDefault && isNaN(Number(keyConfig.state ?? keyConfig.default)) ? "left" : "right",
+											paddingRight: stateDefault ? "" : "2rem",
+										}}
+										defaultValue={keyConfig.state}
+										onBlur={(e) => {
+											const val = e.currentTarget.value;
+											if (val == keyConfig.pref || (!val && !keyConfig.pref)) {
+												return;
+											}
+											setVal("pref", keyConfig.namespace ?? keyConfig.file, keyConfig.target, val);
+										}}
+										placeholder={"None"}
+									/>
+
+									<Button
+										variant="ghost"
+										className=" h-7 w-7 ml-0.75"
+										style={{
+											pointerEvents: prefDefault ? "none" : "auto",
+											opacity: prefDefault ? 0 : 1,
+										}}
+										onClick={(e) => {
+											const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
+											if (prev) {
+												prev.focus();
+												prev.value = "";
+												prev.blur();
+											}
+										}}
+									>
+										<IterationCcwIcon className="max-h-4 rotate-180" />
+									</Button>
+								</div>,
+								<div className="w-full flex items-center">
+									<Input
+										className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
+										style={{
+											textAlign: isNaN(Number(keyConfig.pref ?? keyConfig.default)) ? "left" : "right",
+											paddingRight: prefDefault ? "" : "2rem",
+										}}
+										defaultValue={keyConfig.pref}
+										onBlur={(e) => {
+											const val = e.currentTarget.value;
+											if (val == keyConfig.pref || (!val && !keyConfig.pref)) {
+												return;
+											}
+											console.log(keyConfig.namespace || keyConfig.file);
+											setVal("pref", keyConfig.namespace || keyConfig.file, keyConfig.target, val);
+										}}
+										placeholder={
+											"None"
+											// keyConfig.state
+											// 	? `${textData._RightSideBar._components._ModPreferences.AutoSaved} ${keyConfig.state}`
+											// 	: textData._RightSideBar._components._ModPreferences.Default
+										}
+									/>
+
+									<Button
+										variant="ghost"
+										className=" h-7 w-7 ml-0.75"
+										style={{
+											pointerEvents: prefDefault ? "none" : "auto",
+											opacity: prefDefault ? 0 : 1,
+										}}
+										onClick={(e) => {
+											const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
+											if (prev) {
+												prev.focus();
+												prev.value = "";
+												prev.blur();
+											}
+										}}
+									>
+										<IterationCcwIcon className="max-h-4 rotate-180" />
+									</Button>
+								</div>,
+								<div className="text-muted-foreground flex items-center justify-center w-full">
+									{(keyConfig.values.toSorted().join(" , ") || "unknown").replace(
+										"unknown",
+										textData._RightSideBar._components._ModPreferences.Unknown
+									)}
+								</div>,
+								<div className="w-full flex items-center">
+									<Input
+										className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
+										style={{
+											textAlign: isNaN(Number(keyConfig.pref ?? keyConfig.default)) ? "left" : "right",
+											paddingRight: prefDefault ? "" : "2rem",
+										}}
+										defaultValue={keyConfig.key}
+										onBlur={(e) => {
+											const val = e.currentTarget.value;
+											if (val == keyConfig.key || (!val && !keyConfig.key)) {
+												return;
+											}
+											// console.log(keyConfig.namespace || keyConfig.file);
+											// setVal("pref", keyConfig.namespace || keyConfig.file, keyConfig.target, val);
+										}}
+										placeholder={
+											"None"
+											// keyConfig.state
+											// 	? `${textData._RightSideBar._components._ModPreferences.AutoSaved} ${keyConfig.state}`
+											// 	: textData._RightSideBar._components._ModPreferences.Default
+										}
+									/>
+
+									<Button
+										variant="ghost"
+										className=" h-7 w-7 ml-0.75"
+										style={{
+											pointerEvents: prefDefault ? "none" : "auto",
+											opacity: prefDefault ? 0 : 1,
+										}}
+										onClick={(e) => {
+											const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
+											if (prev) {
+												prev.focus();
+												prev.value = "";
+												prev.blur();
+											}
+										}}
+									>
+										<IterationCcwIcon className="max-h-4 rotate-180" />
+									</Button>
+								</div>,
+							];
 							return (
 								<div
 									key={index}
-									className="odd:bg-background/50 even:bg-background/30 text-border flex w-full gap-4 px-5 py-2 rounded-md"
+									className="odd:bg-background/50 even:bg-background/30 text-border grid w-full gap-4 px-5 py-2 rounded-md"
+									style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
 								>
-									<div className="w-full min-w-[24.5%] flex items-center">
+									<div className="w-full flex items-center">
 										<Input
 											className="text-muted-foreground w-full bg-transparent text-ellipsis -mr-8.5"
 											defaultValue={keyConfig.name}
@@ -359,131 +662,13 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 											<IterationCcwIcon className="max-h-4 rotate-180" />
 										</Button>
 									</div>
-									<div className="w-full min-w-[24.5%] flex items-center">
-										<Input
-											className="text-muted-foreground w-full bg-transparent -mr-8.5"
-											style={{
-												textAlign: isNaN(Number(keyConfig.default)) ? "left" : "right",
-												paddingRight: defDefault ? "" : "2rem",
-											}}
-											defaultValue={keyConfig.default}
-											onBlur={(e) => {
-												const val = e.currentTarget.value;
-												if (val == keyConfig.default || (!val && !keyConfig.default)) {
-													return;
-												}
-												if (!val) {
-													e.currentTarget.value = keyConfig.default;
-													return;
-												}
-												if (keyConfig.reset === null || keyConfig.reset === undefined) {
-													setVal("reset", keyConfig.file, keyConfig.target, keyConfig.default);
-												} else if (val === keyConfig.reset) {
-													setVal("reset", keyConfig.file, keyConfig.target, null);
-												}
-												info("Updating ini", {
-													src: join(item.path, keyConfig.file),
-													target: keyConfig.target,
-													content: val,
-												});
-												updateIniVars(join(item.path, keyConfig.file), {
-													[keyConfig.target.toLowerCase()]: val,
-												}).then((success) => {
-													if (success) {
-														setModList((prev: any) => {
-															const newList = prev.map((mod: any) => {
-																if (mod.path === item.path) {
-																	mod.keys = mod.keys.map((k: any) => {
-																		if (k.file === keyConfig.file && k.target === keyConfig.target) {
-																			k.default = val;
-																		}
-																		return k;
-																	});
-																	return {
-																		...mod,
-																	};
-																}
-																return mod;
-															});
-															return newList;
-														});
-													} else {
-													}
-												});
-											}}
-										/>
-										<Button
-											variant="ghost"
-											className=" h-7 w-7 ml-0.75"
-											style={{
-												pointerEvents: defDefault ? "none" : "auto",
-												opacity: defDefault ? 0 : 1,
-											}}
-											onClick={(e) => {
-												const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
-												if (prev) {
-													prev.focus();
-													prev.value = keyConfig.reset;
-													prev.blur();
-												}
-											}}
-										>
-											<IterationCcwIcon className="max-h-4 rotate-180" />
-										</Button>
-									</div>
-									<div className="w-full min-w-[24.5%] flex items-center">
-										<Input
-											className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
-											style={{
-												textAlign: isNaN(Number(keyConfig.pref ?? keyConfig.default)) ? "left" : "right",
-												paddingRight: prefDefault ? "" : "2rem",
-											}}
-											defaultValue={keyConfig.pref}
-											onBlur={(e) => {
-												const val = e.currentTarget.value;
-												if (val == keyConfig.pref || (!val && !keyConfig.pref)) {
-													return;
-												}
-												setVal("pref", keyConfig.namespace ?? keyConfig.file, keyConfig.target, val);
-											}}
-											placeholder={
-												keyConfig.state
-													? `${textData._RightSideBar._components._ModPreferences.AutoSaved} ${keyConfig.state}`
-													: textData._RightSideBar._components._ModPreferences.Default
-											}
-										/>
-
-										<Button
-											variant="ghost"
-											className=" h-7 w-7 ml-0.75"
-											style={{
-												pointerEvents: prefDefault ? "none" : "auto",
-												opacity: prefDefault ? 0 : 1,
-											}}
-											onClick={(e) => {
-												const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
-												if (prev) {
-													prev.focus();
-													prev.value = "";
-													prev.blur();
-												}
-											}}
-										>
-											<IterationCcwIcon className="max-h-4 rotate-180" />
-										</Button>
-									</div>
-									<div className="text-muted-foreground flex items-center justify-center w-full min-w-[24.5%]">
-										{(keyConfig.values.toSorted().join(" , ") || "unknown").replace(
-											"unknown",
-											textData._RightSideBar._components._ModPreferences.Unknown
-										)}
-									</div>
+									{Object.values(toggles).map((val, i) => val && elements[i])}
 								</div>
 							);
 						})}
 					</div>
 				))}
-			</div>
+			</div>}
 		</DialogContent>
 	);
 }
