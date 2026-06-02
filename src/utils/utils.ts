@@ -148,9 +148,7 @@ export function getTimeDifference(startTimestamp: number, endTimestamp: number) 
 }
 export async function fetchModNoUpdates(selected: string, signal?: AbortSignal) {
 	let modData = {};
-	// console.log("Fetching mod data for", selected);
 	await apiClient.mod(selected, signal).then((data) => {
-		// console.log("Fetched mod data for", selected, data);
 		if (data._idRow != selected.split("/").slice(-1)[0]) return;
 		modData = data;
 	});
@@ -169,7 +167,6 @@ export async function fetchMod(selected: string, controller?: AbortController) {
 					_aChangeLog: record._aChangeLog,
 					_sName: record._sName,
 				})) || [];
-			// console.log(data);
 			data2._aUpdates = updates;
 			if (data._aRecords && data._aRecords.length > 0) {
 				data2._eUpdate = true;
@@ -283,6 +280,7 @@ export function handleInAppLink(url: string) {
 	}
 }
 export function useInstalledItemsManager() {
+	// document.documentElement.style.fontSize = "20px"
 	const [installedItems, setInstalledItems] = useAtom(INSTALLED_ITEMS);
 	const localData = useAtomValue(DATA);
 	const modList = useAtomValue(MOD_LIST);
@@ -308,14 +306,11 @@ export function useInstalledItemsManager() {
 					try {
 						info("[IMM] Fetching mod url ", modRouteFromURL(item.source),`inCache: ${checked.hasOwnProperty(item.name)} | updated: ${item.updated} | cacheUpdated: ${checked[item.name]?.updated} | now: ${now}`);
 						const data = (await fetchModNoUpdates(modRouteFromURL(item.source))) as any;
-						// console.log(data, item);
-						// info("[IMM] Fetched mod data for", item.name, data);
 						if (data._tsDateModified) {
 							let latest = item.updated || 0;
 							data._aFiles.forEach((file: any) => {
 								latest = Math.max(latest, (file._tsDateModified || file._tsDateAdded || 0) * 1000);
 							});
-							// setUpdateCache((prev) => ({ ...prev, [item.name]: latest }));
 							modStatus = item.updated < latest ? (item.viewed < latest ? 2 : 1) : 0;
 							checked[item.name] = { updated: now, status: latest };
 						}

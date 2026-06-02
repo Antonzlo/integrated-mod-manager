@@ -292,7 +292,6 @@ function RightLocal() {
 							});
 						});
 					}
-					console.log(details)
 					details.keys = details.keys
 						.map((key: any) => ({ ...key, key: formatHotkeyDisplay(normalizeHotkey(key.key)) }))
 						.sort((a: any, b: any) => a.key.localeCompare(b.key));

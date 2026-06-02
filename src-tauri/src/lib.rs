@@ -499,7 +499,7 @@ async fn download_and_unzip(
                 },
             )
             .map_err(|e| e.to_string())?;
-    }
+    
 
     // Extract archive if it's a supported format
     extract_archive(
@@ -513,6 +513,7 @@ async fn download_and_unzip(
         true,
     )
     .await?;
+    }
 
     tracing::info!(
         "Download and extraction completed successfully for session {}: {}",
@@ -527,6 +528,8 @@ async fn download_and_unzip(
 fn cancel_extract(key: String) -> Result<(), String> {
     let mut counts = DOWNLOAD_COUNTS.lock().unwrap();
     if let Some(count) = counts.get_mut(&key) {
+
+        
         if *count > 0 {
             *count -= 1;
             println!("Decreased download count for key '{}': {}", key, *count);

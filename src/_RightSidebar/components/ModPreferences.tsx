@@ -66,7 +66,6 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		setSelectedFileData([] as any);
 	}, [selectedFile]);
 	useEffect(() => {
-		// console.log(pageNo, selectedFileData[pageNo]);
 		let source = (fileMode ? (selectedFileData.length && selectedFileData[pageNo]) || [] : details?.keys) || [];
 		const k = {} as any;
 		let keyListStr = [] as any;
@@ -104,7 +103,6 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 			setSelectedFileData(pagenatedData);
 		}
 	}, [details, fileMode, selectedFile]);
-	console.log(item);
 	async function refreshMod(path: string) {
 		await toggleMod(path, true, true);
 		setChange();
@@ -587,8 +585,6 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 											if (val == keyConfig.key || (!val && !keyConfig.key)) {
 												return;
 											}
-											// console.log(keyConfig.namespace || keyConfig.file);
-											// setVal("pref", keyConfig.namespace || keyConfig.file, keyConfig.target, val);
 										}}
 										placeholder={
 											"None"

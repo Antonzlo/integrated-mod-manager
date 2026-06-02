@@ -126,8 +126,6 @@ store.sub(CATEGORIES, () => {
 			},
 		});
 		catDB.addAll([...categories, { _sName: UNCATEGORIZED, _sIconUrl: "" }]);
-		// console.log("Building category search index...", categories);
-		// console.log("test", catDB.search("sword", { prefix: true, fuzzy: 0.2 }));
 	} catch (e) {
 		console.error("Error building category search index:", e);
 	}
@@ -583,7 +581,6 @@ export async function categorizeDir(src: string, modifyIni = false) {
 			}
 			return;
 		}
-		// console.log("Full directory renames:", fullDirectoryRenames);
 		(await Promise.all(fullDirectoryRenames.map((dir) => readDirRecr(src, dir, 0)))).flat().forEach((entry: any) => {
 			const oldPath = join(src, entry.path);
 			const newPath = join(tgt, entry.path);
@@ -1014,7 +1011,6 @@ export async function remMoveMods(categoryMode = true, enable = 0) {
 		}
 	});
 	await Promise.all(movePromises);
-	// console.log("All entries moved. Updating d3dx_user.ini if needed...", iniChanges);
 	const d3dxPath = join(...tgt.split("\\").slice(0, -1), "d3dx_user.ini");
 	try {
 		if (await exists(d3dxPath)) {
@@ -1177,7 +1173,6 @@ async function detectHotkeys(
 
 					hkData.push(...Object.values(fileData), ...Object.values(globalVars));
 				} catch (iniError) {
-					console.log(namespaces);
 					console.log("Error reading/parsing ini file:", join(src, entry.path), iniError);
 				}
 			}
@@ -1212,7 +1207,6 @@ async function detectHotkeys(
 						writeTextFile(join(src, entry.path, ".imm-collision-checklist"), Array.from(hashes).join("\n"));
 					}
 					namespaces = new Set([...Array.from(namespaces), ...Array.from(newNamespaces)]);
-					console.log("hello bruv");
 				}
 			}
 			if (depth == 1) {
@@ -1306,7 +1300,6 @@ export async function refreshModList(maxed = false) {
 		}
 		if (!maxed) await categorizeDir(modSrc);
 		if (curId !== deepRefreshId && maxed) return [];
-		// console.log(await readDirRecr(modSrc, "", 3));
 		const ret = await detectHotkeys(await readDirRecr(modSrc, "", maxed ? 9 : 3), data, modSrc, 0, !maxed);
 		if (curId !== deepRefreshId && maxed) return [];
 

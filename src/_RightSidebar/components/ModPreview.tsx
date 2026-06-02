@@ -14,7 +14,6 @@ function ModPreview({
 	setDialogType: (type: string) => void;
 	isBlank: boolean;
 }) {
-	console.log(isBlank)
 	const onDrop = useCallback(
 		async (acceptedFiles: File[]) => {
 			if (acceptedFiles.length == 0) return;

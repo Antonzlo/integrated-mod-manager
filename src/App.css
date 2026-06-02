@@ -148,7 +148,7 @@
 	--game-font-kr: zzz-kr;
 	--game-font-ru: zzz-ru;
 	--radius-main: 99rem;
-	--border-w-main: 2px;
+	--border-w-main: 1/8rem;
 	--button: #191919;
 	--background: oklch(0% 0 0);
 	--card: #0f0f0f;

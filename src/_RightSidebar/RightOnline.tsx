@@ -132,10 +132,7 @@ function RightOnline({ open }: { open: boolean }) {
 				} else if (installedItems.length) {
 					target = installedItems[installedItems.length > 1 ? installedItem : 0].name;
 				}
-			console.log("target is", target);
 			setDownloadList((prev: any) => {
-				//300ms promise await
-				// await new Promise(resolve => setTimeout(resolve, 300));
 				let dlitem = {
 					status: "pending",
 					addon: altPopoverOpen,
@@ -168,14 +165,6 @@ function RightOnline({ open }: { open: boolean }) {
 							m.path == dlitem.category + "\\" + dlitem.name && (altPopoverOpen ? true : m.source !== dlitem.source)
 					)
 				) {
-					// console.log(
-					// 	modList.find(
-					// 		(m) => m.name == dlitem.name && m.source !== dlitem.source && (target ? m.path !== dlitem.target : true)
-					// 	),
-					// 	dlitem.name,
-					// 	dlitem.source,
-					// 	target
-					// );
 					dlitem.name = `${item._sName}${altPopoverOpen ? ` - ${file._sFile}` : ""} (${count})`;
 					count++;
 				}
