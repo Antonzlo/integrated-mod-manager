@@ -89,7 +89,7 @@ function LeftOnline() {
 									}
 									style={{
 										width: leftSidebarOpen ? "" : "2.5rem",
-										paddingInline: leftSidebarOpen ? "" : "4px",
+										paddingInline: leftSidebarOpen ? "" : "0.25rem",
 										justifyContent: leftSidebarOpen ? "start" : "center",
 									}}
 								>
@@ -113,11 +113,11 @@ function LeftOnline() {
 				</SidebarContent>
 			</div>
 			<Separator
-				className="w-full ease-linear duration-200 min-h-px border-b my-2.5"
+				className="w-full ease-linear duration-200 min-h-[0.0625rem] border-b my-2.5"
 				style={{
 					opacity: leftSidebarOpen ? "0" : "",
 					height: leftSidebarOpen ? "0px" : "",
-					marginBlock: leftSidebarOpen ? "4px" : "",
+					marginBlock: leftSidebarOpen ? "0.25rem" : "",
 				}}
 			/>
 			<SidebarGroup

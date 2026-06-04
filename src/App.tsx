@@ -12,6 +12,7 @@ import {
 	PROGRESS_OVERLAY,
 	RIGHT_SIDEBAR_OPEN,
 	RIGHT_SLIDEOVER_OPEN,
+	SCALE,
 	SETTINGS,
 } from "./utils/vars";
 import { AnimatePresence, motion } from "motion/react";
@@ -42,6 +43,7 @@ function App() {
 	const settings = useAtomValue(SETTINGS);
 	const leftSidebarOpen = useAtomValue(LEFT_SIDEBAR_OPEN);
 	// const setOnlineSelected = useSetAtom(ONLINE_SELECTED);
+	const scale = useAtomValue(SCALE)
 	const [rightSidebarOpen, setRightSidebarOpen] = useAtom(RIGHT_SIDEBAR_OPEN);
 	const [rightSlideOverOpen, setRightSlideOverOpen] = useAtom(RIGHT_SLIDEOVER_OPEN);
 	const setModList = useSetAtom(MOD_LIST);
@@ -58,6 +60,10 @@ function App() {
 			throw new Error(err);
 		}
 	}, [err]);
+	useEffect(() => {
+		if(scale)
+		document.documentElement.style.fontSize = 16 * Math.pow(2,scale/50) + "px";
+	}, [scale]);
 	useEffect(() => {
 		if (previousOnline !== online) {
 			setShowModeSwitch(true);
@@ -129,14 +135,14 @@ function App() {
 			</div>
 			
 			
-			<div id="mods-progress-container" className="fixed pointer-events-none -bottom-12 duration-300 text-[8px] opacity-50 rounded-tl-md flex pl-2 gap-1.5 flex-row items-center right-0 h-8 w-72 bg-sidebar border z-10">
+			<div id="mods-progress-container" className="fixed pointer-events-none -bottom-12 duration-300 text-[0.5rem] opacity-50 rounded-tl-md flex pl-2 gap-1.5 flex-row items-center right-0 h-8 w-72 bg-sidebar border z-10">
 				Mods Checked :
 				<div className="w-42 border flex h-4 rounded-sm overflow-hidden">
 					<div id="mods-progress" className="bg-accent duration-100 h-full rounded-r-sm"></div>
 				</div>
 				<div className="flex font-en min-w-fit text-center flex-col">
 					<label id="mods-checked">88</label>
-					<div className="w-full h-[1px] bg-border rounded-full"></div>
+					<div className="w-full h-[0.0625rem] bg-border rounded-full"></div>
 					<label id="mods-total">9999</label>
 				</div>
 			</div>

@@ -362,7 +362,7 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 								style={{
 									transform:
 										expanded.has(item.path) && !checked.has(item.path)
-											? "rotate(90deg) translateX(-5px) translateY(-2px)"
+											? "rotate(90deg) translateX(-0.3125rem) translateY(-0.125rem)"
 											: "",
 									opacity: item.path === managedTGT ? 0.25 : item.isDir ? 1 : 0,
 								}}
@@ -458,9 +458,9 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 					e.currentTarget.blur();
 				}}
 				style={{
-					maxHeight: isMaximized ? "calc( 98vh - 32px)" : "calc( 98vh - 32px)",
-					height: isMaximized ? "calc( 98vh - 32px)" : "45rem",
-					maxWidth: isMaximized ? "98vw" : "",
+					maxHeight: "calc( 98vh - 2rem)",
+					height: isMaximized ? "calc( 98vh - 2rem)" : "45rem",
+					maxWidth: "98vw",
 					width: isMaximized ? "98vw" : "",
 				}}
 				className="duration-300"

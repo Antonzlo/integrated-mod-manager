@@ -243,7 +243,7 @@ function RightOnline({ open }: { open: boolean }) {
 		<Button
 			className="min-h-fit data-wuwa:p-2 flex items-center justify-center min-w-full gap-1 p-4 overflow-hidden"
 			style={{
-				borderRadius: game == "GI" ? "4px" : "4px",
+				borderRadius: "0.25rem",
 			}}
 			onClick={() => {
 				addToDownloadQueue(file);
@@ -429,7 +429,7 @@ function RightOnline({ open }: { open: boolean }) {
 										) : (
 											<span className="text-accent select-text font-medium">{comment._aPoster?._sName}</span>
 										)}
-										<span className="text-[10px] font-medium">{comment._aPoster?._sUserTitle}</span>
+										<span className="text-[0.625rem] font-medium">{comment._aPoster?._sUserTitle}</span>
 									</div>
 									{comment._aLabels.has("Submitter") && (
 										<span className="text-xs rounded px-1 bg-accent text-background">{"Submitter"}</span>
@@ -1009,7 +1009,7 @@ function RightOnline({ open }: { open: boolean }) {
 													<Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
 														<PopoverTrigger
 															style={{ width: `${type == "Install" ? "19.5rem" : "16.5rem"}` }}
-															className="flex h-10 gap-4 overflow-hidden text-ellipsis bg-button zzz-fg-text button-like text-accent shadow-xs hover:brightness-120  duration-300  items-center justify-center active:scale-90 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+															className="flex h-10 gap-4 overflow-hidden text-ellipsis bg-button zzz-fg-text button-like text-accent shadow-xs hover:brightness-120  duration-300  items-center justify-center active:scale-90 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[0.1875rem] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
 															disabled={!item._aFiles || item._aFiles?.length == 0}
 														>
 															{{ Install: <DownloadIcon />, Reinstall: <Redo2Icon />, Update: <UploadIcon /> }[type]}
@@ -1032,7 +1032,7 @@ function RightOnline({ open }: { open: boolean }) {
 													{type !== "Install" && (
 														<Popover open={altPopoverOpen} onOpenChange={setAltPopoverOpen}>
 															<PopoverTrigger
-																className="w-10 flex h-10 gap-4 overflow-hidden text-ellipsis button-like zzz-fg-text bg-button text-accent shadow-xs hover:brightness-120  duration-300  items-center justify-center active:scale-90 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+																className="w-10 flex h-10 gap-4 overflow-hidden text-ellipsis button-like zzz-fg-text bg-button text-accent shadow-xs hover:brightness-120  duration-300  items-center justify-center active:scale-90 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[0.1875rem] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
 																disabled={!item._aFiles || item._aFiles?.length == 0}
 															>
 																<EllipsisVerticalIcon />
@@ -1049,7 +1049,7 @@ function RightOnline({ open }: { open: boolean }) {
 												{installedItems.length > 1 && (
 													<Popover open={installedItemPopoverOpen} onOpenChange={setInstalledItemPopoverOpen}>
 														<PopoverTrigger
-															className="flex w-full h-10 gap-2 overflow-hidden text-ellipsis bg-button zzz-fg-text button-like text-accent shadow-xs hover:brightness-120  duration-300  items-center justify-center active:scale-90 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
+															className="flex w-full h-10 gap-2 overflow-hidden text-ellipsis bg-button zzz-fg-text button-like text-accent shadow-xs hover:brightness-120  duration-300  items-center justify-center active:scale-90 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[0.1875rem] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive"
 															disabled={!item._aFiles || item._aFiles?.length == 0}
 														>
 															{installedItem != -1 ? (
@@ -1078,7 +1078,7 @@ function RightOnline({ open }: { open: boolean }) {
 																<Button
 																	className="min-h-fit data-wuwa:p-2 flex items-center justify-center min-w-full gap-1 p-1 overflow-hidden"
 																	style={{
-																		borderRadius: game == "GI" ? "4px" : "4px",
+																		borderRadius: "0.25rem",
 																	}}
 																	onClick={() => {
 																		setInstalledItem(index);

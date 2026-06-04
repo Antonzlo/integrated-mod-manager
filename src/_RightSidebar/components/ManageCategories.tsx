@@ -231,7 +231,7 @@ function ManageCategories() {
 							{cat._sName}
 						</Label>
 
-						<EditIcon className="z-20 h-full min-w-5 p-[3px] text-accent cursor-pointer" />
+						<EditIcon className="z-20 h-full min-w-5 p-[0.1875rem] text-accent cursor-pointer" />
 					</div>
 				))}
 			</div>

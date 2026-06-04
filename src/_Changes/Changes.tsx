@@ -131,7 +131,7 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 								className={"w-full flex  flex-col"}
 								style={{
 									backgroundColor: index % 2 == 0 ? "#1b1b1b50" : "#31313150",
-									borderBottom: index == changes.after.length - 1 ? "" : "1px solid var(--border)",
+									borderBottom: index == changes.after.length - 1 ? "" : "0.0625rem solid var(--border)",
 								}}
 							>
 								<div className={"w-full border-b  min-h-10 gap-2 flex items-center px-2"}>
@@ -146,8 +146,8 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 												className={"w-full min-h-10 bor der-y flex gap-2 items-center px-2 "}
 												style={{
 													backgroundColor: index % 2 == 0 ? "#1b1b1b50" : "#31313150",
-													borderBottom: child.children?.length == 0 ? "" : "1px solid var(--border)",
-													borderTop: index == 0 ? "" : "1px solid var(--border)",
+													borderBottom: child.children?.length == 0 ? "" : "0.0625rem solid var(--border)",
+													borderTop: index == 0 ? "" : "0.0625rem solid var(--border)",
 												}}
 											>
 												{child.icon ? (
@@ -175,7 +175,7 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 																style={{
 																	backgroundColor: index % 2 == 0 ? "#1b1b1b50" : "#31313150",
 																	borderBottom:
-																		index == (child.children?.length || 0) - 1 ? "" : "1px dashed var(--border)",
+																		index == (child.children?.length || 0) - 1 ? "" : "0.0625rem dashed var(--border)",
 																}}
 															>
 																{grandchild.icon ? (

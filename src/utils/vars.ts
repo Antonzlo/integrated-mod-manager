@@ -24,6 +24,7 @@ interface UpdateInfo {
 	body: string;
 	raw: any | null;
 }
+const SCALE = atomWithStorage("imm-scale", 0);
 const INIT_DONE = atom(false);
 const MAIN_FUNC_STATUS = atom("" as String);
 const FIRST_LOAD = atom(false);
@@ -184,4 +185,5 @@ export {
 	LAST_UPDATED,
 	SELECTED,
 	SORT,
+	SCALE
 };

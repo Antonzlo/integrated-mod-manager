@@ -109,8 +109,8 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 				<AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
 					<AlertDialogContent className="game-font bg-background/50 backdrop-blur-xs border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg"
 					style={{
-						minWidth:alertType === "xxmi"?"700px":"",
-						maxWidth:alertType === "xxmi"?"700px":""
+						minWidth:alertType === "xxmi"?"43.75rem":"",
+						maxWidth:alertType === "xxmi"?"43.75rem":""
 					}}
 					>
 						{alertType === "xxmi" ? (

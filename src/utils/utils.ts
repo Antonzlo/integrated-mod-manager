@@ -280,7 +280,7 @@ export function handleInAppLink(url: string) {
 	}
 }
 export function useInstalledItemsManager() {
-	// document.documentElement.style.fontSize = "20px"
+	
 	const [installedItems, setInstalledItems] = useAtom(INSTALLED_ITEMS);
 	const localData = useAtomValue(DATA);
 	const modList = useAtomValue(MOD_LIST);
@@ -408,7 +408,7 @@ export function useInstalledItemsManager() {
 				}
 				if (modsProgressContainer) {
 					setTimeout(() => {
-						modsProgressContainer.style.bottom = "-48px";
+						modsProgressContainer.style.bottom = "-3rem";
 					}, 500);
 				}
 				setInstalledItems([

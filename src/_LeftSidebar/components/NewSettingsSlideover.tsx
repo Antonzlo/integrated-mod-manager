@@ -619,8 +619,8 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 					<AlertDialogContent
 						className="game-font bg-background/50 backdrop-blur-xs border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg"
 						style={{
-							minWidth: alertType === "xxmi" ? "700px" : "",
-							maxWidth: alertType === "xxmi" ? "700px" : "",
+							minWidth: alertType === "xxmi" ? "43.75rem" : "",
+							maxWidth: alertType === "xxmi" ? "43.75rem" : "",
 						}}
 					>
 						{alertType === "xxmi" ? (
@@ -729,7 +729,7 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 						<div
 							className="absolute w-[calc(100%-1rem)] rounded-lg h-16 mt-2 z-0 duration-300 bg-accent"
 							style={{
-								top: curMenu * 76.5 + "px",
+								top: curMenu * 4.78125 + "rem",
 							}}
 						/>
 						{options.map((option, index) => {
@@ -742,7 +742,7 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 										className="z-1  text-accent hover:text-background group as flex-col w-20 h-16 gap-0.5"
 										style={{
 											color: curMenu == index ? "var(--background)" : "",
-											borderRadius: "8px",
+											borderRadius: "0.5rem",
 										}}
 										onClick={() => {
 											setCurMenu(index);
@@ -779,7 +779,7 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 					</div>
 					<div
 						id="parent-container"
-						className="flex flex-col w-[calc(100%-96px)] border-l max-h-[calc(100vh-50px)] pb-[90vh] gap-2 px-4 shrink-0 h-full overflow-y-scroll overflow-x-hidden"
+						className="flex flex-col w-[calc(100%-6rem)] border-l max-h-[calc(100vh-3.125rem)] pb-[90vh] gap-2 px-4 shrink-0 h-full overflow-y-scroll overflow-x-hidden"
 						onScroll={(e) => {
 							const cur = e.currentTarget;
 							const children = Array.from(cur.children) as HTMLDivElement[];

@@ -111,11 +111,11 @@ function LeftSidebar() {
 						</div>
 					</div>
 					<Separator
-						className="w-full ease-linear duration-200 min-h-[1px] my-2.5 bg-border"
+						className="w-full ease-linear duration-200 min-h-[0.0625rem] my-2.5 bg-border"
 						style={{
 							opacity: leftSidebarOpen ? "0" : "",
 							height: leftSidebarOpen ? "0px" : "",
-							marginBlock: leftSidebarOpen ? "4px" : "",
+							marginBlock: leftSidebarOpen ? "0.25rem" : "",
 						}}
 					/>
 					<div className="flex flex-row w-full h-full max-h-full p-0 overflow-hidden">
@@ -130,7 +130,7 @@ function LeftSidebar() {
 						</AnimatePresence>
 					</div>
 
-					<Separator className="w-full ease-linear duration-200 min-h-[1px]  bg-border" />
+					<Separator className="w-full ease-linear duration-200 min-h-[0.0625rem]  bg-border" />
 					<SidebarFooter className="min-h-fit flex flex-col items-center justify-between w-full gap-2 overflow-hidden duration-200">
 						<Downloads />
 						{leftSidebarOpen ? (
@@ -159,7 +159,7 @@ function LeftSidebar() {
 											disabled={!!customMode}
 											className="bg-tra absolute flex active:scale-100 items-center justify-end h-40 w-40 bg-transparent border rounded-full ml-0.5 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
 										>
-											<div className="w-20 h-20 rounded-tr-full mt-4 -mr-3 text-[10px] flex flex-col items-center justify-center  -translate-y-1/2">
+											<div className="w-20 h-20 rounded-tr-full mt-4 -mr-3 text-[0.625rem] flex flex-col items-center justify-center  -translate-y-1/2">
 												<PlayIcon className="min-w-6 min-h-6 " />
 											</div>
 										</Button>

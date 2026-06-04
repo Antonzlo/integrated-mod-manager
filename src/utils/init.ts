@@ -13,6 +13,7 @@ import {
 	PRESETS,
 	resetAtoms,
 	SAVED_LANG,
+	SCALE,
 	SETTINGS,
 	SOURCE,
 	store,

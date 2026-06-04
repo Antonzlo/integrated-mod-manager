@@ -90,7 +90,7 @@ function JSONEditor({
 							}}
 							className="min-w-6 w-6 h-4 pl-2 duration-200 cursor-pointer pointer-events-auto"
 							style={{
-								transform: open ? "rotate(90deg) translateX(-5px) translateY(-2px)" : "",
+								transform: open ? "rotate(90deg) translateX(-0.3125rem) translateY(-0.125rem)" : "",
 								opacity: type === "object" ? 1 : 0,
 							}}
 						/>
@@ -189,7 +189,7 @@ function JSONEditor({
 									{k}
 								</Button>
 							) : (
-								<div className="w-[calc(100%-256px)]">{k}</div>
+								<div className="w-[calc(100%-16rem)]">{k}</div>
 							)}
 							{type == "object" ? (
 								<JSONEditor rootJSON={json[k]} rootKey={k} parent={[...parent, k]} onChange={onChange} even={!even} />

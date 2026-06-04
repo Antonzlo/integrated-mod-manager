@@ -19,6 +19,7 @@ import {
 	PRESETS,
 	REMOVE_OPEN,
 	SAVED_LANG,
+	SCALE,
 	SETTINGS,
 	SOURCE,
 	store,
@@ -147,6 +148,7 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 	const [settings, setSettings] = useAtom(SETTINGS);
 	const scrollTimer = useRef<number>(null);
 	const [alertOpen, setAlertOpen] = useState(false);
+	const [scale,setScale] = useAtom(SCALE);
 	// const [globalPage, setGlobalPage] = useState(true);
 	// const [dialogOpen, setDialogOpen] = useState(false);
 	const setRemoveOpen = useSetAtom(REMOVE_OPEN);
@@ -288,6 +290,26 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 								{ value: "1", icon: PauseIcon, label: textData._LeftSideBar._components._Settings._BgType.Static },
 								{ value: "2", icon: PlayIcon, label: textData._LeftSideBar._components._Settings._BgType.Dynamic },
 							]}
+						/>
+					</SettingRow>
+					<SettingRow label={"Scale"}>
+						<Slider
+							defaultValue={[scale]}
+							max={0}
+							min={-100}
+							step={1}
+							className="w-full m-1"
+							onValueChange={(e) => {
+								document.documentElement.style.fontSize = 16 * Math.pow(2,e[0]/50) + "px";
+								setScale(e[0]);
+							}}
+							onValueCommit={(e) => {
+								// setSettings((prev) => {
+								// 	prev.global.display.bgOpacity = e[0] / 100;
+								// 	return { ...prev };
+								// });
+								// saveConfigs();
+							}}
 						/>
 					</SettingRow>
 				</>
@@ -676,8 +698,8 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 					<AlertDialogContent
 						className="game-font bg-background/50 backdrop-blur-xs border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg"
 						style={{
-							minWidth: alertType === "xxmi" ? "700px" : "",
-							maxWidth: alertType === "xxmi" ? "700px" : "",
+							minWidth: alertType === "xxmi" ? "43.75rem" : "",
+							maxWidth: alertType === "xxmi" ? "43.75rem" : "",
 						}}
 					>
 						{alertType === "xxmi" ? (
@@ -792,7 +814,7 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 						<div
 							className="absolute w-[calc(100%-1rem)] rounded-lg h-16 mt-2 z-0 duration-300 bg-accent"
 							style={{
-								top: curMenu * 76.5 + "px",
+								top: curMenu * 4.78125 + "rem",
 							}}
 						/>
 						{options.map((option, index) => {
@@ -805,7 +827,7 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 										className="z-1  text-accent hover:text-background group as flex-col w-20 h-16 gap-0.5"
 										style={{
 											color: curMenu == index ? "var(--background)" : "",
-											borderRadius: "8px",
+											borderRadius: "0.5rem",
 										}}
 										onClick={() => {
 											setCurMenu(index);
@@ -842,7 +864,7 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 					</div>
 					<div
 						id="parent-container"
-						className="flex flex-col w-[calc(100%-96px)] max-h-116 pb-95 gap-2 px-4 shrink-0 h-full overflow-y-scroll overflow-x-hidden"
+						className="flex flex-col w-[calc(100%-6rem)] max-h-116 pb-95 gap-2 px-4 shrink-0 h-full overflow-y-scroll overflow-x-hidden"
 						onScroll={(e) => {
 							const cur = e.currentTarget;
 							const children = Array.from(cur.children) as HTMLDivElement[];

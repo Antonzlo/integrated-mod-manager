@@ -280,10 +280,11 @@ function MainLocal() {
 		if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
 		scrollTimeoutRef.current = setTimeout(() => {
 			if (containerRef.current) {
+				const scale = parseInt((document.documentElement.style.fontSize || "16px").replace("px", ""))/16;
 				const box = containerRef.current.getBoundingClientRect();
 				const scrollTop = containerRef.current.scrollTop;
-				const itemHeight = 304;
-				const itemWidth = 256;
+				const itemHeight = 304 * scale;
+				const itemWidth = 256 * scale;
 				const itemsPerRow = Math.floor((box.width - 10) / itemWidth);
 				info(itemsPerRow, itemWidth, box.width - 10);
 				setVisibleRange({

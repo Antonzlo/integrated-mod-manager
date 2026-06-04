@@ -411,7 +411,7 @@ function RightLocal() {
 							"---"
 						)}
 					</div>
-					<SidebarGroup className="min-h-48 max-h-48 overflow-hidden w-82 mt-1 data-zzz:rounded-[1px] border rounded-lg data-zzz:rounded-tr-2xl data-zzz:rounded-bl-2xl select-nzone">
+					<SidebarGroup className="min-h-48 max-h-48 overflow-hidden w-82 mt-1 data-zzz:rounded-[0.0625rem] border rounded-lg data-zzz:rounded-tr-2xl data-zzz:rounded-bl-2xl select-nzone">
 						{/* <EditIcon
 							onClick={() => {
 								item && savePreviewImage(item.path);
@@ -747,7 +747,7 @@ function RightLocal() {
 										className="transparent-bg w-1/2 h-8"
 										style={{
 											color: tab == "hotkeys" ? "var(--accent)" : "var(--muted-foreground)",
-											border: "1px solid var(--border)",
+											border: "0.0625rem solid var(--border)",
 											opacity: tab == "hotkeys" ? 1 : 0.4,
 										}}
 									>
@@ -759,7 +759,7 @@ function RightLocal() {
 										className="transparent-bg w-1/2 h-8"
 										style={{
 											color: tab !== "hotkeys" ? "var(--accent)" : "var(--muted-foreground)",
-											border: "1px solid var(--border)",
+											border: "0.0625rem solid var(--border)",
 											opacity: tab !== "hotkeys" ? 1 : 0.4,
 										}}
 									>

@@ -87,7 +87,7 @@ function ModPreview({
 
 			<div
 				{...getRootProps({
-					className: `h-64 w-128 border-[1.5px] border-dashed rounded items-center justify-center flex flex-col transition-colors ${
+					className: `h-64 w-128 border-[0.09375rem] border-dashed rounded items-center justify-center flex flex-col transition-colors ${
 						isDragActive ? "border-accent bg-accent/10" : "border-accent/30"
 					}`,
 				})}

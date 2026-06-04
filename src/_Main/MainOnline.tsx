@@ -108,12 +108,13 @@ function MainOnline() {
 
 		const box = containerRef.current.getBoundingClientRect();
 		let diff = 0;
+		const scale = parseInt((document.documentElement.style.fontSize || "16px").replace("px", ""))/16;
 		if (carouselRef.current) {
-			diff = carouselRef.current.getBoundingClientRect().height + 42;
+			diff = carouselRef.current.getBoundingClientRect().height + 42 * scale;
 		}
 		const scrollTop = containerRef.current.scrollTop - diff;
-		const itemHeight = 304;
-		const itemWidth = 256;
+		const itemHeight = 304 * scale;
+		const itemWidth = 256 *scale;
 		const itemsPerRow = Math.floor(box.width / itemWidth);
 
 		const newStart = Math.floor(scrollTop / itemHeight) * itemsPerRow;
