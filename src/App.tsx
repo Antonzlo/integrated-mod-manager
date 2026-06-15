@@ -1,6 +1,8 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import "./App.css";
 import {
+	ANIMATIONS,
+	BLUR,
 	CHANGES,
 	ERR,
 	GAME,
@@ -15,7 +17,7 @@ import {
 	SCALE,
 	SETTINGS,
 } from "./utils/vars";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, MotionGlobalConfig } from "motion/react";
 import Checklist from "./_Checklist/Checklist";
 import { initializeThemes } from "./utils/theme";
 import Changes from "./_Changes/Changes";
@@ -41,9 +43,11 @@ function App() {
 	const game = useAtomValue(GAME);
 	const changes = useAtomValue(CHANGES);
 	const settings = useAtomValue(SETTINGS);
+	const animations = useAtomValue(ANIMATIONS);
 	const leftSidebarOpen = useAtomValue(LEFT_SIDEBAR_OPEN);
 	// const setOnlineSelected = useSetAtom(ONLINE_SELECTED);
-	const scale = useAtomValue(SCALE)
+	const scale = useAtomValue(SCALE);
+	const blur = useAtomValue(BLUR);
 	const [rightSidebarOpen, setRightSidebarOpen] = useAtom(RIGHT_SIDEBAR_OPEN);
 	const [rightSlideOverOpen, setRightSlideOverOpen] = useAtom(RIGHT_SLIDEOVER_OPEN);
 	const setModList = useSetAtom(MOD_LIST);
@@ -61,9 +65,36 @@ function App() {
 		}
 	}, [err]);
 	useEffect(() => {
-		if(scale)
-		document.documentElement.style.fontSize = 16 * Math.pow(2,scale/50) + "px";
-	}, [scale]);
+		if (scale) document.documentElement.style.fontSize = 16 * Math.pow(2, scale / 50) + "px";
+		if (typeof blur === "number") {
+			document.documentElement.style.setProperty("--blur-xs", `${4 * blur}px`);
+			document.documentElement.style.setProperty("--blur-sm", `${8 * blur}px`);
+			document.documentElement.style.setProperty("--blur-md", `${12 * blur}px`);
+			document.documentElement.style.setProperty("--blur-2xl", `${40 * blur}px`);
+		}
+		if (!animations) {
+			const style = document.createElement("style");
+			style.id = "disabled-animations-override"; // Added unique ID
+			style.textContent = `
+    *, *::before, *::after {
+        animation-delay: 0s !important;
+        animation-duration: 0s !important;
+        animation-iteration-count: 1 !important;
+        transition-delay: 0s !important;
+        transition-duration: 0s !important;
+        scroll-behavior: auto !important;
+    }
+`;
+MotionGlobalConfig.skipAnimations = true;
+			document.head.appendChild(style);
+		} else {
+			const styleElement = document.getElementById("disabled-animations-override");
+			if (styleElement) {
+				styleElement.remove();
+			}
+			MotionGlobalConfig.skipAnimations = false;
+		}
+	}, [scale, blur, animations]);
 	useEffect(() => {
 		if (previousOnline !== online) {
 			setShowModeSwitch(true);
@@ -128,14 +159,16 @@ function App() {
 							exit={{ opacity: 0 }}
 							transition={{ duration: 0.3 }}
 							onClick={() => setRightSlideOverOpen(false)}
-							className="w-full pointer-events-auto h-full bg-background/40 backdrop-blur-[2px]"
+							className="w-full pointer-events-auto h-full bg-background/40 backdrop-blur-[calc(var(--blur-xs)*0.5)]"
 						/>
 					)}
 				</AnimatePresence>
 			</div>
-			
-			
-			<div id="mods-progress-container" className="fixed pointer-events-none -bottom-12 duration-300 text-[0.5rem] opacity-50 rounded-tl-md flex pl-2 gap-1.5 flex-row items-center right-0 h-8 w-72 bg-sidebar border z-10">
+
+			<div
+				id="mods-progress-container"
+				className="fixed pointer-events-none -bottom-12 duration-300 text-[0.5rem] opacity-50 rounded-tl-md flex pl-2 gap-1.5 flex-row items-center right-0 h-8 w-72 bg-sidebar border z-10"
+			>
 				Mods Checked :
 				<div className="w-42 border flex h-4 rounded-sm overflow-hidden">
 					<div id="mods-progress" className="bg-accent duration-100 h-full rounded-r-sm"></div>

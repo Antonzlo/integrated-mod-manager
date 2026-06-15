@@ -85,7 +85,7 @@ const CardLocal = React.memo(({ item, selected, lastUpdated, hasUpdate, updateAv
 			</div>
 			{item?.source && hasUpdate && (
 				<div
-					className="fadein backdrop-blur -mt-[calc(var(--card-height)-0.125rem)]
+					className="fadein backdrop-blur-sm -mt-[calc(var(--card-height)-0.125rem)]
 			 flex items-center w-full h-8 bg-background/50 pointer-events-none duration-200 justify-center border-y header-img"
 				>
 					{" "}

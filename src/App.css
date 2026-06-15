@@ -652,8 +652,8 @@ a {
 	padding-inline: 0.25rem;
 }
 .wbx {
-	backdrop-filter: blur(12px);
-	-webkit-backdrop-filter: blur(12px);
+	backdrop-filter: blur(var(--blur-md));
+	-webkit-backdrop-filter: blur(var(--blur-md));
 }
 .intro {
 	animation: intro 1.5s;

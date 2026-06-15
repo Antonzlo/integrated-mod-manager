@@ -25,6 +25,9 @@ interface UpdateInfo {
 	raw: any | null;
 }
 const SCALE = atomWithStorage("imm-scale", 0);
+const BLUR = atomWithStorage("imm-blur", 1);
+const ANIMATIONS = atomWithStorage("imm-animations", true);
+const BACKUP_INI = atomWithStorage("imm-backup-ini", false);
 const INIT_DONE = atom(false);
 const MAIN_FUNC_STATUS = atom("" as String);
 const FIRST_LOAD = atom(false);
@@ -185,5 +188,8 @@ export {
 	LAST_UPDATED,
 	SELECTED,
 	SORT,
-	SCALE
+	SCALE,
+	BLUR,
+	ANIMATIONS,
+	BACKUP_INI,
 };

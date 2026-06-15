@@ -52,7 +52,7 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 			exit={{ opacity: 0, filter: "blur(6px)" }}
 			className="bg-background/50 fixed z-50 flex items-center justify-center w-full h-full duration-200"
 			style={{
-				backdropFilter: "blur(5px)",
+				backdropFilter: "blur(var(--blur-xs))",
 				opacity: 1,
 			}}
 		>

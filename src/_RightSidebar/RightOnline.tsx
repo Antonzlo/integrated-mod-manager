@@ -488,7 +488,7 @@ function RightOnline({ open }: { open: boolean }) {
 					style={{
 						maxWidth: "47vw",
 						width: "50rem",
-						backdropFilter: "blur(8px)",
+						backdropFilter: "blur(var(--blur-sm))",
 						backgroundColor: "color-mix(in oklab, var(--sidebar) 75%, transparent)",
 					}}
 				>

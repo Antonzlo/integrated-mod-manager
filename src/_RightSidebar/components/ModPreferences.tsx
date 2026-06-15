@@ -360,7 +360,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 					marginBottom: !configMode ? 0 : "-1.5rem",
 					marginTop: !configMode ? 0 : "-1.5rem",
 				}}
-			className="bg-background/80 button-like text-border duration-200 backdrop-blur border-muted/20 sticky top-0 z-10 w-full px-10 items-center py-2 border rounded-md">
+			className="bg-background/80 button-like text-border duration-200 backdrop-blur-sm border-muted/20 sticky top-0 z-10 w-full px-10 items-center py-2 border rounded-md">
 				<div
 					className="text-border grid w-full -ml-2"
 					style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}

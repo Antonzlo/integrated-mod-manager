@@ -15,6 +15,9 @@ import { getCwd, setPrePostLaunch, setWindowType } from "@/utils/init";
 import TEXT from "@/textData.json";
 import { exportConfig, keySort } from "@/utils/utils";
 import {
+	ANIMATIONS,
+	BACKUP_INI,
+	BLUR,
 	INIT_DONE,
 	PRESETS,
 	REMOVE_OPEN,
@@ -149,6 +152,8 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 	const scrollTimer = useRef<number>(null);
 	const [alertOpen, setAlertOpen] = useState(false);
 	const [scale,setScale] = useAtom(SCALE);
+	const [animations,setAnimations] = useAtom(ANIMATIONS);
+	const [backupIni,setBackupIni] = useAtom(BACKUP_INI);	
 	// const [globalPage, setGlobalPage] = useState(true);
 	// const [dialogOpen, setDialogOpen] = useState(false);
 	const setRemoveOpen = useSetAtom(REMOVE_OPEN);
@@ -156,6 +161,7 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 		prev: keyof typeof TEXT;
 		new: keyof typeof TEXT;
 	});
+	const [blur,setBlur] = useAtom(BLUR);
 	const importConfig = async () => {
 		try {
 			const dialogOptions: any = {
@@ -312,6 +318,46 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							}}
 						/>
 					</SettingRow>
+					<SettingRow label={"Blur"}>
+						<Slider
+							defaultValue={[blur*50]}
+							max={100}
+							min={0}
+							step={5}
+							className="w-full m-1"
+							onValueChange={(e) => {
+								// document.documentElement.style.fontSize = 16 * Math.pow(2,e[0]/50) + "px";
+								setBlur(e[0] / 50);
+							}}
+							onValueCommit={(e) => {
+								// setSettings((prev) => {
+								// 	prev.global.display.bgOpacity = e[0] / 100;
+								// 	return { ...prev };
+								// });
+								// saveConfigs();
+							}}
+						/>
+					</SettingRow>
+					<SettingRow label={"Animations"}>
+						<SettingTabs
+							defaultValue={animations ? "1" : "0"}
+							onValueChange={(e) => {
+								setAnimations(e === "1");
+							}}
+							options={[
+								{
+									value: "0",
+									icon: XIcon,
+									label: "Off",
+								},
+								{
+									value: "1",
+									icon: CheckIcon,
+									label: "On",
+								},
+							]}
+						/>
+					</SettingRow>
 				</>
 			),
 		},
@@ -367,6 +413,26 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 									},
 								});
 								saveConfigs();
+							}}
+							options={[
+								{
+									value: "0",
+									icon: XIcon,
+									label: "Off",
+								},
+								{
+									value: "1",
+									icon: CheckIcon,
+									label: "On",
+								},
+							]}
+						/>
+					</SettingRow>
+					<SettingRow label={"Backup INIs before Updates"}>
+						<SettingTabs
+							defaultValue={backupIni ? "1" : "0"}
+							onValueChange={(e) => {
+								setBackupIni(e === "1");
 							}}
 							options={[
 								{
