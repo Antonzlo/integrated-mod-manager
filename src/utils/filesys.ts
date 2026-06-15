@@ -1649,7 +1649,9 @@ async function updatePrefsIniFromData(modPath: string, oldPath = "") {
 				const x = data.vars[key][Var];
 				const line =
 					`$\\${key.endsWith(".ini") ? `mods\\${managedTGT}\\${modPath}\\` : ""}${key}\\${Var}`.toLowerCase();
-				lines[line] = x.pref ?? x.state;
+				const value = x.pref ?? x.state;
+				//lines[line] = x.pref ?? x.state;
+				lines[line] = value === undefined || value === null ? "" : String(value);
 				if (lines[line] === undefined || lines[line] === null || lines[line] === "") delete lines[line];
 				else info(`[IMM] Updating Mod: ${modPath} | File: ${key} | Added Line: ${line}`);
 			}

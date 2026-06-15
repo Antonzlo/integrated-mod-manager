@@ -51,11 +51,6 @@ const modKeys = [
 	"crop",
 	"maxed",
 ];
-let searchDB: any = null;
-let prev = "prev";
-let prevEnabled = "noData";
-let filterChangeCount = 0;
-let timeout: any = null;
 function MainLocal() {
 	const initDone = useAtomValue(INIT_DONE);
 	const textData = useAtomValue(TEXT_DATA);
@@ -82,40 +77,44 @@ function MainLocal() {
 	const toggleOn = useAtomValue(SETTINGS).global.local.toggleClick;
 	const sort = useAtomValue(SORT);
 	const scrollTimeoutRef = useRef<number | null>(null);
-	console.log(modList);
+	const searchDBRef = useRef<MiniSearch<Mod> | null>(null);
+	const prevKeyRef = useRef("prev");
+	const prevEnabledRef = useRef("noData");
+	const filterChangeCountRef = useRef(0);
+	const changeTimeoutRef = useRef<number | null>(null);
 	// const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 	const keyRef = useRef<string | null>(null);
 	useEffect(() => {
-		if (!searchDB && modList.length > 0) {
-			searchDB = new MiniSearch({
+		if (!searchDBRef.current && modList.length > 0) {
+			searchDBRef.current = new MiniSearch<Mod>({
 				idField: "path",
 				fields: ["name", "parent", "path"],
 				storeFields: modKeys,
 				searchOptions: { prefix: true, fuzzy: 0.2 },
 			});
 		}
-		if (searchDB) {
-			searchDB.removeAll();
-			searchDB.addAll(modList);
+		if (searchDBRef.current) {
+			searchDBRef.current.removeAll();
+			searchDBRef.current.addAll(modList);
 		}
 
 		if (!initDone) {
-			prevEnabled = "noData";
+			prevEnabledRef.current = "noData";
 		} else {
 			const enabled = modList
 				.filter((m) => m.enabled)
 				.map((m) => m.path)
 				.join(",");
-			if (prevEnabled !== enabled) {
-				if (timeout) {
-					clearTimeout(timeout);
+			if (prevEnabledRef.current !== enabled) {
+				if (changeTimeoutRef.current) {
+					clearTimeout(changeTimeoutRef.current);
 				}
-				timeout = setTimeout(() => {
+				changeTimeoutRef.current = setTimeout(() => {
 					setChange();
 				}, 250);
 			}
 
-			prevEnabled = enabled;
+			prevEnabledRef.current = enabled;
 		}
 		function checkForHashCollisions() {
 			const allHashes: { [key: string]: Set<string> } = {};
@@ -173,23 +172,23 @@ function MainLocal() {
 		checkForHashCollisions();
 	}, [modList]);
 	useEffect(() => {
-		filterChangeCount += 1;
+		filterChangeCountRef.current += 1;
 	}, [filter, category, search, sort]);
 	useEffect(() => {
-		keyRef.current = `${filter}-${category}-${search}-${modList.length}-${filterChangeCount}-${sort}`;
-		if (prev !== keyRef.current) {
+		keyRef.current = `${filter}-${category}-${search}-${modList.length}-${filterChangeCountRef.current}-${sort}`;
+		if (prevKeyRef.current !== keyRef.current) {
 			if (containerRef.current) {
 				containerRef.current.scrollTo({ top: 0 });
 			}
 			setVisibleRange({ start: -1, end: -1 });
 			setInitial(true);
 		}
-		prev = keyRef.current;
+		prevKeyRef.current = keyRef.current;
 		let newList: Mod[] = [...modList];
 		if (search && search.includes("https://") && search.includes("gamebanana.com")) {
 			newList = newList.filter((mod) => mod.source == search);
-		} else if (searchDB && search) {
-			newList = searchDB.search(search);
+		} else if (searchDBRef.current && search) {
+			newList = searchDBRef.current.search(search) as unknown as Mod[];
 		}
 		Object.entries(filter).forEach(([key, value]) => {
 			let modifier = (mod: Mod) => !!mod;
@@ -245,7 +244,7 @@ function MainLocal() {
 		}
 
 		setFilteredList(newList);
-	}, [modList, filter, category, search, filterChangeCount, sort]);
+	}, [modList, filter, category, search, sort]);
 
 	const handleClick = async (e: MouseEvent, mod: Mod) => {
 		const click = e.button;
@@ -261,7 +260,7 @@ function MainLocal() {
 				const details = await getModDetails(mod.path)
 			}
 			let success = await toggleMod(mod.path, !mod.enabled);
-			console.log("Toggled mod:", mod.path, "New state:", !mod.enabled, "Success:", success);
+			info("Toggled mod:", mod.path, "New state:", !mod.enabled, "Success:", success);
 			if (success)
 				setModList((prev) => {
 					return prev.map((m) => {

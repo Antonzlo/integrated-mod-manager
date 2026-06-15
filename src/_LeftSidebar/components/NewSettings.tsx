@@ -18,6 +18,7 @@ import {
 	ANIMATIONS,
 	BACKUP_INI,
 	BLUR,
+	DEV_HIDE_PREVIEWS,
 	INIT_DONE,
 	PRESETS,
 	REMOVE_OPEN,
@@ -154,6 +155,7 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 	const [scale,setScale] = useAtom(SCALE);
 	const [animations,setAnimations] = useAtom(ANIMATIONS);
 	const [backupIni,setBackupIni] = useAtom(BACKUP_INI);	
+	const [devHidePreviews,setDevHidePreviews] = useAtom(DEV_HIDE_PREVIEWS);
 	// const [globalPage, setGlobalPage] = useState(true);
 	// const [dialogOpen, setDialogOpen] = useState(false);
 	const setRemoveOpen = useSetAtom(REMOVE_OPEN);
@@ -743,6 +745,27 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							{textData._LeftSideBar._components._RemoveIMM.RemoveIMM}
 						</Button>
 					</SettingRow>
+					{import.meta.env.DEV && <SettingRow label={"Local preview images"}>
+						<SettingTabs
+							defaultValue={devHidePreviews ? "1" : "0"}
+							onValueChange={(e) => {
+								setDevHidePreviews(e === "1");
+								document.getElementById("refresh-btn")?.click();
+							}}
+							options={[
+								{
+									value: "0",
+									icon: EyeIcon,
+									label: "Show",
+								},
+								{
+									value: "1",
+									icon: EyeOffIcon,
+									label: "Hide",
+								},
+							]}
+						/>
+					</SettingRow>}
 				</>
 			),
 		},

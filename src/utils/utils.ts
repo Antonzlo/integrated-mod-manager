@@ -2,10 +2,12 @@ import { useEffect } from "react";
 import { IMAGE_SERVER, managedSRC } from "./consts";
 import {
 	DATA,
+	DEV_HIDE_PREVIEWS,
 	FILE_TO_DL,
 	FILTER,
 	GAME,
 	INSTALLED_ITEMS,
+	MOD_CHECK_PROGRESS,
 	MOD_LIST,
 	ONLINE,
 	ONLINE_DATA,
@@ -27,6 +29,10 @@ import { save } from "@tauri-apps/plugin-dialog";
 
 export { join };
 let IMAGE_SERVER_URL = IMAGE_SERVER;
+let HIDE_PREVIEWS = false;
+store.sub(DEV_HIDE_PREVIEWS, () => {
+	HIDE_PREVIEWS = store.get(DEV_HIDE_PREVIEWS);
+});
 export function setImageServer(url: string) {
 	IMAGE_SERVER_URL = url;
 }
@@ -104,7 +110,7 @@ store.sub(SETTINGS, () => {
 	check = store.get(SETTINGS).global.chkModUpdates;
 });
 export function getImageUrl(path: string): string {
-	return `${IMAGE_SERVER_URL}x/${src}/${managedSRC}/${path}`;
+	return HIDE_PREVIEWS?"":`${IMAGE_SERVER_URL}/${src}/${managedSRC}/${path}`;
 }
 const PRIORITY_KEYS = ["Alt", "Ctrl", "Shift", "Capslock", "Tab", "Up", "Down", "Left", "Right"];
 const PRIORITY_SET = new Set(PRIORITY_KEYS);
@@ -280,7 +286,6 @@ export function handleInAppLink(url: string) {
 	}
 }
 export function useInstalledItemsManager() {
-	
 	const [installedItems, setInstalledItems] = useAtom(INSTALLED_ITEMS);
 	const localData = useAtomValue(DATA);
 	const modList = useAtomValue(MOD_LIST);
@@ -337,20 +342,12 @@ export function useInstalledItemsManager() {
 				if (initialCheck) {
 					setInstalledItems(itemsToProcess);
 				}
-				console.log("cache", checked);
 				// Process items in batches of 10
 				const batchSize = 10;
 				const processedItems: any[] = [];
 				const totalItems = itemsToProcess.length;
 				const startTime = Date.now();
-				const modsProgressContainer = document.getElementById("mods-progress-container");
-				const modsProgressBar = document.getElementById("mods-progress");
-				const modsCheckedLabel = document.getElementById("mods-checked");
-				const modsTotalLabel = document.getElementById("mods-total");
-				if (modsProgressContainer && modsTotalLabel) {
-					modsTotalLabel.innerText = totalItems.toString();
-					modsProgressContainer.style.bottom = "0px";
-				}
+				store.set(MOD_CHECK_PROGRESS, { open: totalItems > 0, checked: 0, total: totalItems });
 				if (!check) info("[IMM] Mod update checking is disabled.");
 				for (let i = 0; i < itemsToProcess.length; i += batchSize) {
 					const batch = itemsToProcess.slice(i, i + batchSize);
@@ -365,10 +362,7 @@ export function useInstalledItemsManager() {
 					const checkedCount = Math.min(i + batchSize, totalItems);
 					// const newCount = processedItems.filter((item) => item.modStatus === 2).length;
 
-					if (modsProgressBar && modsCheckedLabel) {
-						modsProgressBar.style.width = `${(checkedCount / totalItems) * 100}%`;
-						modsCheckedLabel.innerText = checkedCount.toString();
-					}
+					store.set(MOD_CHECK_PROGRESS, { open: totalItems > 0, checked: checkedCount, total: totalItems });
 					// Add 1s delay between batches (except after the last batch)
 					if (i + batchSize < itemsToProcess.length && newInBatch.length > 0) {
 						await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -376,7 +370,7 @@ export function useInstalledItemsManager() {
 				}
 
 				const newCount = processedItems.filter((item) => item.modStatus === 2).length;
-				console.log("[IMM] Mod status check completed. New updates found:", newCount);
+				info("[IMM] Mod status check completed. New updates found:", newCount);
 				// Save the updated cache to localStorage
 				saveCheckedCache(checked);
 
@@ -406,11 +400,9 @@ export function useInstalledItemsManager() {
 						Math.max(3500 - (Date.now() - startTime), 0)
 					);
 				}
-				if (modsProgressContainer) {
-					setTimeout(() => {
-						modsProgressContainer.style.bottom = "-3rem";
-					}, 500);
-				}
+				setTimeout(() => {
+					store.set(MOD_CHECK_PROGRESS, { open: false, checked: totalItems, total: totalItems });
+				}, 500);
 				setInstalledItems([
 					...processedItems.sort((a: any, b: any) => {
 						const flagDiff = b.modStatus - a.modStatus;

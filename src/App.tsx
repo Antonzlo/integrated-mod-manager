@@ -4,11 +4,13 @@ import {
 	ANIMATIONS,
 	BLUR,
 	CHANGES,
+	DEV_HIDE_PREVIEWS,
 	ERR,
 	GAME,
 	INIT_DONE,
 	LANG,
 	LEFT_SIDEBAR_OPEN,
+	MOD_CHECK_PROGRESS,
 	MOD_LIST,
 	ONLINE,
 	PROGRESS_OVERLAY,
@@ -21,7 +23,7 @@ import { AnimatePresence, motion, MotionGlobalConfig } from "motion/react";
 import Checklist from "./_Checklist/Checklist";
 import { initializeThemes } from "./utils/theme";
 import Changes from "./_Changes/Changes";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { refreshModList, saveConfigs } from "./utils/filesys";
 import { SidebarProvider } from "./components/ui/sidebar";
 import LeftSidebar from "./_LeftSidebar/Left";
@@ -31,10 +33,9 @@ import RightOnline from "./_RightSidebar/RightOnline";
 import { main } from "./utils/init";
 import ToastProvider from "./_Toaster/ToastProvider";
 import Progress from "./_Progress/Progress";
+import { setImageServer } from "./utils/utils";
 // import { Button } from "./components/ui/button";
 
-initializeThemes();
-main();
 function App() {
 	const initDone = useAtomValue(INIT_DONE);
 	const lang = useAtomValue(LANG);
@@ -51,19 +52,32 @@ function App() {
 	const [rightSidebarOpen, setRightSidebarOpen] = useAtom(RIGHT_SIDEBAR_OPEN);
 	const [rightSlideOverOpen, setRightSlideOverOpen] = useAtom(RIGHT_SLIDEOVER_OPEN);
 	const setModList = useSetAtom(MOD_LIST);
+	const modCheckProgress = useAtomValue(MOD_CHECK_PROGRESS);
 	const progressOverlay = useAtomValue(PROGRESS_OVERLAY);
 	const [_, setShowModeSwitch] = useState(false);
 	const [previousOnline, setPreviousOnline] = useState(online);
+	const initializedRef = useRef(false);
+	const devHidePreviews = useAtomValue(DEV_HIDE_PREVIEWS);
 	const afterInit = useCallback(async () => {
 		saveConfigs();
 		setModList(await refreshModList());
 		return Promise.resolve();
 	}, []);
 	useEffect(() => {
+		if (initializedRef.current) return;
+		initializedRef.current = true;
+		initializeThemes();
+		main();
+	}, []);
+	useEffect(() => {
 		if (err) {
 			throw new Error(err);
 		}
 	}, [err]);
+	// useEffect(() => {
+	// 	if(devHidePreviews && import.meta.env.DEV)
+	// 	setImageServer("");
+	// }, [devHidePreviews]);
 	useEffect(() => {
 		if (scale) document.documentElement.style.fontSize = 16 * Math.pow(2, scale / 50) + "px";
 		if (typeof blur === "number") {
@@ -85,7 +99,7 @@ function App() {
         scroll-behavior: auto !important;
     }
 `;
-MotionGlobalConfig.skipAnimations = true;
+			MotionGlobalConfig.skipAnimations = true;
 			document.head.appendChild(style);
 		} else {
 			const styleElement = document.getElementById("disabled-animations-override");
@@ -166,17 +180,26 @@ MotionGlobalConfig.skipAnimations = true;
 			</div>
 
 			<div
-				id="mods-progress-container"
-				className="fixed pointer-events-none -bottom-12 duration-300 text-[0.5rem] opacity-50 rounded-tl-md flex pl-2 gap-1.5 flex-row items-center right-0 h-8 w-72 bg-sidebar border z-10"
+				className="fixed pointer-events-none duration-300 text-[0.5rem] opacity-50 rounded-tl-md flex pl-2 gap-1.5 flex-row items-center right-0 h-8 w-72 bg-sidebar border z-10"
+				style={{ bottom: modCheckProgress.open ? "0px" : "-3rem" }}
+				role="progressbar"
+				aria-valuemin={0}
+				aria-valuemax={modCheckProgress.total}
+				aria-valuenow={modCheckProgress.checked}
 			>
 				Mods Checked :
 				<div className="w-42 border flex h-4 rounded-sm overflow-hidden">
-					<div id="mods-progress" className="bg-accent duration-100 h-full rounded-r-sm"></div>
+					<div
+						className="bg-accent duration-100 h-full rounded-r-sm"
+						style={{
+							width: `${modCheckProgress.total ? (modCheckProgress.checked / modCheckProgress.total) * 100 : 0}%`,
+						}}
+					></div>
 				</div>
 				<div className="flex font-en min-w-fit text-center flex-col">
-					<label id="mods-checked">88</label>
+					<label>{modCheckProgress.checked}</label>
 					<div className="w-full h-[0.0625rem] bg-border rounded-full"></div>
-					<label id="mods-total">9999</label>
+					<label>{modCheckProgress.total}</label>
 				</div>
 			</div>
 			<AnimatePresence>{(!initDone || !lang || !game) && <Checklist />}</AnimatePresence>

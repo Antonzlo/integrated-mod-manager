@@ -257,6 +257,7 @@ function TopBar() {
 			</div>
 			<Notice />
 			<Button
+				id="refresh-btn"
 				onClick={() => {
 					if (online) {
 						const curPath = onlinePath;

@@ -67,13 +67,19 @@ export interface ModData {
 	note?: string;
 	namespaces?: Record<string, string>;
 	// state?: { [key: string]: any };
-	vars?: { [key: string]: any };
+	vars?: Record<string, Record<string, ModVarValue>>;
 	crop?: {
 		scale?: number;
 		x?: number;
 		y?: number;
 		vertical?: boolean;
 	};
+}
+export interface ModVarValue {
+	pref?: unknown;
+	reset?: unknown;
+	name?: string;
+	state?: unknown;
 }
 export interface ModDataObj {
 	[key: string]: ModData;
@@ -162,6 +168,26 @@ export interface ProgressData {
 	open: boolean;
 	name: string;
 }
+export interface ModCheckProgressData {
+	open: boolean;
+	checked: number;
+	total: number;
+}
+export type ToastType = "success" | "error" | "info" | "warning";
+export interface ToastData {
+	id: number;
+	type: ToastType;
+	message: string;
+	onClick: null | (() => void);
+}
+export interface NoticeData {
+	heading: string;
+	subheading: string;
+	ignoreable: number;
+	timer: number;
+	ver: string;
+	id: number;
+}
 export interface InstalledItem {
 	name: string;
 	source: string;
@@ -213,8 +239,8 @@ export interface OnlineMod {
 	_tsDateModified?: number;
 	_tsDateUpdated?: number;
 	_bHasFiles?: boolean;
-	_aTags?: any[];
-	_aFiles?: any[];
+	_aTags?: unknown[];
+	_aFiles?: unknown[];
 	_aPreviewMedia?: OnlineModPreviewMedia;
 	_aSubmitter: OnlineModSubmitter;
 	_aRootCategory: OnlineModCategory;
@@ -228,7 +254,7 @@ export interface OnlineMod {
 	_nViewCount?: number;
 	_bIsOwnedByAccessor?: boolean;
 	_sImageUrl?: string;
-	_aComments?: any[];
+	_aComments?: unknown[];
 	_sPeriod?: "today" | "yesterday" | "week" | "month" | "3month" | "6month" | "year" | "alltime";
 }
 export interface OnlineData {
