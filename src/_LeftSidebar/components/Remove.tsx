@@ -16,7 +16,7 @@ import { exportConfig } from "@/utils/utils";
 import { CATEGORIES, REMOVE_OPEN, SETTINGS, TARGET, TEXT_DATA } from "@/utils/vars";
 import { useAtom, useAtomValue } from "jotai";
 import { CheckCircleIcon, ChevronLeftIcon, CircleIcon, FolderIcon, InfoIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 type keys = "category" | "enable" | "data" | "modData" | "presetData";
 
 function Remove() {
@@ -34,6 +34,7 @@ function Remove() {
 	const [settings, setSettings] = useAtom(SETTINGS);
 	const textData = useAtomValue(TEXT_DATA);
 	const [disableButtons, setDisableButtons] = useState(false);
+	const reloadIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 	const [progress, setProgress] = useState({
 		started: false,
 		index: 0,
@@ -92,12 +93,16 @@ function Remove() {
 	};
 	useEffect(() => {
 		if (progress.started && progress.index == progress.max) {
+			if (reloadIntervalRef.current) return;
 			let time = 5;
 			let timer = null as any;
-			setInterval(async () => {
+			reloadIntervalRef.current = setInterval(async () => {
 				if (!timer) timer = document.getElementById("reloadTimer");
-				if (timer && time >= 0) timer.innerText = textData._LeftSideBar._components._RemoveIMM.AppRL.replace("<s/>", Math.ceil(time).toString());
+				if (timer && time >= 0)
+					timer.innerText = textData._LeftSideBar._components._RemoveIMM.AppRL.replace("<s/>", Math.ceil(time).toString());
 				if (time <= 0) {
+					if (reloadIntervalRef.current) clearInterval(reloadIntervalRef.current);
+					reloadIntervalRef.current = null;
 					setSettings((prev) => ({ ...prev, global: { ...prev.global, game: "" } }));
 					await saveConfigs();
 					window.location.reload();
@@ -105,6 +110,12 @@ function Remove() {
 				time -= 0.1;
 			}, 100);
 		}
+		return () => {
+			if (reloadIntervalRef.current && (!progress.started || progress.index < progress.max)) {
+				clearInterval(reloadIntervalRef.current);
+				reloadIntervalRef.current = null;
+			}
+		};
 	}, [progress]);
 	return (
 		<Dialog open={removeOpen || progress.started} onOpenChange={setRemoveOpen}>

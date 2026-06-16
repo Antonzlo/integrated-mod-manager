@@ -79,7 +79,7 @@ function BottomBar() {
 												return;
 											}
 											if (onlinePath.startsWith("Skins/" + cat._sName)) {
-												setOnlinePath("home&type=" + onlineType);
+												setOnlinePath("home&_type=" + onlineType);
 												return;
 											}
 											setOnlinePath(`Skins/${cat._sName}&_sort=${onlineSort}`);

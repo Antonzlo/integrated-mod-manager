@@ -69,7 +69,7 @@ function TopBar() {
 				}
 				if (online) {
 					if (term.trim() === "") {
-						setOnlinePath("home&type=" + onlineType);
+						setOnlinePath("home&_type=" + onlineType);
 					} else {
 						setOnlinePath(`search/${term}&_type=${onlineType}`);
 					}

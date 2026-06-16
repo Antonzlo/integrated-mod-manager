@@ -160,7 +160,7 @@ export const DEFAULTS = {
 	ONLINE_DATA: {} as OnlineData,
 	ONLINE_TYPE: "Mod",
 	ONLINE_SORT: "",
-	ONLINE_PATH: "home&type=Mod",
+	ONLINE_PATH: "home&_type=Mod",
 	ONLINE_SELECTED: "",
 };
 export const SORT_OPTIONS = Object.fromEntries(

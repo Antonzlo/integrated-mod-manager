@@ -61,9 +61,9 @@ function MainOnline() {
 		if (!res.ok) throw new Error(`Request failed with ${res.status}`);
 		const data = await res.json();
 		setOnlineData((prev) => {
-			prev[onlinePath] = [...(prev[onlinePath] as OnlineMod[]), ...data._aRecords];
 			return {
 				...prev,
+				[onlinePath]: [...((prev[onlinePath] as OnlineMod[]) || []), ...data._aRecords],
 			};
 		});
 		loadingRef.current = false;
@@ -79,6 +79,9 @@ function MainOnline() {
 		// Check if we're near the bottom (within 100px)
 		if (scrollHeight - scrollTop - clientHeight < 100) {
 			loadingRef.current = true;
+			pageCount[onlinePath] =
+				pageCount[onlinePath] ||
+				Math.max(1, Math.ceil((((onlineData[onlinePath] as OnlineMod[]) || []).length || 15) / 15));
 			pageCount[onlinePath]++;
 
 			if (maxRef.current > 0 && pageCount[onlinePath] - 1 > maxRef.current) {
@@ -166,11 +169,12 @@ function MainOnline() {
 				return res.json();
 			})
 			.then((data) => {
+				if (controller.signal.aborted) return;
 				maxRef.current = data._aMetadata._nRecordCount / (data?._aMetadata?._nPerPage || 15);
 				setOnlineData((prev) => {
-					prev[onlinePath] = data._aRecords;
 					return {
 						...prev,
+						[onlinePath]: data._aRecords,
 					};
 				});
 				setTimeout(() => {
@@ -208,6 +212,7 @@ function MainOnline() {
 				fetch(apiClient.banner(), { signal: controller.signal }).then((res) => {
 					if (!res.ok) throw new Error(`Request failed with ${res.status}`);
 					return res.json().then((data) => {
+						if (controller.signal.aborted) return;
 						setOnlineData((prev) => {
 							return {
 								...prev,
@@ -232,6 +237,11 @@ function MainOnline() {
 					initialLoad(apiClient.search({ term, type: onlineType, page: 1 }), onlinePath, controller);
 				else loadingRef.current = false;
 			}
+		} else {
+			const cached = (onlineData[onlinePath] as OnlineMod[]) || [];
+			pageCount[onlinePath] = Math.max(1, Math.ceil(cached.length / 15));
+			prevLoadedRef.current = Math.max(0, (pageCount[onlinePath] - 1) * 15);
+			loadingRef.current = false;
 		}
 		return () => {
 			controller.abort();
@@ -270,7 +280,7 @@ function MainOnline() {
 			ease: "easeOut" as const,
 			delay: initial ? 0.05 * index : 0,
 		}),
-		[]
+		[initial]
 	);
 
 	// Determine if item should be visible

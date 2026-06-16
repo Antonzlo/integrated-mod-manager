@@ -1047,7 +1047,8 @@ async function detectHotkeys(
 	data: ModDataObj,
 	src: string,
 	depth = 0,
-	def = true
+	def = true,
+	options: { useHashCache?: boolean; writeHashCache?: boolean } = {}
 ): Promise<[Mod[], any, ModHotKeys[], Set<string>]> {
 	let namespaces = new Set<string>();
 	const entryPromises = entries.map(async (entry) => {
@@ -1178,9 +1179,8 @@ async function detectHotkeys(
 			}
 			if (entry.isDir && entry.children.length > 0) {
 				try {
-					if (depth == 1 && def) {
+					if (depth == 1 && def && options.useHashCache !== false) {
 						const hashFile = await readTextFile(join(src, entry.path, ".imm-collision-checklist"));
-						if (Math.random() < 0.1) throw new Error("Rechecking hashes for " + entry.path);
 						hashes = new Set(
 							hashFile
 								.split("\n")
@@ -1196,15 +1196,16 @@ async function detectHotkeys(
 						data,
 						src,
 						depth + 1,
-						def
+						def,
+						options
 					);
 					hashes = new Set([...Array.from(hashes), ...Array.from(childHashes)]);
 					entry.children = updatedChildren;
 					if (childHK.length > 0 && depth > 0) {
 						hkData = [...hkData, ...childHK];
 					}
-					if (depth == 1) {
-						writeTextFile(join(src, entry.path, ".imm-collision-checklist"), Array.from(hashes).join("\n"));
+					if (depth == 1 && options.writeHashCache) {
+						await writeTextFile(join(src, entry.path, ".imm-collision-checklist"), Array.from(hashes).join("\n"));
 					}
 					namespaces = new Set([...Array.from(namespaces), ...Array.from(newNamespaces)]);
 				}
@@ -1262,7 +1263,8 @@ export async function getModDetails(relPath: string) {
 				{},
 				modSrc,
 				0,
-				false
+				false,
+				{ useHashCache: false, writeHashCache: false }
 			)
 		)[0] as Mod[];
 		const allVars = new_entries[0].children[0].keys || [];
@@ -1294,13 +1296,16 @@ export async function refreshModList(maxed = false) {
 		const modSrc = join(src, managedSRC);
 		const modTgt = join(tgt, managedTGT);
 		let categories = new Set([...store.get(CATEGORIES), { _sName: UNCATEGORIZED }].map((cat) => cat._sName));
-		while (categories.size < 10) {
+		for (let attempts = 0; categories.size < 10 && attempts < 20; attempts++) {
 			await new Promise((res) => setTimeout(res, 100));
 			categories = new Set([...store.get(CATEGORIES), { _sName: UNCATEGORIZED }].map((cat) => cat._sName));
 		}
 		if (!maxed) await categorizeDir(modSrc);
 		if (curId !== deepRefreshId && maxed) return [];
-		const ret = await detectHotkeys(await readDirRecr(modSrc, "", maxed ? 9 : 3), data, modSrc, 0, !maxed);
+		const ret = await detectHotkeys(await readDirRecr(modSrc, "", maxed ? 9 : 3), data, modSrc, 0, !maxed, {
+			useHashCache: !maxed,
+			writeHashCache: maxed,
+		});
 		if (curId !== deepRefreshId && maxed) return [];
 
 		let hasErr = "";
@@ -1390,7 +1395,6 @@ export async function refreshModList(maxed = false) {
 			);
 			return [];
 		}
-		refreshModList(true);
 		info(
 			"[IMM] Mod list refreshed:",
 			entries.map((e) => ({ path: e.path, enabled: e.enabled }))
@@ -1500,20 +1504,16 @@ export async function changeModName(path: string, newPath: string, add = false) 
 		await mkdir(join(src, managedSRC, ...newPath.split("\\").slice(0, -1)), { recursive: true });
 		await rename(add ? join(src, path) : join(src, managedSRC, path), join(src, managedSRC, newPath));
 		store.set(DATA, (prev) => {
-			if (prev[path]) {
-				prev[newPath] = { ...prev[path] };
-				delete prev[path];
-			}
-			return prev;
+			if (!prev[path]) return prev;
+			const { [path]: oldData, ...rest } = prev;
+			return { ...rest, [newPath]: { ...oldData } };
 		});
 		store.set(PRESETS, (prev) => {
-			for (let i = 0; i < prev.length; i++) {
-				if (prev[i].data.includes(path)) {
-					prev[i].data = prev[i].data.filter((p) => p !== path);
-					prev[i].data.push(newPath);
-				}
-			}
-			return prev;
+			return prev.map((preset) =>
+				preset.data.includes(path)
+					? { ...preset, data: [...preset.data.filter((presetPath) => presetPath !== path), newPath] }
+					: preset
+			);
 		});
 		saveConfigs();
 		console.log("Mod name changed from", path, "to", newPath);
@@ -1756,13 +1756,14 @@ export async function savePreviewImageFromData(relPath: string, type: string, da
 	store.set(LAST_UPDATED, Date.now());
 	store.set(DATA, (prev) => {
 		if (!prev[relPath]) return prev;
-		delete prev[relPath].crop;
-		return { ...prev };
+		const { crop, ...modData } = prev[relPath];
+		return { ...prev, [relPath]: modData };
 	});
 	store.set(MOD_LIST, (prev) => {
 		return prev.map((mod) => {
 			if (mod.path === relPath) {
-				delete mod.crop;
+				const { crop, ...newMod } = mod;
+				return newMod;
 			}
 			return mod;
 		});

@@ -107,34 +107,28 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		await toggleMod(path, true, true);
 		setChange();
 	}
-	const setVal = useCallback(
-		(type = "pref" as "pref" | "reset" | "name", file: string, target: string, value: any) => {
-			setData((prev: any) => {
-				prev = prev || {};
-				prev[item.path] = prev[item.path] || {};
-				prev[item.path].vars = prev[item.path].vars || {};
-				prev[item.path].vars[file] = prev[item.path].vars[file] || {};
-				prev[item.path].vars[file][target] = prev[item.path].vars[file][target] || {};
-				prev[item.path].vars[file][target][type] = value;
-				if (!value) {
-					delete prev[item.path].vars[file][target][type];
-					if (Object.keys(prev[item.path].vars[file][target]).length === 0) {
-						delete prev[item.path].vars[file][target];
-						if (Object.keys(prev[item.path].vars[file]).length === 0) {
-							delete prev[item.path].vars[file];
-							if (Object.keys(prev[item.path].vars).length === 0) {
-								delete prev[item.path].vars;
-								if (Object.keys(prev[item.path]).length === 0) {
-									delete prev[item.path];
-								}
-							}
-						}
+		const setVal = useCallback(
+			(type = "pref" as "pref" | "reset" | "name", file: string, target: string, value: any) => {
+				setData((prev: any) => {
+					const next = { ...(prev || {}) };
+					const itemData = { ...(next[item.path] || {}) };
+					const vars = { ...(itemData.vars || {}) };
+					const fileVars = { ...(vars[file] || {}) };
+					const targetVars = { ...(fileVars[target] || {}) };
+					targetVars[type] = value;
+					if (!value) {
+						delete targetVars[type];
 					}
-				}
-				return {
-					...prev,
-				};
-			});
+					if (Object.keys(targetVars).length > 0) fileVars[target] = targetVars;
+					else delete fileVars[target];
+					if (Object.keys(fileVars).length > 0) vars[file] = fileVars;
+					else delete vars[file];
+					if (Object.keys(vars).length > 0) itemData.vars = vars;
+					else delete itemData.vars;
+					if (Object.keys(itemData).length > 0) next[item.path] = itemData;
+					else delete next[item.path];
+					return next;
+				});
 			saveConfigs();
 			if (item?.enabled) {
 				refreshMod(item.path);

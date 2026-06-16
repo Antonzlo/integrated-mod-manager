@@ -19,14 +19,18 @@ import { DownloadItem } from "@/utils/types";
 import { UNCATEGORIZED } from "@/utils/consts";
 import { info } from "@/lib/logger";
 
-let path = "";
-let downloadElement: any = null;
-let extracts = {} as any;
+type DownloadQueueItem = Omit<DownloadItem, "status"> & {
+	status: DownloadItem["status"];
+	dlPath?: string;
+	error?: string;
+	path?: string;
+	updatedAt?: number;
+};
+
+const externalExtracts = {} as Record<string, DownloadQueueItem>;
 export function addToExtracts(key: string, element: any) {
-	extracts[key] = element;
+	externalExtracts[key] = element;
 }
-let prev = 0;
-let prevText = " • ";
 const Icons = {
 	pending: <Clock className="min-h-4 min-w-4 max-w-4" />,
 	downloading: <Loader2 className="min-h-4 min-w-4 max-w-4 animate-spin" />,
@@ -47,83 +51,139 @@ function Downloads() {
 	const downloadRef2 = useRef<HTMLDivElement>(null);
 	const downloadRef3 = useRef<HTMLDivElement>(null);
 	const speedRef = useRef<HTMLDivElement>(null);
-	const lastSpeedUpdate = useRef<number>(0);
+	const currentPathRef = useRef("");
+	const activeDownloadRef = useRef<DownloadQueueItem | null>(null);
+	const extractsRef = useRef<Record<string, DownloadQueueItem>>(externalExtracts);
+	const progressRef = useRef({ percent: 0, text: " • " });
+	const lastSpeedUpdate = useRef(0);
+	const [progressView, setProgressView] = useState({ percent: 0, text: " • " });
+
+	const resetProgress = () => {
+		progressRef.current = { percent: 0, text: " • " };
+		setProgressView(progressRef.current);
+		if (speedRef.current) speedRef.current.textContent = " • ";
+		if (downloadRef.current) downloadRef.current.style.width = "0%";
+		if (downloadRef2.current) downloadRef2.current.style.width = "0%";
+		if (downloadRef3.current) {
+			downloadRef3.current.style.background = "conic-gradient( var(--accent) 0% 0%, var(--button) 0% 100%)";
+		}
+	};
+
+	const markDownloadFailed = (key: string, message: string, stage = "download") => {
+		const activeDownload = activeDownloadRef.current;
+		const activeFailed = activeDownload?.key === key ? activeDownload : null;
+		const extractingFailed = extractsRef.current[key] || externalExtracts[key];
+		const failedItem = activeFailed || extractingFailed;
+		if (!failedItem) return;
+
+		info("[IMM] Download failed:", key, stage, message);
+		if (activeFailed && currentPathRef.current) cleanCancelledDownload(currentPathRef.current);
+		delete extractsRef.current[key];
+		delete externalExtracts[key];
+		if (activeFailed) {
+			activeDownloadRef.current = null;
+			currentPathRef.current = "";
+		}
+		resetProgress();
+		setDownloads((prev) => ({
+			...prev,
+			downloading: activeFailed ? null : prev.downloading,
+			extracting: prev.extracting?.filter((item) => item.key !== key) || [],
+			completed: [
+				...(prev.completed || []),
+				{
+					...failedItem,
+					status: "failed",
+					error: message || stage,
+				} as DownloadItem,
+			],
+		}));
+	};
+
 	const downloadFile = async (item: DownloadItem) => {
 		if (item.category == "Other/Misc") item.category = "Other";
 		else if (!categories.find((cat) => cat._sName == item.category)) item.category = UNCATEGORIZED;
 		item.name = sanitizeFileName(item.name);
-		path = (await createModDownloadDir(item.category, item.name)) as string;
-		downloadElement = {
+		const dlPath = (await createModDownloadDir(item.category, item.name)) as string;
+		const downloadElement: DownloadQueueItem = {
+			...item,
 			name: item.name,
 			path: item.category + "\\" + item.name,
 			source: item.source,
 			fname: item.fname,
 			category: item.category,
 			updatedAt: item.updated * 1000,
-			dlPath: path,
+			dlPath,
 			key: `${item.name}_${item.file}_${item.fname}_${item.updated}`,
 		};
+		currentPathRef.current = dlPath;
+		activeDownloadRef.current = downloadElement;
 		setData((prevData) => {
-			if (downloadElement.path)
-				prevData[downloadElement.path] = {
+			if (!downloadElement.path) return prevData;
+			return {
+				...prevData,
+				[downloadElement.path]: {
 					source: downloadElement.source,
 					updatedAt: prevData[downloadElement.path]?.updatedAt || -1,
 					...prevData[downloadElement.path],
-				};
-			return { ...prevData };
+				},
+			};
 		});
 		saveConfigs();
 		invoke("download_and_unzip", {
 			fileName: item.name,
 			downloadUrl: item.file,
-			savePath: path,
+			savePath: dlPath,
 			key: downloadElement.key,
 			emit: true,
-		});
-		invoke("download_and_unzip", {
-			fileName: "preview",
-			downloadUrl: item.preview,
-			savePath: path,
-			key: "link_preview_" + item.name,
-			emit: false,
-		});
+		}).catch((err) => markDownloadFailed(downloadElement.key || "", String(err), "download"));
+		if (item.preview) {
+			invoke("download_and_unzip", {
+				fileName: "preview",
+				downloadUrl: item.preview,
+				savePath: dlPath,
+				key: "link_preview_" + item.name,
+				emit: false,
+			}).catch(() => {});
+		}
 	};
 	useEffect(() => {
-		listen("download-progress", (event) => {
+		const unlisteners: Array<() => void> = [];
+		let disposed = false;
+		const addListener = async (eventName: string, handler: (event: any) => void) => {
+			const unlisten = await listen(eventName, handler);
+			if (disposed) unlisten();
+			else unlisteners.push(unlisten);
+		};
+		addListener("download-progress", (event) => {
 			const payload = event.payload as any;
 			const total = payload.total as number;
 			const downloaded = payload.downloaded as number;
-			prev = ((downloaded / total) * 100).toFixed(2) as unknown as number;
-			if (!downloadElement || payload.key !== downloadElement.key) return;
-			prevText = ` • ${prev}% (${formatBytes(downloaded)}/${formatBytes(total)}) • ${payload.speed} • ${
-				payload.eta
-			} • `;
-			// Debounce speed/ETA updates to 500ms
+			const activeDownload = activeDownloadRef.current;
+			if (!activeDownload || payload.key !== activeDownload.key) return;
+			const percent = total > 0 ? Number(((downloaded / total) * 100).toFixed(2)) : 0;
+			const text = ` • ${percent}% (${formatBytes(downloaded)}/${formatBytes(total)}) • ${payload.speed} • ${payload.eta} • `;
+			progressRef.current = { percent, text };
 			const now = Date.now();
 			if (now - lastSpeedUpdate.current >= 1000) {
-				if (speedRef.current) speedRef.current.textContent = prevText;
+				setProgressView(progressRef.current);
+				if (speedRef.current) speedRef.current.textContent = text;
 				lastSpeedUpdate.current = now;
 			}
 
-			if (downloadRef.current) downloadRef.current.style.width = prev + "%";
-			if (downloadRef2.current) downloadRef2.current.style.width = prev + "%";
+			if (downloadRef.current) downloadRef.current.style.width = percent + "%";
+			if (downloadRef2.current) downloadRef2.current.style.width = percent + "%";
 			if (downloadRef3.current) {
 				downloadRef3.current.style.background =
-					"conic-gradient( var(--accent) 0% " + prev + "%, var(--button) 0% 100%)";
+					"conic-gradient( var(--accent) 0% " + percent + "%, var(--button) 0% 100%)";
 			}
 		});
-		listen("ext", (event) => {
+		addListener("ext", (event) => {
 			const payload = event.payload as any;
+			const downloadElement = activeDownloadRef.current;
 			if (!downloadElement || payload.key !== downloadElement.key) return;
-			path = "";
-			prev = 0;
-			prevText = " • ";
-			if (speedRef.current) speedRef.current.textContent = " • ";
-			if (downloadRef.current) downloadRef.current.style.width = "0%";
-			if (downloadRef2.current) downloadRef2.current.style.width = "0%";
-			if (downloadRef3.current) {
-				downloadRef3.current.style.background = "conic-gradient( var(--accent) 0% 0%, var(--button) 0% 100%)";
-			}
+			currentPathRef.current = "";
+			resetProgress();
 			setDownloads((prev) => {
 				return {
 					...prev,
@@ -131,73 +191,81 @@ function Downloads() {
 					extracting: [...(prev.extracting || []), downloadElement],
 				};
 			});
-			extracts[payload.key] = {
+			extractsRef.current[payload.key] = {
 				...downloadElement,
 			};
-			downloadElement = null;
+			activeDownloadRef.current = null;
 		});
-		listen("fin", async (event) => {
+		addListener("fin", async (event) => {
 			const payload = event.payload as any;
 			const key = payload.key as string;
 			info("[IMM] Extraction finished for key:", key);
 			const type = payload.type || ("auto" as string);
-			if (extracts[key] && type == "auto") {
-				const finishedElement = extracts[key];
-				delete extracts[key];
+			const finishedElement = extractsRef.current[key] || externalExtracts[key];
+			if (finishedElement && type == "auto") {
+				delete extractsRef.current[key];
+				delete externalExtracts[key];
+				if (!finishedElement.dlPath) return;
 				await validateModDownload(finishedElement.dlPath);
 				const now = Date.now();
 				setData((prev) => {
-					if (finishedElement.path)
-						prev[finishedElement.path] = {
+					if (!finishedElement.path) return prev;
+					return {
+						...prev,
+						[finishedElement.path]: {
 							addedAt: now,
 							...prev[finishedElement.path],
 							source: finishedElement.source,
 							updatedAt: finishedElement.updatedAt || now,
 							installedAt: now,
 							viewedAt: now,
-						};
-					return { ...prev };
+						},
+					};
 				});
 				setDownloads((prev) => {
 					return {
 						...prev,
-						completed: [...(prev.completed || []), finishedElement],
+						completed: [...(prev.completed || []), { ...finishedElement, status: "completed" } as DownloadItem],
 						extracting: prev.extracting?.filter((item: any) => item.key !== key) || [],
 					};
 				});
 				modList(await refreshModList());
 				saveConfigs();
 				return;
-			} else if (extracts[key] && type == "manual") {
-				const finishedElement = extracts[key];
+			} else if (finishedElement && type == "manual") {
+				delete extractsRef.current[key];
+				delete externalExtracts[key];
+				if (!finishedElement.dlPath) return;
 				await validateModDownload(finishedElement.dlPath, true);
 				setDownloads((prev) => {
 					return {
 						...prev,
-						completed: [...(prev.completed || []), finishedElement],
+						completed: [...(prev.completed || []), { ...finishedElement, status: "completed" } as DownloadItem],
 						extracting: prev.extracting?.filter((item: any) => item.key !== key) || [],
 					};
 				});
 			}
 			return;
 		});
+		addListener("download-error", (event) => {
+			const payload = event.payload as any;
+			markDownloadFailed(payload.key || "", payload.message || "Download failed", payload.stage || "download");
+		});
+		return () => {
+			disposed = true;
+			unlisteners.forEach((unlisten) => unlisten());
+		};
 	}, []);
 	useEffect(() => {
-		path = "";
-		downloadElement = null;
-		prev = 0;
-		prevText = " • ";
+		currentPathRef.current = "";
+		activeDownloadRef.current = null;
+		resetProgress();
 	}, [game]);
 	useEffect(() => {
 		if (downloads && downloads.queue.length < 1) return;
-		if (path !== "") return;
+		if (currentPathRef.current !== "") return;
 		if (!downloads.downloading || Object.keys(downloads.downloading).length < 1) {
 			let item = downloads.queue[0];
-			let name = item.name;
-			let count = 0;
-			let category = item.category;
-			if (item.target){}
-			//  
 			setDownloads((prev) => {
 				return {
 					...prev,
@@ -207,7 +275,7 @@ function Downloads() {
 			});
 			downloadFile(item as DownloadItem);
 		}
-	}, [downloads, path]);
+	}, [downloads]);
 	const clearCompleted = () => {
 		setDownloads((prev) => ({ ...prev, completed: [] }));
 	};
@@ -224,11 +292,10 @@ function Downloads() {
 	const cancelDownload = (index: number) => {
 		if (index == 0 && downloads?.downloading && Object.keys(downloads.downloading).length > 0) {
 			invoke("get_username").then((_) => {
-				cleanCancelledDownload(path);
-				path = "";
-				downloadElement = null;
-				prev = 0;
-				prevText = " • ";
+				cleanCancelledDownload(currentPathRef.current);
+				currentPathRef.current = "";
+				activeDownloadRef.current = null;
+				resetProgress();
 				setDownloads((prev) => {
 					return {
 						...prev,
@@ -249,16 +316,19 @@ function Downloads() {
 			[type]: prev[type].filter((_: any, i: number) => i !== index),
 		}));
 	};
-	const done = downloads?.completed?.length || 0;
-	let downloadList = [];
+	const done = downloads?.completed?.filter((item) => item.status !== "failed").length || 0;
+	let downloadList: DownloadQueueItem[] = [];
 	if (downloads?.downloading && Object.keys(downloads.downloading).length > 0)
-		downloadList.push({ ...downloads.downloading, status: "downloading" });
+		downloadList.push({ ...downloads.downloading, status: "downloading" as const });
 	if (downloads?.extracting)
-		downloadList = [...downloadList, ...downloads.extracting.map((item) => ({ ...item, status: "extracting" }))];
+		downloadList = [...downloadList, ...downloads.extracting.map((item) => ({ ...item, status: "extracting" as const }))];
 	if (downloads?.queue)
-		downloadList = [...downloadList, ...downloads.queue.map((item) => ({ ...item, status: "pending" }))];
+		downloadList = [...downloadList, ...downloads.queue.map((item) => ({ ...item, status: "pending" as const }))];
 	if (downloads?.completed)
-		downloadList = [...downloadList, ...downloads.completed.map((item) => ({ ...item, status: "completed" }))];
+		downloadList = [
+			...downloadList,
+			...downloads.completed.map((item) => ({ ...item, status: (item.status || "completed") as DownloadItem["status"] })),
+		];
 	return (
 		<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 			<DialogTrigger asChild>
@@ -275,7 +345,7 @@ function Downloads() {
 											ref={downloadRef}
 											key={"down" + JSON.stringify(downloadList[0])}
 											className="min-h-12 height-in zzz-rounded bg-accent bgaccent text-background hover:brightness-125 z-10 flex flex-col self-start justify-center -mb-12 overflow-hidden rounded-lg"
-											style={{ width: prev + "%" }}
+											style={{ width: progressView.percent + "%" }}
 										>
 											<div className="min-w-79 fade-in flex items-center justify-center gap-1 pointer-events-none">
 												{Icons[downloadList[0].status as keyof typeof Icons] || (
@@ -319,7 +389,8 @@ function Downloads() {
 									ref={downloadRef3}
 									className="min-h-12 min-w-12 max-w-12 max-h-12 flex items-center justify-center p-1 rounded-lg"
 									style={{
-										background: "conic-gradient( var(--accent) 0% " + prev + "%, var(--button) 0% 100%)",
+										background:
+											"conic-gradient( var(--accent) 0% " + progressView.percent + "%, var(--button) 0% 100%)",
 										transition: "minHeight 0.3s, margin-bottom 0.3s, height 0.3s",
 									}}
 								>
@@ -365,7 +436,7 @@ function Downloads() {
 											key={"cur" + JSON.stringify(downloadList[0])}
 											ref={downloadRef2}
 											className="bg-accent bgaccent data-zzz:zzz-rounded zzz-fg-text data-gi:rounded-sm duration-0 min-h-16 flex items-center w-0 h-16 min-w-0 opacity-50"
-											style={{ width: prev + "%" }}
+											style={{ width: progressView.percent + "%" }}
 										></div>
 									</div>
 								}
@@ -386,7 +457,9 @@ function Downloads() {
 												</Label>
 												<div className="flex gap-1 text-xs text-gray-400 capitalize">
 													{`${item.status + (item.status === "extracting" ? ` ${item.fname}` : "")}`}
-													<div ref={index == 0 ? speedRef : null}>{index == 0 ? prevText : " • "}</div>
+													<div ref={index == 0 ? speedRef : null}>
+														{item.status === "failed" ? ` • ${item.error || "failed"} • ` : index == 0 ? progressView.text : " • "}
+													</div>
 													{item.category}
 												</div>
 											</div>

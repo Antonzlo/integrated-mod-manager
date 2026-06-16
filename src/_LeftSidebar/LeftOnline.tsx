@@ -78,7 +78,7 @@ function LeftOnline() {
 									id={"type " + category._sName}
 									onClick={() => {
 										if (onlinePath.startsWith(category._sName)) {
-											setOnlinePath("home&type=" + onlineType);
+											setOnlinePath("home&_type=" + onlineType);
 											return;
 										}
 										setOnlinePath(`${category._sName}&_sort=${onlineSort}`);
