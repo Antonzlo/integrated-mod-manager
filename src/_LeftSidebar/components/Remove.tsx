@@ -11,6 +11,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { confirmAndCancelDownloadsForGameSwitch } from "@/utils/downloadManager";
 import { remMoveMods, remSaveModData, remSavePresets, saveConfigs } from "@/utils/filesys";
 import { exportConfig } from "@/utils/utils";
 import { CATEGORIES, REMOVE_OPEN, SETTINGS, TARGET, TEXT_DATA } from "@/utils/vars";
@@ -103,6 +104,7 @@ function Remove() {
 				if (time <= 0) {
 					if (reloadIntervalRef.current) clearInterval(reloadIntervalRef.current);
 					reloadIntervalRef.current = null;
+					if (!(await confirmAndCancelDownloadsForGameSwitch())) return;
 					setSettings((prev) => ({ ...prev, global: { ...prev.global, game: "" } }));
 					await saveConfigs();
 					window.location.reload();

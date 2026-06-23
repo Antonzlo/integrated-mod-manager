@@ -102,6 +102,7 @@ export const DEFAULTS = {
 			game: "",
 			updatedAt: "",
 			notice: 0,
+			maxConcurrentDownloads: 3,
 			display: {
 				winType: 0,
 				bgType: 1,
@@ -135,7 +136,7 @@ export const DEFAULTS = {
 	DOWNLOAD_LIST: {
 		...{
 			queue: [] as DownloadItem[],
-			downloading: null as DownloadItem | null,
+			downloading: [] as DownloadItem[],
 			completed: [] as DownloadItem[],
 			extracting: [] as DownloadItem[],
 		},

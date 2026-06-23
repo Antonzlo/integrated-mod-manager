@@ -12,6 +12,7 @@ import {
 	SOURCE,
 	TEXT_DATA,
 } from "@/utils/vars";
+import { confirmAndCancelDownloadsForGameSwitch } from "@/utils/downloadManager";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
 	ArrowUpRightFromSquareIcon,
@@ -87,6 +88,7 @@ function RightLocal() {
 				url[1] = url[1].join("/");
 				urls[urls.length - 1] = url.join("/");
 				if (urlGame && urlGame != game) {
+					if (!(await confirmAndCancelDownloadsForGameSwitch())) return;
 					addToast({
 						message: textData._Toasts.SwitchGame.replace("<game/>", urlGame),
 					});
@@ -101,6 +103,7 @@ function RightLocal() {
 			} else if (final.includes("/mode/")) {
 				const urlGame = final.split("/mode/")[1].split("/")[0].toUpperCase();
 				if (urlGame && urlGame != game && GAMES.includes(urlGame as Games)) {
+					if (!(await confirmAndCancelDownloadsForGameSwitch())) return;
 					sessionStorage.setItem("imm-deep-link-game", urlGame);
 					window.location.reload();
 				} else {

@@ -15,6 +15,7 @@ import Downloads from "./components/Downloads";
 import BatchOperations from "./components/Batch";
 import { launchGame } from "@/utils/init";
 import Restore from "./components/Restore";
+import { confirmAndCancelDownloadsForGameSwitch } from "@/utils/downloadManager";
 // import { Label } from "@/components/ui/label";
 // import { saveConfigs } from "@/utils/filesys";
 import Remove from "./components/Remove";
@@ -36,7 +37,8 @@ function LeftSidebar() {
 						<div
 							id="IMMLogo"
 							className="aspect-square logo h-10"
-							onClick={() => {
+							onClick={async () => {
+								if (!(await confirmAndCancelDownloadsForGameSwitch())) return;
 								setGame("");
 							}}
 						></div>

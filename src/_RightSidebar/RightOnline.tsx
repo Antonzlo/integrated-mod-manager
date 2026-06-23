@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Label } from "@/components/ui/label";
 import { fetchMod, formatSize, getImageUrl, getTimeDifference, handleImageError, modRouteFromURL } from "@/utils/utils";
+import { confirmAndCancelDownloadsForGameSwitch } from "@/utils/downloadManager";
 import {
 	DATA,
 	DOWNLOAD_LIST,
@@ -151,9 +152,9 @@ function RightOnline({ open }: { open: boolean }) {
 				} as any;
 				// if (target) dlitem.target = target;
 				let count = 1;
-				let downloadList = [];
-				if (prev?.downloading && Object.keys(prev.downloading).length > 0)
-					downloadList.push({ ...prev.downloading, status: "downloading" });
+				let downloadList: any[] = [];
+				if (prev?.downloading)
+					downloadList = [...downloadList, ...prev.downloading.map((item: any) => ({ ...item, status: "downloading" }))];
 				if (prev?.queue)
 					downloadList = [...downloadList, ...prev.queue.map((item: any) => ({ ...item, status: "pending" }))];
 				if (prev?.completed)
@@ -170,7 +171,7 @@ function RightOnline({ open }: { open: boolean }) {
 				}
 
 				return {
-					downloading: prev?.downloading || null,
+					downloading: prev?.downloading || [],
 					completed: prev?.completed || [],
 					queue: [...(prev?.queue || []), dlitem],
 					extracting: prev?.extracting || [],
@@ -1117,9 +1118,10 @@ function RightOnline({ open }: { open: boolean }) {
 											</Button>
 											{GAME_GB_IDS.hasOwnProperty(item._aGame._idRow) && (
 												<Button
-													onClick={() => {
+													onClick={async () => {
 														const game = GAME_GB_IDS[item._aGame._idRow];
 														if (game) {
+															if (!(await confirmAndCancelDownloadsForGameSwitch())) return;
 															const url = item._sProfileUrl;
 															addToast({
 																message: textData._Toasts.SwitchGame.replace("<game/>", item._aGame._sName),

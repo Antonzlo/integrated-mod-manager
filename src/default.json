@@ -9,6 +9,7 @@
 	"game": "",
 	"updatedAt": 0,
 	"notice": 0,
+	"maxConcurrentDownloads": 3,
 	"datetime":false,
 	"date":"dd/mm/yyyy",
 	"time":"12",

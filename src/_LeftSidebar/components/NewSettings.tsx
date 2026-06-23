@@ -4,6 +4,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent }
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -320,26 +321,6 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							}}
 						/>
 					</SettingRow>
-					<SettingRow label={"Blur"}>
-						<Slider
-							defaultValue={[blur*50]}
-							max={100}
-							min={0}
-							step={5}
-							className="w-full m-1"
-							onValueChange={(e) => {
-								// document.documentElement.style.fontSize = 16 * Math.pow(2,e[0]/50) + "px";
-								setBlur(e[0] / 50);
-							}}
-							onValueCommit={(e) => {
-								// setSettings((prev) => {
-								// 	prev.global.display.bgOpacity = e[0] / 100;
-								// 	return { ...prev };
-								// });
-								// saveConfigs();
-							}}
-						/>
-					</SettingRow>
 					<SettingRow label={"Animations"}>
 						<SettingTabs
 							defaultValue={animations ? "1" : "0"}
@@ -358,6 +339,26 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 									label: "On",
 								},
 							]}
+						/>
+					</SettingRow>
+					<SettingRow label={"Blur"}>
+						<Slider
+							defaultValue={[blur*50]}
+							max={100}
+							min={0}
+							step={5}
+							className="w-full m-1"
+							onValueChange={(e) => {
+								// document.documentElement.style.fontSize = 16 * Math.pow(2,e[0]/50) + "px";
+								setBlur(e[0] / 50);
+							}}
+							onValueCommit={(e) => {
+								// setSettings((prev) => {
+								// 	prev.global.display.bgOpacity = e[0] / 100;
+								// 	return { ...prev };
+								// });
+								// saveConfigs();
+							}}
 						/>
 					</SettingRow>
 				</>
@@ -459,6 +460,25 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 			icon: Globe2,
 			content: (
 				<>
+					<SettingRow label={"Concurrent Downloads"}>
+						<div className="flex items-center w-full gap-3">
+							<Slider
+								value={[settings.global.maxConcurrentDownloads || 1]}
+								max={8}
+								min={1}
+								step={1}
+								className="w-full m-1"
+								onValueChange={(e) => {
+									setSettings((prev) => {
+										prev.global.maxConcurrentDownloads = e[0];
+										return { ...prev };
+									});
+								}}
+								onValueCommit={() => saveConfigs()}
+							/>
+							<Label className="text-accent min-w-8 text-center">{settings.global.maxConcurrentDownloads || 1}</Label>
+						</div>
+					</SettingRow>
 					<SettingRow
 						label={
 							<>

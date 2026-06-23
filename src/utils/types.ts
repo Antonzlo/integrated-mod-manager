@@ -17,6 +17,7 @@ export interface GlobalSettings {
 	updatedAt?: string;
 	notice?: number;
 	chkModUpdates: boolean;
+	maxConcurrentDownloads: number;
 	display:{
 		winType: 0 | 1 | 2;
 		bgType: 0 | 1 | 2;
@@ -113,10 +114,14 @@ export interface DownloadItem {
 	fname: string;
 	target?: string;
 	key?: string;
+	dlPath?: string;
+	error?: string;
+	path?: string;
+	updatedAt?: number;
 }
 export interface DownloadList {
 	queue: DownloadItem[];
-	downloading: DownloadItem | null;
+	downloading: DownloadItem[];
 	completed: DownloadItem[];
 	extracting: DownloadItem[];
 }

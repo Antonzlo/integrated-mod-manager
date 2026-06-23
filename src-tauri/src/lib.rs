@@ -482,6 +482,22 @@ async fn download_and_unzip(
             ));
         }
 
+        if emit {
+            let counts = DOWNLOAD_COUNTS.lock().unwrap();
+            let count = counts.get(&key).copied().unwrap_or(0);
+            drop(counts);
+            if count == 0 {
+                tracing::info!(
+                    "Download cancelled for key '{}', aborting download of: {}",
+                    key,
+                    file_name
+                );
+                drop(writer);
+                let _ = remove_file(&file_path);
+                return Err(format!("Download cancelled (file: {})", file_name));
+            }
+        }
+
         let chunk = item.map_err(|e| {
             let message = e.to_string();
             if emit {
