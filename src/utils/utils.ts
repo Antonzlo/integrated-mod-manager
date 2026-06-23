@@ -22,7 +22,7 @@ import { join, iniPath, getModData } from "./hotreload";
 import { addToast } from "@/_Toaster/ToastProvider";
 import TEXT from "@/textData.json";
 import { error, info } from "@/lib/logger";
-import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { writeTextFile } from "./fs";
 import { getConfig } from "./filesys";
 import { save } from "@tauri-apps/plugin-dialog";
 

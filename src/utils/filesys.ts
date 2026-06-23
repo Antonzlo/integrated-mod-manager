@@ -9,7 +9,7 @@ import {
 	rename,
 	writeFile,
 	writeTextFile,
-} from "@tauri-apps/plugin-fs";
+} from "./fs";
 import {
 	exts,
 	IGNORE,
@@ -43,6 +43,7 @@ import {
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { join, iniPath, getModData } from "./hotreload";
+import { toFs, toInternal } from "./pathsep";
 import { main, updateConfig } from "./init";
 import { addToast } from "@/_Toaster/ToastProvider";
 import MiniSearch from "minisearch";
@@ -192,10 +193,21 @@ export async function selectPath(
 		filters?: { name: string; extensions: string[] }[];
 	}
 ) {
-	return await open(options);
+	const { defaultPath, ...rest } = options;
+	const result = (await open({ ...rest, ...(defaultPath ? { defaultPath: toFs(defaultPath) } : {}) })) as
+		| string
+		| string[]
+		| null;
+	if (typeof result === "string") return toInternal(result);
+	if (Array.isArray(result)) return result.map((p) => toInternal(p));
+	return result;
 }
-export function folderSelector(path = "", title: string | undefined = undefined) {
-	return selectPath({ directory: true, ...(path ? { defaultPath: path } : {}), ...(title ? { title } : {}) });
+export function folderSelector(path = "", title: string | undefined = undefined): Promise<string | null> {
+	return selectPath({
+		directory: true,
+		...(path ? { defaultPath: path } : {}),
+		...(title ? { title } : {}),
+	}) as Promise<string | null>;
 }
 function replaceDisabled(name: string) {
 	return name.replace("DISABLED_", "").replace("DISABLED", "").trim();
@@ -654,8 +666,8 @@ export async function verifyDirStruct() {
 					await mkdir(join(newTgtPath, entry.parent), { recursive: true });
 					try {
 						await invoke("create_symlink", {
-							linkPath: linkPath,
-							targetPath: join(newSrcPath, entry.path),
+							linkPath: toFs(linkPath),
+							targetPath: toFs(join(newSrcPath, entry.path)),
 						});
 						info("[IMM] Fixed symlink:", linkPath, "->", join(newSrcPath, entry.path));
 					} catch (err) {
@@ -898,8 +910,8 @@ export async function applyChanges(isMigration = false) {
 				} else {
 					itemOperations.push(
 						invoke<void>("create_symlink", {
-							linkPath: join(target, key, name),
-							targetPath: join(src, managedSRC, key, name),
+							linkPath: toFs(join(target, key, name)),
+							targetPath: toFs(join(src, managedSRC, key, name)),
 						}).catch(() => {
 							//console.error(`Error creating symlink for ${name}:`, error);
 						}) as Promise<void>
@@ -1709,7 +1721,7 @@ export async function updateIniVars(relPath: string, keyVals: Record<string, str
 	return true;
 }
 export function openFile(relPath: string) {
-	openPath(join(modRoot, relPath));
+	openPath(toFs(join(modRoot, relPath)));
 }
 export async function toggleMod(path: string, enabled: boolean, forced = false): Promise<boolean> {
 	info("[IMM] Togglingx mod:", path, "Enabled:", enabled);
@@ -1725,8 +1737,8 @@ export async function toggleMod(path: string, enabled: boolean, forced = false):
 				await mkdir(join(tgt, managedTGT, ...path.split(/[/\\]/).slice(0, -1)), { recursive: true });
 				try {
 					await invoke("create_symlink", {
-						linkPath: modTgt,
-						targetPath: modSrc,
+						linkPath: toFs(modTgt),
+						targetPath: toFs(modSrc),
 					});
 				} catch (err) {
 					error("[IMM] Error creating symlink:", err);
@@ -1874,8 +1886,8 @@ export async function installFromArchives(archives: string[]) {
 			});
 			addToExtracts(element.key, element);
 			await invoke("extract_archive", {
-				filePath: archive,
-				savePath: dest,
+				filePath: toFs(archive),
+				savePath: toFs(dest),
 				fileName: name,
 				del: false,
 				emit: true,

@@ -22,6 +22,7 @@ import { preventContextMenu } from "@/utils/utils";
 import { toggleMod } from "@/utils/filesys";
 import MiniSearch from "minisearch";
 import { join, setChange } from "@/utils/hotreload";
+import { toFs } from "@/utils/pathsep";
 import { managedSRC } from "@/utils/consts";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { Mod } from "@/utils/types";
@@ -329,7 +330,7 @@ function MainLocal() {
 						in{" "}
 						<label
 							onClick={() => {
-								openPath(join(source, managedSRC));
+								openPath(toFs(join(source, managedSRC)));
 							}}
 							className="hover:opacity-75 text-blue-300 duration-200 opacity-50 pointer-events-auto"
 						>

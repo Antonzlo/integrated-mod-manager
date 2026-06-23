@@ -8,6 +8,7 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { CATEGORIES, DATA, DOWNLOAD_LIST, GAME, LEFT_SIDEBAR_OPEN, MOD_LIST, TEXT_DATA } from "@/utils/vars";
 import { formatBytes, sanitizeFileName } from "@/utils/utils";
+import { toFs } from "@/utils/pathsep";
 import {
 	cleanCancelledDownload,
 	createModDownloadDir,
@@ -76,14 +77,14 @@ function Downloads() {
 		invoke("download_and_unzip", {
 			fileName: item.name,
 			downloadUrl: item.file,
-			savePath: path,
+			savePath: toFs(path),
 			key: downloadElement.key,
 			emit: true,
 		});
 		invoke("download_and_unzip", {
 			fileName: "preview",
 			downloadUrl: item.preview,
-			savePath: path,
+			savePath: toFs(path),
 			key: "link_preview_" + item.name,
 			emit: false,
 		});

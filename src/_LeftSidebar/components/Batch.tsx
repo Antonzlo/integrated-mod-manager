@@ -18,9 +18,10 @@ import {
 	toggleMod,
 } from "@/utils/filesys";
 import { join } from "@/utils/hotreload";
+import { toFs } from "@/utils/pathsep";
 import { setCategories } from "@/utils/init";
 import { CATEGORIES, MOD_LIST, SETTINGS, SOURCE, TARGET, TEXT_DATA } from "@/utils/vars";
-import { remove, rename } from "@tauri-apps/plugin-fs";
+import { remove, rename } from "@/utils/fs";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
@@ -525,7 +526,7 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 					{textData._LeftSideBar._components._Batch.ContentFrom}
 					<label
 						onClick={() => {
-							openPath(source);
+							openPath(toFs(source));
 						}}
 						className="hover:opacity-75 text-blue-300 duration-200 opacity-50 pointer-events-auto"
 					>
