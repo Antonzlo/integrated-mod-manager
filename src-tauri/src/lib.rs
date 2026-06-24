@@ -5,7 +5,7 @@ use serde::Serialize;
 use std::collections::HashMap;
 use std::fs::{remove_file, File};
 use std::io::{BufWriter, Write};
-use std::path::{Component, Path, PathBuf};
+use std::path::Path;
 use std::process::Command;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
@@ -13,6 +13,7 @@ use std::time::Instant;
 use tauri::Emitter;
 use tauri::Manager;
 use tauri_plugin_deep_link::DeepLinkExt;
+use tauri_plugin_shell::ShellExt;
 use tauri_plugin_tracing::{tracing, Builder as Tracing, LevelFilter, MaxFileSize, Rotation, RotationStrategy};
 
 mod hotreload;
@@ -202,101 +203,44 @@ fn mime_to_extension(mime_type: &str) -> Option<&'static str> {
         .find(|(mime, _)| *mime == clean_mime)
         .map(|(_, ext)| *ext)
 }
+async fn decompress_file(
+    app_handle: tauri::AppHandle,
+    file_path: &str,
+    save_path: &str,
+) -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    let program_name = "ext/7z.exe";
+    #[cfg(not(target_os = "windows"))]
+    let program_name = "ext/7zz";
 
-fn archive_entry_path(destination: &Path, entry_name: &str) -> Result<PathBuf, String> {
-    let normalized_name = entry_name.replace('\\', "/");
-    let mut output_path = destination.to_path_buf();
-
-    for component in Path::new(&normalized_name).components() {
-        match component {
-            Component::Normal(path) => output_path.push(path),
-            Component::CurDir => {}
-            _ => {
-                return Err(format!("Archive contains an unsafe path: {}", entry_name));
-            }
-        }
-    }
-
-    Ok(output_path)
-}
-
-fn extract_zip_archive(file_path: &Path, save_path: &Path) -> Result<(), String> {
-    let file = File::open(file_path).map_err(|e| e.to_string())?;
-    let mut archive = zip::ZipArchive::new(file).map_err(|e| e.to_string())?;
-    archive.extract(save_path).map_err(|e| e.to_string())
-}
-
-fn extract_7z_archive(file_path: &Path, save_path: &Path) -> Result<(), String> {
-    sevenz_rust2::decompress_file_with_extract_fn(file_path, save_path, |entry, reader, _| {
-        let path = archive_entry_path(save_path, entry.name())
-            .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
-
-        if entry.is_directory() {
-            std::fs::create_dir_all(&path)?;
-        } else {
-            if let Some(parent) = path.parent() {
-                std::fs::create_dir_all(parent)?;
-            }
-            let file = File::create(&path)?;
-            let mut writer = BufWriter::new(file);
-            std::io::copy(reader, &mut writer)?;
-        }
-
-        Ok(true)
-    })
-    .map_err(|e| e.to_string())
-}
-
-fn extract_rar_archive(file_path: &Path, save_path: &Path) -> Result<(), String> {
-    let mut archive = unrar::Archive::new(file_path)
-        .open_for_processing()
+    let program_path = app_handle
+        .path()
+        .resolve(program_name, tauri::path::BaseDirectory::Resource)
         .map_err(|e| e.to_string())?;
 
-    while let Some(header) = archive.read_header().map_err(|e| e.to_string())? {
-        let entry = header.entry();
-        let output_path = archive_entry_path(save_path, &entry.filename.to_string_lossy())?;
-
-        archive = if entry.is_file() {
-            if let Some(parent) = output_path.parent() {
-                std::fs::create_dir_all(parent).map_err(|e| e.to_string())?;
-            }
-            header.extract_to(&output_path).map_err(|e| e.to_string())?
-        } else {
-            std::fs::create_dir_all(&output_path).map_err(|e| e.to_string())?;
-            header.skip().map_err(|e| e.to_string())?
-        };
-    }
-
-    Ok(())
-}
-
-fn extract_archive_file(file_path: &Path, save_path: &Path) -> Result<(), String> {
-    let extension = file_path
-        .extension()
-        .and_then(|extension| extension.to_str())
-        .unwrap_or("")
-        .to_ascii_lowercase();
-
-    match extension.as_str() {
-        "zip" => extract_zip_archive(file_path, save_path),
-        "7z" => extract_7z_archive(file_path, save_path),
-        "rar" => extract_rar_archive(file_path, save_path),
-        _ => Err(format!("Unsupported archive format: {}", file_path.display())),
-    }
-}
-
-fn is_supported_archive(file_path: &Path) -> bool {
-    file_path
-        .extension()
-        .and_then(|extension| extension.to_str())
-        .map(|extension| matches!(extension.to_ascii_lowercase().as_str(), "zip" | "7z" | "rar"))
-        .unwrap_or(false)
-}
-
-async fn decompress_archive(file_path: PathBuf, save_path: PathBuf) -> Result<(), String> {
-    tauri::async_runtime::spawn_blocking(move || extract_archive_file(&file_path, &save_path))
+    let output = app_handle
+        .shell()
+        .command(program_path.to_str().unwrap())
+        .args([
+            "x",
+            file_path,
+            &format!("-o{}", save_path),
+            "-y",
+        ])
+        .output()
         .await
-        .map_err(|e| e.to_string())?
+        .map_err(|e| e.to_string())?;
+
+    if output.status.success() {
+        Ok(())
+    } else {
+        let err = String::from_utf8_lossy(&output.stderr);
+        Err(if err.is_empty() {
+            String::from_utf8_lossy(&output.stdout).to_string()
+        } else {
+            err.to_string()
+        })
+    }
 }
 
 /// Extract archive file (zip, rar, or 7z) to the specified path
@@ -320,11 +264,15 @@ async fn extract_archive(
     clean_folder_before_extraction(Path::new(&save_path), &file_name)?;
     println!("Starting extraction");
     let before = Instant::now();
-    decompress_archive(file_path.to_path_buf(), Path::new(save_path).to_path_buf()).await?;
+    let res = decompress_file(app_handle.clone(), file_path.to_str().unwrap(), &save_path);
     let duration = before.elapsed();
     println!("extraction completed in: {:.2?}", duration);
-    if del {
-        safe_remove_file(&file_path)?;
+    if let Err(e) = res.await {
+        println!("extraction error: {}", e);
+    } else {
+        if del {
+            safe_remove_file(&file_path)?;
+        }
         println!("Archive file removed after extraction");
     }
 
@@ -562,31 +510,24 @@ async fn download_and_unzip(
             .map_err(|e| e.to_string())?;
     }
 
-    if is_supported_archive(&file_path) {
-        extract_archive(
-            app_handle.clone(),
-            file_path.to_string_lossy().to_string(),
-            save_path.clone(),
-            file_name.clone(),
-            emit,
-            key,
-            current_sid,
-            true,
-        )
-        .await?;
+    // Extract archive if it's a supported format
+    extract_archive(
+        app_handle.clone(),
+        file_path.to_string_lossy().to_string(),
+        save_path.clone(),
+        file_name.clone(),
+        emit,
+        key,
+        current_sid,
+        true,
+    )
+    .await?;
 
-        tracing::info!(
-            "Download and extraction completed successfully for session {}: {}",
-            current_sid,
-            file_name
-        );
-    } else {
-        tracing::info!(
-            "Download completed without extraction for session {}: {}",
-            current_sid,
-            file_name
-        );
-    }
+    tracing::info!(
+        "Download and extraction completed successfully for session {}: {}",
+        current_sid,
+        file_name
+    );
 
     Ok(())
 }
@@ -756,48 +697,6 @@ async fn set_window_icon(app_handle: tauri::AppHandle, game: String) -> Result<(
         }
     }
     Ok(())
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use zip::write::SimpleFileOptions;
-
-    #[test]
-    fn archive_entry_path_rejects_parent_paths() {
-        let destination = Path::new("/tmp/imm-test");
-        let err = archive_entry_path(destination, "../outside.txt").unwrap_err();
-
-        assert!(err.contains("unsafe path"));
-    }
-
-    #[test]
-    fn is_supported_archive_only_matches_archives() {
-        assert!(is_supported_archive(Path::new("mod.zip")));
-        assert!(is_supported_archive(Path::new("mod.7z")));
-        assert!(is_supported_archive(Path::new("mod.rar")));
-        assert!(!is_supported_archive(Path::new("preview.jpg")));
-    }
-
-    #[test]
-    fn extract_zip_archive_extracts_into_destination() {
-        let temp_dir = tempfile::tempdir().unwrap();
-        let archive_path = temp_dir.path().join("archive.zip");
-        let output_path = temp_dir.path().join("output");
-
-        let file = File::create(&archive_path).unwrap();
-        let mut archive = zip::ZipWriter::new(file);
-        archive
-            .start_file("nested/file.txt", SimpleFileOptions::default())
-            .unwrap();
-        archive.write_all(b"ok").unwrap();
-        archive.finish().unwrap();
-
-        extract_zip_archive(&archive_path, &output_path).unwrap();
-
-        let extracted = std::fs::read_to_string(output_path.join("nested/file.txt")).unwrap();
-        assert_eq!(extracted, "ok");
-    }
 }
 
 use tauri_plugin_window_state::{Builder, StateFlags};

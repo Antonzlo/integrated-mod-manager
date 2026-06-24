@@ -31,9 +31,6 @@ reqwest = { version = "0.13.1", features = ["stream"], default-features = false 
 tauri-plugin-shell = "2.0.0"
 futures-util = "0.3.31"
 tokio = { version = "1.45.1", features = ["rt-multi-thread", "fs", "io-util", "macros"] }
-zip = "6.0.0"
-unrar = "0.5.8"
-sevenz-rust2 = "0.20.1"
 # HTTP server dependencies
 warp = { version = "0.4.2", features = ["test"] }
 mime_guess = "2.0.4"
