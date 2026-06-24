@@ -210,8 +210,10 @@ async fn decompress_file(
 ) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     let program_name = "ext/7z.exe";
-    #[cfg(not(target_os = "windows"))]
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     let program_name = "ext/7zz";
+    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
+    let program_name = "ext/7zz-aarch64";
 
     let program_path = app_handle
         .path()

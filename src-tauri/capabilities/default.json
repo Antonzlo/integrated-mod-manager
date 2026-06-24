@@ -168,6 +168,20 @@
             "-y"
           ],
           "name": "ext/7zz"
+        },
+        {
+          "cmd": "$RESOURCES/ext/7zz-aarch64",
+          "args": [
+            "x",
+            {
+              "validator": ".*"
+            },
+            {
+              "validator": "-o.*"
+            },
+            "-y"
+          ],
+          "name": "ext/7zz-aarch64"
         }
       ]
     },
