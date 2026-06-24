@@ -16,16 +16,17 @@ import { info } from "@/lib/logger";
 
 export const IMAGE_SERVER = "http://127.0.0.1:3469/preview";
 export const OLD_RESTORE = "DISABLED_RESTORE";
+export const DISCORD_LINK = "https://discord.gg/QGkKzNapXZ";
+export const BANANA_LINK = "https://gamebanana.com/mods/593490";
 export const RESTORE = "RESTORE";
 export const IGNORE = "IGNORE";
 export const PREFS = ".USER_PREFS";
-export const DISCORD_LINK = "https://discord.gg/QGkKzNapXZ";
-export const BANANA_LINK = "https://gamebanana.com/mods/593490";
 export const UNCATEGORIZED = "Uncategorized";
 export const OLD_managedSRC = "DISABLED (Managed by IMM)";
 export const OLD_managedTGT = "Mods (Managed by IMM)";
 export const managedSRC = "DISABLED - ALL MODS ARE STORED HERE (Managed by IMM)";
 export const managedTGT = "DO NOT MODIFY (Managed by IMM)";
+export const INI_BACKUP = ".IMM_INI_BACKUP"; //If changed, also update in src-tauri/src/lib.rs
 export const VERSION = "3.1.0";
 export const GAMES: Games[] = ["WW", "ZZ", "GI", "SR", "EF"];
 export const GAME_GB_IDS: { [key: number]: Games } = {

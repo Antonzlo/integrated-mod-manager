@@ -13,6 +13,7 @@ import {
 import {
 	exts,
 	IGNORE,
+	INI_BACKUP,
 	managedSRC,
 	managedTGT,
 	OLD_managedSRC,
@@ -24,6 +25,7 @@ import {
 	VERSION,
 } from "./consts";
 import {
+	BACKUP_INI,
 	CATEGORIES,
 	DATA,
 	DOWNLOAD_LIST,
@@ -1177,7 +1179,7 @@ async function detectHotkeys(
 					console.log("Error reading/parsing ini file:", join(src, entry.path), iniError);
 				}
 			}
-			if (entry.isDir && entry.children.length > 0) {
+			if (entry.isDir && entry.children.length > 0 && entry.name !== INI_BACKUP) {
 				try {
 					if (depth == 1 && def && options.useHashCache !== false) {
 						const hashFile = await readTextFile(join(src, entry.path, ".imm-collision-checklist"));
@@ -1408,11 +1410,35 @@ export async function refreshModList(maxed = false) {
 		throw err;
 	}
 }
+async function backupIniFiles( cat:string , mod:string , key:string , relPath = "") {
+	const entries = await readDir(join(modRoot, cat, mod, relPath));
+	try{
+	for (const entry of entries) {
+		if (entry.name === INI_BACKUP) continue;
+		const entryRelPath = join(relPath, entry.name);
+		if (entry.isDirectory) {
+			await backupIniFiles(cat, mod, key, entryRelPath);
+		} else if (entry.name.toLowerCase().endsWith(".ini")) {
+			await mkdir(join(modRoot, cat, mod, INI_BACKUP, key,relPath), { recursive: true });
+			await copyFile(join(modRoot, cat, mod, entryRelPath), join(modRoot, cat, mod, INI_BACKUP, key, entryRelPath));
+		}
+	}
+}
+	catch(err){
+		error("[IMM] Error backing up .ini files:", err);
+	}
+}
 export async function createModDownloadDir(cat: string, dir: string) {
 	try {
 		if (!cat || !dir) return;
 		const path = join(src, managedSRC, cat, dir);
-		if (await exists(path)) return path;
+		if (await exists(path)) {
+			if (store.get(BACKUP_INI)) {
+
+				await backupIniFiles(cat, dir,"Update-"+ new Date().toISOString().replace(/[:.]/g, "_"));
+			}
+			return path;
+		}
 		await mkdir(path, { recursive: true });
 		return path;
 	} catch (err) {
@@ -1422,7 +1448,7 @@ export async function createModDownloadDir(cat: string, dir: string) {
 }
 export async function validateModDownload(path: string, skip = false) {
 	try {
-		const entries = await readDir(path);
+		const entries = (await readDir(path)).filter((entry) => entry.name !== INI_BACKUP);
 		// const previewCount = entries.filter((entry) => entry.name.startsWith("preview.") && !entry.isDirectory).length;
 		const txtCount = entries.filter((entry) => entry.name.endsWith(".txt") && !entry.isDirectory).length;
 		const imgCount = entries.filter((entry: any) => {
@@ -1670,8 +1696,11 @@ async function updatePrefsIniFromData(modPath: string, oldPath = "") {
 export async function updateIniVars(relPath: string, keyVals: Record<string, string>) {
 	const path = join(modRoot, relPath);
 	console.log("Updating ini vars for:", relPath, "at", path, "with keyVals:", keyVals);
-	if (!(await exists(path + ".bak"))) {
-		await copyFile(path, path + ".bak");
+	const [category, modName, ...rest] = relPath.split("\\");
+	const backupPath = join(modRoot,category,modName,INI_BACKUP,"default",...rest);
+	if (!(await exists(backupPath))) {
+		await mkdir(join(...backupPath.split("\\").slice(0, -1)), { recursive: true });
+		await copyFile(path, backupPath);
 	}
 	const file = await readTextFile(path);
 	const lines = file.split("\n");

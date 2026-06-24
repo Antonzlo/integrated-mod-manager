@@ -179,7 +179,9 @@ fn clean_folder_before_extraction(
             }
         } else if file_path.is_dir() {
             let dir_name = file_path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-
+            if dir_name == ".IMM_INI_BACKUP" {
+                continue; // Keep the .IMM_INI_BACKUP directory
+            }
             // Delete all directories
             tracing::info!("Cleaning up directory before extraction: {}", dir_name);
             if let Err(e) = std::fs::remove_dir_all(&file_path) {
