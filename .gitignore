@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Flatpak local build output
+.flatpak-builder/
+flatpak-build-dir/
+flatpak-tmp/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
