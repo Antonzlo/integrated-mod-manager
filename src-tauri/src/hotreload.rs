@@ -109,7 +109,12 @@ pub struct DependencyStatus {
 
 #[cfg(target_os = "linux")]
 fn get_install_command(packages: &[&str]) -> String {
-    let os_release = std::fs::read_to_string("/etc/os-release").unwrap_or_default();
+    let os_release_path = if is_flatpak() {
+        "/run/host/etc/os-release"
+    } else {
+        "/etc/os-release"
+    };
+    let os_release = std::fs::read_to_string(os_release_path).unwrap_or_default();
 
     let id = os_release.lines()
         .find(|l| l.starts_with("ID="))
@@ -145,14 +150,42 @@ fn get_install_command(packages: &[&str]) -> String {
 }
 
 #[cfg(target_os = "linux")]
+fn is_flatpak() -> bool {
+    std::path::Path::new("/.flatpak-info").exists()
+}
+
+#[cfg(target_os = "linux")]
+fn hotreload_command(program: &str) -> std::process::Command {
+    if is_flatpak() {
+        let mut command = std::process::Command::new("flatpak-spawn");
+        command.arg("--host").arg(program);
+        command
+    } else {
+        std::process::Command::new(program)
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn command_exists(program: &str) -> bool {
+    let output = if is_flatpak() {
+        std::process::Command::new("flatpak-spawn")
+            .arg("--host")
+            .arg("sh")
+            .arg("-c")
+            .arg(format!("command -v {program} >/dev/null 2>&1"))
+            .output()
+    } else {
+        std::process::Command::new("which").arg(program).output()
+    };
+
+    output.map(|o| o.status.success()).unwrap_or(false)
+}
+
+#[cfg(target_os = "linux")]
 #[tauri::command]
 pub fn check_hotreload_dependencies() -> Result<DependencyStatus, String> {
-    use std::process::Command;
-    let xdotool = Command::new("which").arg("xdotool").output();
-    let ydotool = Command::new("which").arg("ydotool").output();
-
-    let has_xdotool = xdotool.map(|o| o.status.success()).unwrap_or(false);
-    let has_ydotool = ydotool.map(|o| o.status.success()).unwrap_or(false);
+    let has_xdotool = command_exists("xdotool");
+    let has_ydotool = command_exists("ydotool");
 
     let mut missing_packages = Vec::new();
     if !has_xdotool {
@@ -558,7 +591,6 @@ async fn window_monitor_loop() {}
 
 #[cfg(target_os = "linux")]
 mod linux_utils {
-    use std::process::Command;
     use super::*;
     use std::time::Duration;
     use tauri_plugin_tracing::tracing;
@@ -573,7 +605,7 @@ mod linux_utils {
             _ => return false,
         };
 
-        let output = Command::new("xdotool")
+        let output = hotreload_command("xdotool")
             .arg("search")
             .arg("--name")
             .arg(title)
@@ -587,7 +619,7 @@ mod linux_utils {
     }
 
     pub fn focus_mod_manager_send_f10_return_to_game() -> Result<(), String> {
-        let current_window = Command::new("xdotool")
+        let current_window = hotreload_command("xdotool")
             .arg("getactivewindow")
             .output()
             .map_err(|e| e.to_string())?;
@@ -600,7 +632,7 @@ mod linux_utils {
         };
 
         if window_target == MOD_MANAGER_TITLE {
-            let output = Command::new("xdotool")
+            let output = hotreload_command("xdotool")
                 .arg("search")
                 .arg("--name")
                 .arg(MOD_MANAGER_TITLE)
@@ -618,7 +650,7 @@ mod linux_utils {
                 .trim()
                 .to_string();
 
-            Command::new("xdotool")
+            hotreload_command("xdotool")
                 .arg("windowactivate")
                 .arg("--sync")
                 .arg(&mod_manager_id)
@@ -630,7 +662,7 @@ mod linux_utils {
             std::thread::sleep(Duration::from_millis(50));
 
             if !current_window_id.is_empty() {
-                Command::new("xdotool")
+                hotreload_command("xdotool")
                     .arg("windowactivate")
                     .arg(&current_window_id)
                     .status()
@@ -644,7 +676,7 @@ mod linux_utils {
     }
 
     fn send_f10_key() -> Result<(), String> {
-        let status = Command::new("ydotool")
+        let status = hotreload_command("ydotool")
             .arg("key")
             .arg("68:1")
             .arg("68:0")
@@ -662,11 +694,11 @@ mod linux_utils {
     }
 
     fn ensure_ydotoold() {
-        let running = Command::new("pgrep").arg("ydotoold").output()
+        let running = hotreload_command("pgrep").arg("ydotoold").output()
             .map(|o| o.status.success()).unwrap_or(false);
 
         if !running {
-            Command::new("ydotoold").spawn().ok();
+            hotreload_command("ydotoold").spawn().ok();
         }
     }
 
@@ -680,7 +712,7 @@ mod linux_utils {
                 continue;
             }
 
-            let output = Command::new("xdotool")
+            let output = hotreload_command("xdotool")
                 .arg("getactivewindow")
                 .output();
 
@@ -691,7 +723,7 @@ mod linux_utils {
             };
 
             let window_title = if !active_win_id.is_empty() {
-                if let Ok(out2) = Command::new("xdotool").arg("getwindowname").arg(&active_win_id).output() {
+                if let Ok(out2) = hotreload_command("xdotool").arg("getwindowname").arg(&active_win_id).output() {
                     String::from_utf8_lossy(&out2.stdout).trim().to_string()
                 } else {
                     String::new()
@@ -738,7 +770,7 @@ mod linux_utils {
 
                         let mut game_win_id = None;
                         for game in &[WW_TITLE, ZZ_TITLE, GI_TITLE, SR_TITLE, EF_TITLE] {
-                            if let Ok(res) = Command::new("xdotool").arg("search").arg("--name").arg(game).output() {
+                            if let Ok(res) = hotreload_command("xdotool").arg("search").arg("--name").arg(game).output() {
                                 if res.status.success() && !res.stdout.is_empty() {
                                     if let Some(id) = String::from_utf8_lossy(&res.stdout).lines().next() {
                                         game_win_id = Some(id.trim().to_string());
@@ -749,14 +781,14 @@ mod linux_utils {
                         }
 
                         if let Some(gid) = game_win_id {
-                            let _ = Command::new("xdotool").arg("windowactivate").arg("--sync").arg(&gid).status();
+                            let _ = hotreload_command("xdotool").arg("windowactivate").arg("--sync").arg(&gid).status();
                             std::thread::sleep(Duration::from_millis(100));
                             if let Err(e) = send_f10_key() {
                                 tracing::error!("[IMM-Hotreload] Failed to send F10 key: {}", e);
                             }
                             std::thread::sleep(Duration::from_millis(50));
 
-                            let alt_tab_status = Command::new("ydotool")
+                            let alt_tab_status = hotreload_command("ydotool")
                                 .arg("key")
                                 .arg("56:1")
                                 .arg("15:1")

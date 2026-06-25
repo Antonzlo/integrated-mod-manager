@@ -169,3 +169,36 @@ Build the application for production (needs administrator permissions).
 npx tauri build
 ```
 
+### Linux Flatpak Build
+
+Install the Flatpak build tools and the GNOME SDK/runtime first:
+
+```sh
+flatpak install flathub org.flatpak.Builder org.gnome.Sdk//49 org.gnome.Platform//49
+```
+
+Build the production Tauri binary without running Tauri's native bundler:
+
+```sh
+npm run tauri:build -- --no-bundle
+```
+
+Then build and install the Flatpak locally:
+
+```sh
+flatpak run org.flatpak.Builder --force-clean --user --install flatpak-build-dir packaging/flatpak/jp.bhatt.wwmm.yml
+```
+
+Run the installed Flatpak:
+
+```sh
+flatpak run jp.bhatt.wwmm
+```
+
+The Flatpak manifest and helper files under `packaging/flatpak/` are source files and should be committed. Build output directories such as `.flatpak-builder/`, `flatpak-build-dir/`, and `flatpak-tmp/` are generated and should not be committed.
+
+Linux hotreload uses host-side input tools from inside the Flatpak through `flatpak-spawn --host`. Install them on the host if the app reports they are missing:
+
+```sh
+sudo dnf install xdotool ydotool
+```
