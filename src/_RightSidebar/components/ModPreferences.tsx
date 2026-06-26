@@ -17,7 +17,7 @@ import {
 	InfoIcon,
 	IterationCcwIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { info } from "@/lib/logger";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent } from "@/components/ui/popover";
@@ -28,6 +28,17 @@ import JSONEditor from "@/_Main/components/JSONEditor";
 let prevItemPath = "";
 const pageLimit = 20;
 let lastKeyList: string = "";
+type QueuedDataChange = {
+	type: "pref" | "reset" | "name";
+	file: string;
+	target: string;
+	value: any;
+};
+type QueuedIniChange = {
+	file: string;
+	target: string;
+	value: string;
+};
 const textData2 = {
 	default: "Def.",
 	state: "Auto",
@@ -47,6 +58,10 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 	const [pageNo, setPageNo] = useState(0);
 	const textData = useAtomValue(TEXT_DATA);
 	const [forceKeyUpdate, setForceKeyUpdate] = useState(0);
+	const queuedDataChanges = useRef<Map<string, QueuedDataChange>>(new Map());
+	const queuedIniChanges = useRef<Map<string, QueuedIniChange>>(new Map());
+	const [queuedChangeCount, setQueuedChangeCount] = useState(0);
+	const [applyingChanges, setApplyingChanges] = useState(false);
 	const [toggles, setToggles] = useState({
 		default: true,
 		state: true,
@@ -54,13 +69,19 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		expected: true,
 		keys: true,
 	} as Record<string, boolean>);
+	const updateQueuedChangeCount = useCallback(() => {
+		setQueuedChangeCount(queuedDataChanges.current.size + queuedIniChanges.current.size);
+	}, []);
 	useEffect(() => {
 		if (prevItemPath !== item?.path || (!details?.files?.hasOwnProperty(selectedFile) && selectedFile)) {
 			setSelectedFile("");
 			setPageNo(0);
+			queuedDataChanges.current.clear();
+			queuedIniChanges.current.clear();
+			updateQueuedChangeCount();
 			prevItemPath = item?.path;
 		}
-	}, [item, details, selectedFile]);
+	}, [details, item, selectedFile, updateQueuedChangeCount]);
 	useEffect(() => {
 		setPageNo(0);
 		setSelectedFileData([] as any);
@@ -107,34 +128,103 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		await toggleMod(path, true, true);
 		setChange();
 	}
-		const setVal = useCallback(
-			(type = "pref" as "pref" | "reset" | "name", file: string, target: string, value: any) => {
+	const queueDataChange = useCallback(
+		(type = "pref" as "pref" | "reset" | "name", file: string, target: string, value: any) => {
+			queuedDataChanges.current.set(`${type}|${file}|${target}`, { type, file, target, value });
+			updateQueuedChangeCount();
+		},
+		[updateQueuedChangeCount]
+	);
+	const queueIniChange = useCallback(
+		(file: string, target: string, value: string) => {
+			queuedIniChanges.current.set(`${file}|${target}`, { file, target, value });
+			updateQueuedChangeCount();
+		},
+		[updateQueuedChangeCount]
+	);
+	const applyQueuedChanges = useCallback(async () => {
+		const dataChanges = Array.from(queuedDataChanges.current.values());
+		const iniChanges = Array.from(queuedIniChanges.current.values());
+		if (!dataChanges.length && !iniChanges.length) return;
+
+		setApplyingChanges(true);
+		try {
+			if (dataChanges.length) {
 				setData((prev: any) => {
 					const next = { ...(prev || {}) };
-					const itemData = { ...(next[item.path] || {}) };
-					const vars = { ...(itemData.vars || {}) };
-					const fileVars = { ...(vars[file] || {}) };
-					const targetVars = { ...(fileVars[target] || {}) };
-					targetVars[type] = value;
-					if (!value) {
-						delete targetVars[type];
+					for (const change of dataChanges) {
+						const itemData = { ...(next[item.path] || {}) };
+						const vars = { ...(itemData.vars || {}) };
+						const fileVars = { ...(vars[change.file] || {}) };
+						const targetVars = { ...(fileVars[change.target] || {}) };
+						targetVars[change.type] = change.value;
+						if (change.value === null || change.value === undefined || change.value === "") {
+							delete targetVars[change.type];
+						}
+						if (Object.keys(targetVars).length > 0) fileVars[change.target] = targetVars;
+						else delete fileVars[change.target];
+						if (Object.keys(fileVars).length > 0) vars[change.file] = fileVars;
+						else delete vars[change.file];
+						if (Object.keys(vars).length > 0) itemData.vars = vars;
+						else delete itemData.vars;
+						if (Object.keys(itemData).length > 0) next[item.path] = itemData;
+						else delete next[item.path];
 					}
-					if (Object.keys(targetVars).length > 0) fileVars[target] = targetVars;
-					else delete fileVars[target];
-					if (Object.keys(fileVars).length > 0) vars[file] = fileVars;
-					else delete vars[file];
-					if (Object.keys(vars).length > 0) itemData.vars = vars;
-					else delete itemData.vars;
-					if (Object.keys(itemData).length > 0) next[item.path] = itemData;
-					else delete next[item.path];
 					return next;
 				});
-			saveConfigs();
-			if (item?.enabled) {
-				refreshMod(item.path);
 			}
+
+			const iniByFile = iniChanges.reduce((acc, change) => {
+				if (!acc[change.file]) acc[change.file] = {};
+				acc[change.file][change.target.toLowerCase()] = change.value;
+				return acc;
+			}, {} as Record<string, Record<string, string>>);
+			const iniResults = await Promise.all(
+				Object.keys(iniByFile).map((file) => {
+					info("Updating ini", {
+						src: join(item.path, file),
+						content: iniByFile[file],
+					});
+					return updateIniVars(join(item.path, file), iniByFile[file]).then((success) => ({ file, success }));
+				})
+			);
+			const updatedFiles = new Set(iniResults.filter((result) => result.success).map((result) => result.file));
+
+			if (iniChanges.length) {
+				setModList((prev: any) =>
+					prev.map((mod: any) => {
+						if (mod.path !== item.path) return mod;
+						return {
+							...mod,
+							keys: mod.keys.map((k: any) => {
+								const change = iniChanges.find(
+									(queued) =>
+										updatedFiles.has(queued.file) && queued.file === k.file && queued.target === k.target
+								);
+								return change ? { ...k, default: change.value } : k;
+							}),
+						};
+					})
+				);
+			}
+
+			await saveConfigs();
+			if (item?.enabled) {
+				await refreshMod(item.path);
+			}
+			queuedDataChanges.current.clear();
+			queuedIniChanges.current.clear();
+			updateQueuedChangeCount();
+		} finally {
+			setApplyingChanges(false);
+		}
+	}, [item, setData, setModList, updateQueuedChangeCount]);
+
+	const setVal = useCallback(
+		(type = "pref" as "pref" | "reset" | "name", file: string, target: string, value: any) => {
+			queueDataChange(type, file, target, value);
 		},
-		[item, setData]
+		[queueDataChange]
 	);
 	const colCount = 1 + (Object.keys(toggles).filter((key) => toggles[key]).length || 0);
 	const headers = [
@@ -233,8 +323,9 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 				{textData._RightSideBar._components._ModPreferences.ShowVars} */}
 					Columns
 					<div className="text-sm grid grid-cols-5 items-center gap-2">
-						{Object.keys(toggles).map((key) => (
+					{Object.keys(toggles).map((key) => (
 							<Toggle
+								key={key}
 								pressed={toggles[key]}
 								onPressedChange={(pressed) => setToggles((prev) => ({ ...prev, [key]: pressed }))}
 							>
@@ -375,6 +466,11 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 			<label className="text-xs text-accent/50 -my-3">
 				{textData._RightSideBar._components._ModPreferences.Priority}
 			</label>
+			<div className="flex w-full justify-end -my-2 px-2">
+				<Button onClick={applyQueuedChanges} disabled={!queuedChangeCount || applyingChanges}>
+					{applyingChanges ? "Applying..." : `Apply${queuedChangeCount ? ` (${queuedChangeCount})` : ""}`}
+				</Button>
+			</div>
 			{configMode?<JSONEditor rootJSON={item?.vars} rootKey={item?.path}/>:<div
 				className="max-h-90 min-h-90 flex flex-col w-full h-full p-2 pt-0 overflow-x-hidden overflow-y-scroll text-gray-300 rounded-sm"
 				style={{
@@ -429,35 +525,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 											} else if (val === keyConfig.reset) {
 												setVal("reset", keyConfig.file, keyConfig.target, null);
 											}
-											info("Updating ini", {
-												src: join(item.path, keyConfig.file),
-												target: keyConfig.target,
-												content: val,
-											});
-											updateIniVars(join(item.path, keyConfig.file), {
-												[keyConfig.target.toLowerCase()]: val,
-											}).then((success) => {
-												if (success) {
-													setModList((prev: any) => {
-														const newList = prev.map((mod: any) => {
-															if (mod.path === item.path) {
-																mod.keys = mod.keys.map((k: any) => {
-																	if (k.file === keyConfig.file && k.target === keyConfig.target) {
-																		k.default = val;
-																	}
-																	return k;
-																});
-																return {
-																	...mod,
-																};
-															}
-															return mod;
-														});
-														return newList;
-													});
-												} else {
-												}
-											});
+											queueIniChange(keyConfig.file, keyConfig.target, val);
 										}}
 									/>
 									<Button
@@ -490,7 +558,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 										defaultValue={keyConfig.state}
 										onBlur={(e) => {
 											const val = e.currentTarget.value;
-											if (val == keyConfig.pref || (!val && !keyConfig.pref)) {
+											if (val == keyConfig.state || (!val && !keyConfig.state)) {
 												return;
 											}
 											setVal("pref", keyConfig.namespace ?? keyConfig.file, keyConfig.target, val);
