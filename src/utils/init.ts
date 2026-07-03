@@ -192,36 +192,40 @@ invoke<string>("get_image_server_url").then((url) => {
 export async function updateConfig(oconfig = null as any) {
 	if (!oconfig) oconfig = JSON.parse(await readTextFile("config.json"));
 	info("[IMM] Updating config from:", oconfig);
-	if (oconfig.version >= "3.1.0" && (!oconfig.updatedAt || oconfig.updatedAt > "2026-02-24T13:30:00.000Z"))
-		return oconfig;
-	else if (oconfig.version >= "2.1.0") {
-		let config = {
-			clientDate: oconfig.clientDate || "",
-			version: VERSION,
-			lang: oconfig.lang || "",
-			XXMI: oconfig.XXMI || "",
-			preReleases: oconfig.preReleases || false,
-			chkModUpdates: oconfig.chkModUpdates || false,
-			ignore: oconfig.ignore || "3.1.0",
-			game: oconfig.game || "",
-			updatedAt: oconfig.updatedAt || "",
-			notice: oconfig.notice || 0,
-			display: {
-				winType: oconfig.winType || 0,
-				bgType: oconfig.bgType || 2,
-				bgOpacity: oconfig.bgOpacity || 1,
-			},
-			local: {
-				toggleClick: oconfig.toggleClick || 2,
-				modView: 0,
-				nsfw: 2,
-			},
-			online: {
-				filter: "Mod",
-				modView: 0,
-				nsfw: oconfig.nsfw || 1,
-			},
-		};
+	if (oconfig.version >= "3.1.1") return oconfig;
+	else if (oconfig.version >= "3.1.0") {
+		let config = { ...oconfig, version: VERSION };
+		try {
+			config = {
+				clientDate: oconfig.clientDate || "",
+				version: VERSION,
+				lang: oconfig.lang || "",
+				XXMI: oconfig.XXMI || "",
+				preReleases: oconfig.preReleases || false,
+				chkModUpdates: oconfig.chkModUpdates || false,
+				ignore: oconfig.ignore || "3.1.0",
+				game: oconfig.game || "",
+				updatedAt: oconfig.updatedAt || "",
+				notice: oconfig.notice || 0,
+				display: {
+					winType: oconfig.winType || 0,
+					bgType: oconfig.bgType || 2,
+					bgOpacity: oconfig.bgOpacity || 1,
+				},
+				local: {
+					toggleClick: oconfig.toggleClick || 2,
+					modView: 0,
+					nsfw: 2,
+				},
+				online: {
+					filter: "Mod",
+					modView: 0,
+					nsfw: oconfig.nsfw || 1,
+				},
+			};
+		} catch (e) {
+			info("[IMM] Failed to update config:", e);
+		}
 		return config;
 	}
 	let config = {
@@ -598,7 +602,8 @@ export async function main(useGame = "" as Games) {
 	if (config.display?.winType > 1) setWindowType(config.display.winType);
 	const bg = document.querySelector("body");
 	if (bg)
-		bg.style.backgroundColor = "color-mix(in oklab, var(--background) " + config.display?.bgOpacity * 100 + "%, transparent)";
+		bg.style.backgroundColor =
+			"color-mix(in oklab, var(--background) " + config.display?.bgOpacity * 100 + "%, transparent)";
 
 	store.set(SETTINGS, (prev) => ({
 		global: { ...prev.global, ...config },
