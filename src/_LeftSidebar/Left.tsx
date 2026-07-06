@@ -7,8 +7,7 @@ import { GAME, LEFT_SIDEBAR_OPEN, ONLINE, SETTINGS, TEXT_DATA, XXMI_MODE } from 
 import { AnimatePresence, motion } from "motion/react";
 import LeftOnline from "./LeftOnline";
 import LeftLocal from "./LeftLocal";
-// import Settings from "./components/Settings";
-import Settings from "./components/NewSettings";
+import Settings from "./components/Settings";
 import { GAME_NAMES, ONLINE_TRANSITION } from "@/utils/consts";
 import { useInstalledItemsManager } from "@/utils/utils";
 import Downloads from "./components/Downloads";
@@ -16,8 +15,6 @@ import BatchOperations from "./components/Batch";
 import { launchGame } from "@/utils/init";
 import Restore from "./components/Restore";
 import { confirmAndCancelDownloadsForGameSwitch } from "@/utils/downloadManager";
-// import { Label } from "@/components/ui/label";
-// import { saveConfigs } from "@/utils/filesys";
 import Remove from "./components/Remove";
 function LeftSidebar() {
 	const leftSidebarOpen = useAtomValue(LEFT_SIDEBAR_OPEN);
@@ -26,7 +23,6 @@ function LeftSidebar() {
 	const customMode = useAtomValue(XXMI_MODE);
 	const setGame = useSetAtom(GAME);
 	const game = useAtomValue(SETTINGS).global.game;
-	// const [settings, setSettings] = useAtom(SETTINGS);
 
 	useInstalledItemsManager();
 	return (
@@ -56,29 +52,7 @@ function LeftSidebar() {
 
 					<div className="duration-200 px-0 w-full mt-2.5">
 						<SidebarGroupLabel className="justify-between">
-							{textData._LeftSideBar._Left.Mode}{" "}
-							{/* <Label className="text-[10px] min-w-fit opacity-50 text-accent flex items-center">
-								{textData._LeftSideBar._LeftOnline.Chk} :
-								<Button
-									onClick={() => {
-										setSettings({
-											...settings,
-											global: {
-												...settings.global,
-												chkModUpdates: !settings.global.chkModUpdates,
-											},
-										});
-										saveConfigs();
-									}}
-									style={{
-										color: settings.global.chkModUpdates ? "var(--background)" : "",
-										backgroundColor: settings.global.chkModUpdates ? "var(--accent)" : "",
-									}}
-									className="aspect-square pb-2.25 h-4 w-8 text-[10px]"
-								>
-									{settings.global.chkModUpdates ? "On" : "Off"}
-								</Button>
-							</Label> */}
+							{textData._LeftSideBar._Left.Mode}
 						</SidebarGroupLabel>
 						<div
 							className="min-h-fit grid justify-between w-full grid-cols-2 gap-2 px-2 overflow-hidden"
