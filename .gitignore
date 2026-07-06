@@ -17,6 +17,7 @@ dist-ssr
 flatpak-build-dir/
 flatpak-tmp/
 
+*._*
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
