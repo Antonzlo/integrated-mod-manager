@@ -794,6 +794,7 @@ pub fn run() {
         )
         .plugin(
             Builder::default()
+                // sets the flags to only track and restore size
                 .with_state_flags(StateFlags::all().difference(StateFlags::DECORATIONS))
                 .build(),
         )
