@@ -17,9 +17,8 @@ import {
 	InfoIcon,
 	IterationCcwIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { info } from "@/lib/logger";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent } from "@/components/ui/popover";
 import { PopoverTrigger } from "@radix-ui/react-popover";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -39,13 +38,15 @@ type QueuedIniChange = {
 	target: string;
 	value: string;
 };
+const dataChangeKey = (type: QueuedDataChange["type"], file: string, target: string) => `${type}|${file}|${target}`;
+const iniChangeKey = (file: string, target: string) => `${file}|${target}`;
 const textData2 = {
 	default: "Def.",
-	state: "Auto",
 	pref: "Pref.",
 	expected: "Exp.",
 	keys: "HKs",
 } as const;
+const columns = Object.keys(textData2) as (keyof typeof textData2)[];
 function ModPreferences({ item, details }: { item: any; details: any }) {
 	const setData = useSetAtom(DATA);
 	const setModList = useSetAtom(MOD_LIST);
@@ -58,30 +59,25 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 	const [pageNo, setPageNo] = useState(0);
 	const textData = useAtomValue(TEXT_DATA);
 	const [forceKeyUpdate, setForceKeyUpdate] = useState(0);
-	const queuedDataChanges = useRef<Map<string, QueuedDataChange>>(new Map());
-	const queuedIniChanges = useRef<Map<string, QueuedIniChange>>(new Map());
-	const [queuedChangeCount, setQueuedChangeCount] = useState(0);
+	const [dataChanges, setDataChanges] = useState<Record<string, QueuedDataChange>>({});
+	const [iniChanges, setIniChanges] = useState<Record<string, QueuedIniChange>>({});
 	const [applyingChanges, setApplyingChanges] = useState(false);
 	const [toggles, setToggles] = useState({
 		default: true,
-		state: true,
 		pref: true,
 		expected: true,
 		keys: true,
 	} as Record<string, boolean>);
-	const updateQueuedChangeCount = useCallback(() => {
-		setQueuedChangeCount(queuedDataChanges.current.size + queuedIniChanges.current.size);
-	}, []);
+	const queuedChangeCount = Object.keys(dataChanges).length + Object.keys(iniChanges).length;
 	useEffect(() => {
-		if (prevItemPath !== item?.path || (!details?.files?.hasOwnProperty(selectedFile) && selectedFile)) {
+		if (prevItemPath !== item?.path) {
 			setSelectedFile("");
 			setPageNo(0);
-			queuedDataChanges.current.clear();
-			queuedIniChanges.current.clear();
-			updateQueuedChangeCount();
+			setDataChanges({});
+			setIniChanges({});
 			prevItemPath = item?.path;
 		}
-	}, [details, item, selectedFile, updateQueuedChangeCount]);
+	}, [item?.path]);
 	useEffect(() => {
 		setPageNo(0);
 		setSelectedFileData([] as any);
@@ -129,30 +125,49 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		setChange();
 	}
 	const queueDataChange = useCallback(
-		(type = "pref" as "pref" | "reset" | "name", file: string, target: string, value: any) => {
-			queuedDataChanges.current.set(`${type}|${file}|${target}`, { type, file, target, value });
-			updateQueuedChangeCount();
+		(type: QueuedDataChange["type"], file: string, target: string, value: any, original: any) => {
+			setDataChanges((prev) => {
+				const next = { ...prev };
+				const key = dataChangeKey(type, file, target);
+				if (value == original || (!value && !original)) delete next[key];
+				else next[key] = { type, file, target, value };
+				return next;
+			});
 		},
-		[updateQueuedChangeCount]
+		[]
 	);
 	const queueIniChange = useCallback(
-		(file: string, target: string, value: string) => {
-			queuedIniChanges.current.set(`${file}|${target}`, { file, target, value });
-			updateQueuedChangeCount();
+		(file: string, target: string, value: string, original: string) => {
+			setIniChanges((prev) => {
+				const next = { ...prev };
+				const key = iniChangeKey(file, target);
+				if (value == original || (!value && !original)) delete next[key];
+				else next[key] = { file, target, value };
+				return next;
+			});
 		},
-		[updateQueuedChangeCount]
+		[]
+	);
+	const getDataValue = useCallback(
+		(type: QueuedDataChange["type"], file: string, target: string, original: any) =>
+			dataChanges[dataChangeKey(type, file, target)]?.value ?? original,
+		[dataChanges]
+	);
+	const getIniValue = useCallback(
+		(file: string, target: string, original: string) => iniChanges[iniChangeKey(file, target)]?.value ?? original,
+		[iniChanges]
 	);
 	const applyQueuedChanges = useCallback(async () => {
-		const dataChanges = Array.from(queuedDataChanges.current.values());
-		const iniChanges = Array.from(queuedIniChanges.current.values());
-		if (!dataChanges.length && !iniChanges.length) return;
+		const queuedDataChanges = Object.values(dataChanges);
+		const queuedIniChanges = Object.values(iniChanges);
+		if (!queuedDataChanges.length && !queuedIniChanges.length) return;
 
 		setApplyingChanges(true);
 		try {
-			if (dataChanges.length) {
+			if (queuedDataChanges.length) {
 				setData((prev: any) => {
 					const next = { ...(prev || {}) };
-					for (const change of dataChanges) {
+					for (const change of queuedDataChanges) {
 						const itemData = { ...(next[item.path] || {}) };
 						const vars = { ...(itemData.vars || {}) };
 						const fileVars = { ...(vars[change.file] || {}) };
@@ -174,7 +189,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 				});
 			}
 
-			const iniByFile = iniChanges.reduce((acc, change) => {
+			const iniByFile = queuedIniChanges.reduce((acc, change) => {
 				if (!acc[change.file]) acc[change.file] = {};
 				acc[change.file][change.target.toLowerCase()] = change.value;
 				return acc;
@@ -190,14 +205,14 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 			);
 			const updatedFiles = new Set(iniResults.filter((result) => result.success).map((result) => result.file));
 
-			if (iniChanges.length) {
+			if (queuedIniChanges.length) {
 				setModList((prev: any) =>
 					prev.map((mod: any) => {
 						if (mod.path !== item.path) return mod;
 						return {
 							...mod,
 							keys: mod.keys.map((k: any) => {
-								const change = iniChanges.find(
+								const change = queuedIniChanges.find(
 									(queued) =>
 										updatedFiles.has(queued.file) && queued.file === k.file && queued.target === k.target
 								);
@@ -212,36 +227,18 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 			if (item?.enabled) {
 				await refreshMod(item.path);
 			}
-			queuedDataChanges.current.clear();
-			queuedIniChanges.current.clear();
-			updateQueuedChangeCount();
+			setDataChanges({});
+			setIniChanges({});
 		} finally {
 			setApplyingChanges(false);
 		}
-	}, [item, setData, setModList, updateQueuedChangeCount]);
-
-	const setVal = useCallback(
-		(type = "pref" as "pref" | "reset" | "name", file: string, target: string, value: any) => {
-			queueDataChange(type, file, target, value);
-		},
-		[queueDataChange]
-	);
+	}, [dataChanges, iniChanges, item, setData, setModList]);
 	const colCount = 1 + (Object.keys(toggles).filter((key) => toggles[key]).length || 0);
 	const headers = [
 		<Tooltip>
 			<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2">
 				<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4" />
 				{textData._RightSideBar._components._ModPreferences.DefVal}
-			</TooltipTrigger>
-			<TooltipContent className="w-48 px-1 text-center">
-				{textData._RightSideBar._components._ModPreferences.DefValTip}
-			</TooltipContent>
-		</Tooltip>,
-		<Tooltip>
-			<TooltipTrigger className="text-accent flex items-center justify-center w-full gap-2">
-				<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4" />
-				{/* {textData._RightSideBar._components._ModPreferences.DefVal} */}
-				Auto Save
 			</TooltipTrigger>
 			<TooltipContent className="w-48 px-1 text-center">
 				{textData._RightSideBar._components._ModPreferences.DefValTip}
@@ -322,8 +319,8 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 					{/* <Checkbox checked={fileMode} onCheckedChange={(checked) => setFileMode(!!checked)} />{" "}
 				{textData._RightSideBar._components._ModPreferences.ShowVars} */}
 					Columns
-					<div className="text-sm grid grid-cols-5 items-center gap-2">
-					{Object.keys(toggles).map((key) => (
+					<div className="text-sm grid grid-cols-4 items-center gap-2">
+						{columns.map((key) => (
 							<Toggle
 								key={key}
 								pressed={toggles[key]}
@@ -340,7 +337,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 					opacity: fileMode ? 1 : 0,
 					pointerEvents: fileMode ? "auto" : "none",
 					userSelect: fileMode ? "auto" : "none",
-					minHeight: fileMode ? "2.75rem" : 0,
+					minHeight: "2.75rem",
 					marginBottom: fileMode ? 0 : "-1.5rem",
 					marginTop: fileMode ? 0 : "-1.5rem",
 				}}
@@ -460,17 +457,13 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 						</TooltipContent>
 					</Tooltip>
 					{/* <div className="text-accent w-1/5 text-center">Target Var</div>| */}
-					{Object.values(toggles).map((val, i) => val && <>{headers[i]}</>)}
+					{columns.map((key, i) => toggles[key] && <>{headers[i]}</>)}
 				</div>
 			</div>
 			<label className="text-xs text-accent/50 -my-3">
 				{textData._RightSideBar._components._ModPreferences.Priority}
 			</label>
-			<div className="flex w-full justify-end -my-2 px-2">
-				<Button onClick={applyQueuedChanges} disabled={!queuedChangeCount || applyingChanges}>
-					{applyingChanges ? "Applying..." : `Apply${queuedChangeCount ? ` (${queuedChangeCount})` : ""}`}
-				</Button>
-			</div>
+			
 			{configMode?<JSONEditor rootJSON={item?.vars} rootKey={item?.path}/>:<div
 				className="max-h-90 min-h-90 flex flex-col w-full h-full p-2 pt-0 overflow-x-hidden overflow-y-scroll text-gray-300 rounded-sm"
 				style={{
@@ -498,34 +491,39 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 							{file.file}
 						</div>
 						{file.keys.map((keyConfig: any, index: number) => {
-							const nameDefault = keyConfig.name == keyConfig.target;
+							const displayDefault = getIniValue(keyConfig.file, keyConfig.target, keyConfig.default);
+							const dataFile = keyConfig.namespace || keyConfig.file;
+							const displayName = getDataValue("name", keyConfig.file, keyConfig.target, keyConfig.name);
+							const displayPref = getDataValue("pref", dataFile, keyConfig.target, keyConfig.pref);
+							const nameDefault = displayName == keyConfig.target;
 							const defDefault = keyConfig.reset === null || keyConfig.reset === undefined;
-							const prefDefault = keyConfig.pref === null || keyConfig.pref === undefined;
-							const stateDefault = keyConfig.state === null || keyConfig.state === undefined;
+							const prefDefault = displayPref === null || displayPref === undefined || displayPref === "";
 							const elements = [
 								<div className="w-full flex items-center">
 									<Input
 										className="text-muted-foreground w-full bg-transparent -mr-8.5"
 										style={{
-											textAlign: isNaN(Number(keyConfig.default)) ? "left" : "right",
+											textAlign: isNaN(Number(displayDefault)) ? "left" : "right",
 											paddingRight: defDefault ? "" : "2rem",
 										}}
-										defaultValue={keyConfig.default}
+										key={displayDefault}
+										defaultValue={displayDefault}
 										onBlur={(e) => {
 											const val = e.currentTarget.value;
-											if (val == keyConfig.default || (!val && !keyConfig.default)) {
-												return;
-											}
 											if (!val) {
-												e.currentTarget.value = keyConfig.default;
+												e.currentTarget.value = displayDefault;
 												return;
 											}
-											if (keyConfig.reset === null || keyConfig.reset === undefined) {
-												setVal("reset", keyConfig.file, keyConfig.target, keyConfig.default);
+											queueIniChange(keyConfig.file, keyConfig.target, val, keyConfig.default);
+											if (val == keyConfig.default || (!val && !keyConfig.default)) {
+												queueDataChange("reset", keyConfig.file, keyConfig.target, keyConfig.reset, keyConfig.reset);
+											} else if (keyConfig.reset === null || keyConfig.reset === undefined) {
+												queueDataChange("reset", keyConfig.file, keyConfig.target, keyConfig.default, null);
 											} else if (val === keyConfig.reset) {
-												setVal("reset", keyConfig.file, keyConfig.target, null);
+												queueDataChange("reset", keyConfig.file, keyConfig.target, null, keyConfig.reset);
+											} else {
+												queueDataChange("reset", keyConfig.file, keyConfig.target, keyConfig.reset, keyConfig.reset);
 											}
-											queueIniChange(keyConfig.file, keyConfig.target, val);
 										}}
 									/>
 									<Button
@@ -551,62 +549,16 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 									<Input
 										className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
 										style={{
-											textAlign:
-												!stateDefault && isNaN(Number(keyConfig.state ?? keyConfig.default)) ? "left" : "right",
-											paddingRight: stateDefault ? "" : "2rem",
-										}}
-										defaultValue={keyConfig.state}
-										onBlur={(e) => {
-											const val = e.currentTarget.value;
-											if (val == keyConfig.state || (!val && !keyConfig.state)) {
-												return;
-											}
-											setVal("pref", keyConfig.namespace ?? keyConfig.file, keyConfig.target, val);
-										}}
-										placeholder={"None"}
-									/>
-
-									<Button
-										variant="ghost"
-										className=" h-7 w-7 ml-0.75"
-										style={{
-											pointerEvents: prefDefault ? "none" : "auto",
-											opacity: prefDefault ? 0 : 1,
-										}}
-										onClick={(e) => {
-											const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
-											if (prev) {
-												prev.focus();
-												prev.value = "";
-												prev.blur();
-											}
-										}}
-									>
-										<IterationCcwIcon className="max-h-4 rotate-180" />
-									</Button>
-								</div>,
-								<div className="w-full flex items-center">
-									<Input
-										className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
-										style={{
-											textAlign: isNaN(Number(keyConfig.pref ?? keyConfig.default)) ? "left" : "right",
+											textAlign: isNaN(Number(displayPref ?? keyConfig.default)) ? "left" : "right",
 											paddingRight: prefDefault ? "" : "2rem",
 										}}
-										defaultValue={keyConfig.pref}
+										key={displayPref ?? ""}
+										defaultValue={displayPref}
 										onBlur={(e) => {
 											const val = e.currentTarget.value;
-											if (val == keyConfig.pref || (!val && !keyConfig.pref)) {
-												return;
-											}
-											console.log(keyConfig.namespace || keyConfig.file);
-											setVal("pref", keyConfig.namespace || keyConfig.file, keyConfig.target, val);
+											queueDataChange("pref", dataFile, keyConfig.target, val, keyConfig.pref);
 										}}
-										placeholder={
-											"None"
-											// keyConfig.state
-											// 	? `${textData._RightSideBar._components._ModPreferences.AutoSaved} ${keyConfig.state}`
-											// 	: textData._RightSideBar._components._ModPreferences.Default
-										}
+										placeholder={keyConfig.state ?? "None"}
 									/>
 
 									<Button
@@ -685,20 +637,18 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 									<div className="w-full flex items-center">
 										<Input
 											className="text-muted-foreground w-full bg-transparent text-ellipsis -mr-8.5"
-											defaultValue={keyConfig.name}
+											key={displayName ?? ""}
+											defaultValue={displayName}
 											style={{
 												paddingRight: nameDefault ? "" : "2rem",
 											}}
 											onBlur={(e) => {
 												const val = e.currentTarget.value;
-												if (val == keyConfig.name || (!val && !keyConfig.name)) {
-													return;
-												}
 												if (val === keyConfig.target) {
-													setVal("name", keyConfig.file, keyConfig.target, null);
+													queueDataChange("name", keyConfig.file, keyConfig.target, null, keyConfig.name);
 													return;
 												}
-												setVal("name", keyConfig.file, keyConfig.target, val);
+												queueDataChange("name", keyConfig.file, keyConfig.target, val, keyConfig.name);
 											}}
 										/>
 										<Button
@@ -720,13 +670,18 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 											<IterationCcwIcon className="max-h-4 rotate-180" />
 										</Button>
 									</div>
-									{Object.values(toggles).map((val, i) => val && elements[i])}
+									{columns.map((key, i) => toggles[key] && elements[i])}
 								</div>
 							);
 						})}
 					</div>
 				))}
 			</div>}
+			<div className="flex w-full sticky bottom-0 justify-end -my-2 -mr-2px-2">
+				<Button onClick={applyQueuedChanges} disabled={!queuedChangeCount || applyingChanges} variant="destructive">
+					{applyingChanges ? "Applying..." : `Apply${queuedChangeCount ? ` (${queuedChangeCount})` : ""}`}
+				</Button>
+			</div>
 		</DialogContent>
 	);
 }
