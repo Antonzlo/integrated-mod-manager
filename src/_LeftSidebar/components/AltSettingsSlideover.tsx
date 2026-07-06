@@ -4,7 +4,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent }
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -15,30 +14,13 @@ import { join, setHotreload } from "@/utils/hotreload";
 import { getCwd, setPrePostLaunch, setWindowType } from "@/utils/init";
 import TEXT from "@/textData.json";
 import { exportConfig, keySort } from "@/utils/utils";
-import {
-	ANIMATIONS,
-	BACKUP_INI,
-	BLUR,
-	DEV_HIDE_PREVIEWS,
-	INIT_DONE,
-	PRESETS,
-	REMOVE_OPEN,
-	SAVED_LANG,
-	SCALE,
-	SETTINGS,
-	SOURCE,
-	store,
-	TARGET,
-	TEXT_DATA,
-	XXMI_MODE,
-} from "@/utils/vars";
+import { INIT_DONE, PRESETS, SAVED_LANG, SETTINGS, SOURCE, store, TARGET, TEXT_DATA, XXMI_MODE } from "@/utils/vars";
 import { Separator } from "@radix-ui/react-separator";
 import { open } from "@tauri-apps/plugin-dialog";
 import { readTextFile } from "@tauri-apps/plugin-fs";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
 import {
 	AppWindowIcon,
-	BadgeXIcon,
 	CheckIcon,
 	CircleSlashIcon,
 	DownloadIcon,
@@ -140,7 +122,7 @@ function SettingTabs({
 		</Tabs>
 	);
 }
-function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
+function SettingsSlideover({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 	const textData = useAtomValue(TEXT_DATA);
 	const customMode = useAtomValue(XXMI_MODE);
 	// const [presets, setPresets] = useAtom(PRESETS);
@@ -153,18 +135,11 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 	const [settings, setSettings] = useAtom(SETTINGS);
 	const scrollTimer = useRef<number>(null);
 	const [alertOpen, setAlertOpen] = useState(false);
-	const [scale,setScale] = useAtom(SCALE);
-	const [animations,setAnimations] = useAtom(ANIMATIONS);
-	const [backupIni,setBackupIni] = useAtom(BACKUP_INI);	
-	const [devHidePreviews,setDevHidePreviews] = useAtom(DEV_HIDE_PREVIEWS);
-	// const [globalPage, setGlobalPage] = useState(true);
-	// const [dialogOpen, setDialogOpen] = useState(false);
-	const setRemoveOpen = useSetAtom(REMOVE_OPEN);
+	const [globalPage, setGlobalPage] = useState(true);
 	const [langAlertData, setLangAlertData] = useState({ prev: "en", new: "en" } as {
 		prev: keyof typeof TEXT;
 		new: keyof typeof TEXT;
 	});
-	const [blur,setBlur] = useAtom(BLUR);
 	const importConfig = async () => {
 		try {
 			const dialogOptions: any = {
@@ -301,66 +276,6 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							]}
 						/>
 					</SettingRow>
-					<SettingRow label={"Scale"}>
-						<Slider
-							defaultValue={[scale]}
-							max={0}
-							min={-100}
-							step={1}
-							className="w-full m-1"
-							onValueChange={(e) => {
-								document.documentElement.style.fontSize = 16 * Math.pow(2,e[0]/50) + "px";
-								setScale(e[0]);
-							}}
-							onValueCommit={(e) => {
-								// setSettings((prev) => {
-								// 	prev.global.display.bgOpacity = e[0] / 100;
-								// 	return { ...prev };
-								// });
-								// saveConfigs();
-							}}
-						/>
-					</SettingRow>
-					<SettingRow label={"Animations"}>
-						<SettingTabs
-							defaultValue={animations ? "1" : "0"}
-							onValueChange={(e) => {
-								setAnimations(e === "1");
-							}}
-							options={[
-								{
-									value: "0",
-									icon: XIcon,
-									label: "Off",
-								},
-								{
-									value: "1",
-									icon: CheckIcon,
-									label: "On",
-								},
-							]}
-						/>
-					</SettingRow>
-					<SettingRow label={"Blur"}>
-						<Slider
-							defaultValue={[blur*50]}
-							max={100}
-							min={0}
-							step={5}
-							className="w-full m-1"
-							onValueChange={(e) => {
-								// document.documentElement.style.fontSize = 16 * Math.pow(2,e[0]/50) + "px";
-								setBlur(e[0] / 50);
-							}}
-							onValueCommit={(e) => {
-								// setSettings((prev) => {
-								// 	prev.global.display.bgOpacity = e[0] / 100;
-								// 	return { ...prev };
-								// });
-								// saveConfigs();
-							}}
-						/>
-					</SettingRow>
 				</>
 			),
 		},
@@ -404,53 +319,6 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							]}
 						/>
 					</SettingRow>
-					<SettingRow label={textData._LeftSideBar._LeftOnline.Chk}>
-						<SettingTabs
-							defaultValue={settings.global.chkModUpdates ? "1" : "0"}
-							onValueChange={(e) => {
-								setSettings({
-									...settings,
-									global: {
-										...settings.global,
-										chkModUpdates: e == "1",
-									},
-								});
-								saveConfigs();
-							}}
-							options={[
-								{
-									value: "0",
-									icon: XIcon,
-									label: "Off",
-								},
-								{
-									value: "1",
-									icon: CheckIcon,
-									label: "On",
-								},
-							]}
-						/>
-					</SettingRow>
-					<SettingRow label={"Backup INIs before Updates"}>
-						<SettingTabs
-							defaultValue={backupIni ? "1" : "0"}
-							onValueChange={(e) => {
-								setBackupIni(e === "1");
-							}}
-							options={[
-								{
-									value: "0",
-									icon: XIcon,
-									label: "Off",
-								},
-								{
-									value: "1",
-									icon: CheckIcon,
-									label: "On",
-								},
-							]}
-						/>
-					</SettingRow>
 				</>
 			),
 		},
@@ -460,25 +328,6 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 			icon: Globe2,
 			content: (
 				<>
-					<SettingRow label={"Concurrent Downloads"}>
-						<div className="flex items-center w-full gap-3">
-							<Slider
-								value={[settings.global.maxConcurrentDownloads || 1]}
-								max={8}
-								min={1}
-								step={1}
-								className="w-full m-1"
-								onValueChange={(e) => {
-									setSettings((prev) => {
-										prev.global.maxConcurrentDownloads = e[0];
-										return { ...prev };
-									});
-								}}
-								onValueCommit={() => saveConfigs()}
-							/>
-							<Label className="text-accent min-w-8 text-center">{settings.global.maxConcurrentDownloads || 1}</Label>
-						</div>
-					</SettingRow>
 					<SettingRow
 						label={
 							<>
@@ -749,43 +598,6 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							</Button>
 						</div>
 					</SettingRow>
-					<SettingRow label={textData._LeftSideBar._components._RemoveIMM.RemoveIMM}>
-						<Button
-							// disabled={disabled}
-							onClick={() => {
-								setTimeout(() => {
-									setRemoveOpen(true);
-								}, 0);
-								setSettingsOpen(false);
-							}}
-							className="h-9 z-1 bg-input/25 text-accent hover:text-background group w-full text-sm"
-							variant="destructive"
-						>
-							<BadgeXIcon className="w-4 h-4" />
-							{textData._LeftSideBar._components._RemoveIMM.RemoveIMM}
-						</Button>
-					</SettingRow>
-					{import.meta.env.DEV && <SettingRow label={"Local preview images"}>
-						<SettingTabs
-							defaultValue={devHidePreviews ? "1" : "0"}
-							onValueChange={(e) => {
-								setDevHidePreviews(e === "1");
-								document.getElementById("refresh-btn")?.click();
-							}}
-							options={[
-								{
-									value: "0",
-									icon: EyeIcon,
-									label: "Show",
-								},
-								{
-									value: "1",
-									icon: EyeOffIcon,
-									label: "Hide",
-								},
-							]}
-						/>
-					</SettingRow>}
 				</>
 			),
 		},
@@ -802,7 +614,7 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 					{leftSidebarOpen && textData.Settings}
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="max-h-128 min-w-210 h-full">
+			<DialogContent hideClose className="max-h-[calc(100vh-1rem)] pb-0 left-104 min-w-210 h-full data-[state=closed]:slide-out-to-left-25 data-[state=open]:slide-in-from-left-25  data-[state=closed]:zoom-out-100 data-[state=open]:zoom-in-100">
 				<AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
 					<AlertDialogContent
 						className="game-font bg-background/50 backdrop-blur-xs border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg"
@@ -911,15 +723,9 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 						)}
 					</AlertDialogContent>
 				</AlertDialog>
-				<div className="min-h-fit text-accent my-6 text-3xl">
-					{textData.Settings}
-					<Tooltip>
-						<TooltipTrigger></TooltipTrigger>
-						<TooltipContent className="opacity-0"></TooltipContent>
-					</Tooltip>
-				</div>
+				
 				<div className="flex w-full h-full">
-					<div className="shrink-0 border-border justify-evenly relative flex flex-col w-24 h-full gap-1 pr-4 border-r">
+					<div className="shrink-0 max-h-116 justify-evenly relative flex flex-col w-24 h-full gap-1 pr-4">
 						<div
 							className="absolute w-[calc(100%-1rem)] rounded-lg h-16 mt-2 z-0 duration-300 bg-accent"
 							style={{
@@ -973,11 +779,11 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 					</div>
 					<div
 						id="parent-container"
-						className="flex flex-col w-[calc(100%-6rem)] max-h-116 pb-95 gap-2 px-4 shrink-0 h-full overflow-y-scroll overflow-x-hidden"
+						className="flex flex-col w-[calc(100%-6rem)] border-l max-h-[calc(100vh-3.125rem)] pb-[90vh] gap-2 px-4 shrink-0 h-full overflow-y-scroll overflow-x-hidden"
 						onScroll={(e) => {
 							const cur = e.currentTarget;
 							const children = Array.from(cur.children) as HTMLDivElement[];
-							const next = children.find((child) => child.offsetTop - cur.scrollTop > 20);
+							const next = children.find((child) => child.offsetTop - cur.scrollTop >10);
 							if (next) {
 								if (scrollTimer.current) clearTimeout(scrollTimer.current);
 								scrollTimer.current = setTimeout(() => {
@@ -1005,4 +811,4 @@ function NewSettings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 	);
 }
 
-export default NewSettings;
+export default SettingsSlideover;
