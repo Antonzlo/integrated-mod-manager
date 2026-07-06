@@ -109,8 +109,8 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 				<AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
 					<AlertDialogContent className="game-font bg-background/50 backdrop-blur-xs border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg"
 					style={{
-						minWidth:alertType === "xxmi"?"700px":"",
-						maxWidth:alertType === "xxmi"?"700px":""
+						minWidth:alertType === "xxmi"?"43.75rem":"",
+						maxWidth:alertType === "xxmi"?"43.75rem":""
 					}}
 					>
 						{alertType === "xxmi" ? (
@@ -180,6 +180,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 						)}
 					</AlertDialogContent>
 				</AlertDialog>
+				{/* Title */}
 				<div className="min-h-fit text-accent my-6 text-3xl">
 					{textData.Settings}
 					<Tooltip>
@@ -217,16 +218,17 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							className="min-h-80 flex w-full gap-2"
 						>
 							{globalPage ? (
+								
 								<>
 									<div className="min-w-1/2 justify-evenly flex flex-col min-h-full gap-4 pr-2">
 										<div className="flex flex-col w-full gap-4">
 											<label className="min-w-fit">{textData._LeftSideBar._components._Settings.Toggle}</label>
 											<Tabs
-												defaultValue={settings.global.toggleClick.toString()}
+												defaultValue={settings.global.local.toggleClick.toString()}
 												className="w-full"
 												onValueChange={(e) => {
 													setSettings((prev) => {
-														prev.global.toggleClick = parseInt(e) as 0 | 2;
+														prev.global.local.toggleClick = parseInt(e) as 0 | 2;
 														return { ...prev };
 													});
 													saveConfigs();
@@ -249,10 +251,10 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 										<div className="flex flex-col w-full gap-4">
 											<label>{textData._LeftSideBar._components._Settings.WindowType}</label>
 											<Tabs
-												defaultValue={settings.global.winType.toString()}
+												defaultValue={settings.global.display.winType.toString()}
 												onValueChange={(e) => {
 													setSettings((prev) => {
-														prev.global.winType = parseInt(e) as 0 | 1 | 2;
+														prev.global.display.winType = parseInt(e) as 0 | 1 | 2;
 														return { ...prev };
 													});
 													setWindowType(parseInt(e));
@@ -279,7 +281,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 										<div className="flex flex-col w-full gap-4">
 											<label className="min-w-fit">{textData._LeftSideBar._components._Settings.WindowBGOpacity}</label>
 											<Slider
-												defaultValue={[settings.global.bgOpacity * 100]}
+												defaultValue={[settings.global.display.bgOpacity * 100]}
 												max={100}
 												min={0}
 												step={1}
@@ -291,7 +293,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 												}}
 												onValueCommit={(e) => {
 													setSettings((prev) => {
-														prev.global.bgOpacity = e[0] / 100;
+														prev.global.display.bgOpacity = e[0] / 100;
 														return { ...prev };
 													});
 													saveConfigs();
@@ -326,10 +328,10 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 												</Tooltip>
 											</div>
 											<Tabs
-												defaultValue={settings.global.nsfw.toString()}
+												defaultValue={settings.global.online.nsfw.toString()}
 												onValueChange={(e) => {
 													setSettings((prev) => {
-														prev.global.nsfw = parseInt(e) as 0 | 1 | 2;
+														prev.global.online.nsfw = parseInt(e) as 0 | 1 | 2;
 														return { ...prev };
 													});
 													saveConfigs();
@@ -355,10 +357,10 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 										<div className="flex flex-col w-full gap-4">
 											<label>{textData._LeftSideBar._components._Settings.BgType}</label>
 											<Tabs
-												defaultValue={settings.global.bgType.toString()}
+												defaultValue={settings.global.display.bgType.toString()}
 												onValueChange={(e) => {
 													setSettings((prev) => {
-														prev.global.bgType = parseInt(e) as 0 | 1 | 2;
+														prev.global.display.bgType = parseInt(e) as 0 | 1 | 2;
 														return { ...prev };
 													});
 													saveConfigs();
@@ -443,8 +445,8 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 												</Tooltip>
 											</div>
 											<Tabs
-												defaultValue={settings.game.hotReload.toString()}
 												className="w-full"
+												defaultValue={settings.game.hotReload.toString()}
 												onValueChange={(e: any) => {
 													e = parseInt(e) as 0 | 1 | 2;
 													setSettings((prev) => {
@@ -494,16 +496,16 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 												</Tooltip>
 											</div>
 											<Tabs
-												defaultValue={settings.game.launch.toString()}
 												className=" w-full duration-200"
 												style={
 													customMode
-														? {
-																pointerEvents: "none",
-																filter: "brightness(0.5)",
-															}
-														: {}
+													? {
+														pointerEvents: "none",
+														filter: "brightness(0.5)",
+													}
+													: {}
 												}
+												defaultValue={settings.game.launch.toString()}
 												onValueChange={(e) => {
 													let val = parseInt(e) as 0 | 1 | 2;
 													if (val == 2 || settings.game.launch == 2) setPrePostLaunch(settings.global.game, val == 2);
@@ -604,7 +606,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 												presets.map((preset, index) => (
 													<div className="flex flex-col items-center justify-between w-full h-16 gap-2">
 														<Input
-															className="w-full text-muted-foreground text-ellipsis h-10 p-0 overflow-hidden break-words border-0"
+															className="text-muted-foreground text-ellipsis w-full h-10 p-0 overflow-hidden break-words border-0"
 															style={{ backgroundColor: "#0000" }}
 															onFocus={(e) => {
 																e.currentTarget.blur();

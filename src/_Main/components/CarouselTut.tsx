@@ -35,7 +35,7 @@ function CarouselTut({
 			<CarouselCN
 				setApi={setApi}
 				opts={{ loop: true }}
-				className="min-w-[608px]   min-h-[500px]  overflow-hidden  pointer-events-none rounded-lg"
+				className="min-w-152   min-h-125  overflow-hidden  pointer-events-none rounded-lg"
 			>
 				<CarouselContent className=" min-w-full min-h-full">
 					{data?.map((item, index) => (
@@ -45,7 +45,7 @@ function CarouselTut({
 									onClick={(e) => {
 										if (e.target != e.currentTarget) return;
 									}}
-									className="w-[624px] h-[420px] z-20 flex flex-col items-center justify-between overflow-hidden  rounded-lg pointer-events-auto"
+									className="w-156 h-105 z-20 flex flex-col items-center justify-between overflow-hidden  rounded-lg pointer-events-auto"
 									style={{
 										backgroundImage: `url(/tutorials/${title + "/" + index}.png)`,
 										backgroundSize: "contain",
@@ -54,12 +54,12 @@ function CarouselTut({
 									}}
 								/>
 							</div>
-							<div className="text-center w-[624px] text-sm mt-2 text-gray-300">{item}</div>
+							<div className="text-center w-156 text-sm mt-2 text-gray-300">{item}</div>
 						</CarouselItem>
 					))}
 				</CarouselContent>
 			</CarouselCN>
-			<div className="flex flex-wrap abs items-center w-[608px] -mt-4  justify-center min-h-fit gap-0.5 rounded-lg pointer-events-none">
+			<div className="flex flex-wrap abs items-center w-152 -mt-4  justify-center min-h-fit gap-0.5 rounded-lg pointer-events-none">
 				{data.length > 1 &&
 					data.map((_, index) => (
 						<div

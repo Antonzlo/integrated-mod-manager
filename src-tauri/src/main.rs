@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use std::env;
 fn main() {
+    env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--ignore-gpu-blocklist --enable-gpu-rasterization");
     #[cfg(not(dev))]
     if let Ok(exe_path) = env::current_exe() {
         // Get the directory containing the executable

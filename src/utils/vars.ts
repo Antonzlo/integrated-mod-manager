@@ -10,51 +10,37 @@ import {
 	Games,
 	InstalledItem,
 	Language,
+	ModCheckProgressData,
 	Mod,
 	ModDataObj,
+	NoticeData,
 	OnlineData,
 	Preset,
 	ProgressData,
 	Settings,
+	ToastData,
 } from "./types";
+import type { Update } from "@tauri-apps/plugin-updater";
 interface UpdateInfo {
 	version: string;
 	status: "available" | "downloading" | "ready" | "error" | "installed" | "ignored";
 	date: string;
 	body: string;
-	raw: any | null;
+	raw: Update | null;
 }
+const DEV_HIDE_PREVIEWS = atomWithStorage("imm-dev-hide-previews", false);
+const SCALE = atomWithStorage("imm-scale", 0);
+const BLUR = atomWithStorage("imm-blur", 1);
+const ANIMATIONS = atomWithStorage("imm-animations", true);
+const BACKUP_INI = atomWithStorage("imm-backup-ini", false);
 const INIT_DONE = atom(false);
-const MAIN_FUNC_STATUS = atom("" as String);
+const MAIN_FUNC_STATUS = atom<string>("");
 const FIRST_LOAD = atom(false);
 const GAME = atom<Games>("");
 const LANG = atom<Language>("en");
-const SAVED_LANG = atomWithStorage<Language | "">("imm-lang","");
+const SAVED_LANG = atomWithStorage<Language | "">("imm-lang", "");
 const LAST_UPDATED = atom(Date.now());
-const SETTINGS = atom<Settings>({
-	global: {
-		bgOpacity: 1,
-		winOpacity: 1,
-		winType: 0,
-		bgType: 2,
-		listType: 0,
-		nsfw: 1,
-		toggleClick: 2,
-		ignore: VERSION,
-		clientDate: "1759866302559426603",
-		XXMI: "",
-		lang: "",
-		game: "",
-		preReleases: false,
-		chkModUpdates: true,
-	},
-	game: {
-		launch: 0,
-		hotReload: 1,
-		onlineType: "Mod",
-		customCategories: {},
-	},
-});
+const SETTINGS = atom<Settings>(DEFAULTS.SETTINGS);
 const SOURCE = atom<string>("");
 const TARGET = atom<string>("");
 const DATA = atom<ModDataObj>({});
@@ -81,7 +67,7 @@ const ONLINE_TYPE = atom(DEFAULTS.ONLINE_TYPE);
 const ONLINE_SORT = atom(DEFAULTS.ONLINE_SORT);
 const ONLINE_PATH = atom(DEFAULTS.ONLINE_PATH);
 const ONLINE_SELECTED = atom(DEFAULTS.ONLINE_SELECTED);
-const TOASTS = atom([] as any[]);
+const TOASTS = atom<ToastData[]>([]);
 const CHANGES = atom<ChangeInfo>({
 	before: [],
 	after: [],
@@ -91,16 +77,17 @@ const CHANGES = atom<ChangeInfo>({
 });
 const TEXT_DATA = atom(TEXT["en"]);
 const PROGRESS_OVERLAY = atom<ProgressData>({ title: "", open: false, finished: false, button: "", name: "" });
+const MOD_CHECK_PROGRESS = atom<ModCheckProgressData>({ open: false, checked: 0, total: 0 });
 const IMM_UPDATE = atom(null as UpdateInfo | null);
 const UPDATER_OPEN = atom(false);
-const NOTICE = atom({
+const NOTICE = atom<NoticeData>({
 	heading: "",
 	subheading: "",
 	ignoreable: 2,
 	timer: 10,
 	ver: VERSION,
 	id: 0,
-} as any);
+});
 const HELP_OPEN = atom(false);
 const TUTORIAL_OPEN = atom(false);
 const NOTICE_OPEN = atom(false);
@@ -111,9 +98,9 @@ const CONFLICTS = atom({
 	mods: {} as Record<string, number>,
 });
 const CONFLICT_INDEX = atom(0);
-export function openConflict(index=-1) {
+export function openConflict(index = -1) {
 	store.set(CONFLICTS_OPEN, (prev) => {
-		if (!prev && index>=0) {
+		if (!prev && index >= 0) {
 			store.set(CONFLICT_INDEX, index);
 		}
 		return true;
@@ -157,6 +144,7 @@ export function resetAtoms() {
 }
 const ERR = atom("");
 export {
+	DEV_HIDE_PREVIEWS,
 	CONFLICTS,
 	FILE_TO_DL,
 	ERR,
@@ -173,6 +161,7 @@ export {
 	CONFLICT_INDEX,
 	IMM_UPDATE,
 	PROGRESS_OVERLAY,
+	MOD_CHECK_PROGRESS,
 	TOASTS,
 	CURRENT_PRESET,
 	INSTALLED_ITEMS,
@@ -207,4 +196,8 @@ export {
 	LAST_UPDATED,
 	SELECTED,
 	SORT,
+	SCALE,
+	BLUR,
+	ANIMATIONS,
+	BACKUP_INI,
 };

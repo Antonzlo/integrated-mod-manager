@@ -32,7 +32,7 @@ function Credits() {
 									100% { transform: rotateX(45deg) translateY(-200%); margin-top:-50%; }
 								}
 							`}</style>
-				<div className="absolute inset-0 flex justify-center overflow-hidden" style={{ perspective: "400px" }}>
+				<div className="absolute inset-0 flex justify-center overflow-hidden" style={{ perspective: "25rem" }}>
 					<div
 						className="absolute w-full max-w-2xl text-center text-muted-foreground top-full"
 						style={{

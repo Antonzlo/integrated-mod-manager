@@ -167,7 +167,7 @@ function Restore({ leftSidebarOpen, disabled = false }: { leftSidebarOpen: boole
 									className={"w-full flex  flex-col"}
 									style={{
 										backgroundColor: index % 2 == 0 ? "#1b1b1b50" : "#31313150",
-										borderBottom: index == data.length - 1 ? "1px solid var(--border)" : "",
+										borderBottom: index == data.length - 1 ? "0.0625rem solid var(--border)" : "",
 									}}
 								>
 									<div
@@ -199,7 +199,7 @@ function Restore({ leftSidebarOpen, disabled = false }: { leftSidebarOpen: boole
 												className={"w-full h-10 border-l flex gap-2 items-center px-2 "}
 												style={{
 													backgroundColor: index2 % 2 == 0 ? "#1b1b1b50" : "#31313150",
-													borderBottom: index2 == item.children.length - 1 ? "" : "1px dashed var(--border)",
+													borderBottom: index2 == item.children.length - 1 ? "" : "0.0625rem dashed var(--border)",
 												}}
 											>
 												{child.isDir ? <FolderIcon className="w-4 h-4" /> : <FileIcon className="w-4 h-4" />}
@@ -213,18 +213,7 @@ function Restore({ leftSidebarOpen, disabled = false }: { leftSidebarOpen: boole
 					</div>
 				</div>
 				<div className="flex items-center justify-end w-full h-10 mt-2">
-					<Button
-						className="w-28"
-						variant="destructive"
-						onClick={()=>{
-							setTimeout(()=>{
-								setRemoveOpen(true);
-							},0)
-							setDialogOpen(false)
-						}}
-					>
-						{textData._LeftSideBar._components._RemoveIMM.RemoveIMM}
-					</Button>
+					
 					<div className="text-muted-foreground w-full">
 						{disabled && textData._LeftSideBar._components._Restore.Restricted}
 					</div>

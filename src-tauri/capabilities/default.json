@@ -6,6 +6,7 @@
     "main"
   ],
   "permissions": [
+    "core:app:allow-version",
     "core:default",
     "core:path:default",
     "core:event:default",
@@ -139,10 +140,10 @@
           "url": "https://files.gamebanana.com/*"
         },
         {
-          "url": "http://127.0.0.1:1469/*"
+          "url": "http://127.0.0.1:3469/*"
         },
         {
-          "url": "http://localhost:1469/*"
+          "url": "http://localhost:3469/*"
         }
       ],
       "deny": [

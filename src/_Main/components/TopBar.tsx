@@ -56,7 +56,7 @@ function TopBar() {
 	useEffect(() => {
 		const handler = setTimeout(
 			() => {
-				if (term?.startsWith("http")) {
+				if (online && term?.startsWith("http")) {
 					handleInAppLink(term);
 					const searchInput = (document.getElementById("search-input") as HTMLInputElement) || null;
 					if(searchInput){
@@ -69,7 +69,7 @@ function TopBar() {
 				}
 				if (online) {
 					if (term.trim() === "") {
-						setOnlinePath("home&type=" + onlineType);
+						setOnlinePath("home&_type=" + onlineType);
 					} else {
 						setOnlinePath(`search/${term}&_type=${onlineType}`);
 					}
@@ -257,6 +257,7 @@ function TopBar() {
 			</div>
 			<Notice />
 			<Button
+				id="refresh-btn"
 				onClick={() => {
 					if (online) {
 						const curPath = onlinePath;

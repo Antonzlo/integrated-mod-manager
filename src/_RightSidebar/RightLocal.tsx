@@ -12,6 +12,7 @@ import {
 	SOURCE,
 	TEXT_DATA,
 } from "@/utils/vars";
+import { confirmAndCancelDownloadsForGameSwitch } from "@/utils/downloadManager";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
 	ArrowUpRightFromSquareIcon,
@@ -27,7 +28,7 @@ import {
 	SwordsIcon,
 	TrashIcon,
 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { GAME_GB_IDS, GAMES, managedSRC } from "@/utils/consts";
 import { getImageUrl, handleImageError, handleInAppLink, join } from "@/utils/utils";
@@ -87,6 +88,7 @@ function RightLocal() {
 				url[1] = url[1].join("/");
 				urls[urls.length - 1] = url.join("/");
 				if (urlGame && urlGame != game) {
+					if (!(await confirmAndCancelDownloadsForGameSwitch())) return;
 					addToast({
 						message: textData._Toasts.SwitchGame.replace("<game/>", urlGame),
 					});
@@ -101,6 +103,7 @@ function RightLocal() {
 			} else if (final.includes("/mode/")) {
 				const urlGame = final.split("/mode/")[1].split("/")[0].toUpperCase();
 				if (urlGame && urlGame != game && GAMES.includes(urlGame as Games)) {
+					if (!(await confirmAndCancelDownloadsForGameSwitch())) return;
 					sessionStorage.setItem("imm-deep-link-game", urlGame);
 					window.location.reload();
 				} else {
@@ -190,9 +193,10 @@ function RightLocal() {
 	const [data, setData] = useAtom(DATA);
 	const [item, setItem] = useState<Mod | undefined>();
 
-	const [alertOpen, setAlertOpen] = useState(false);
-	const [popoverOpen, setPopoverOpen] = useState(false);
-	const [details, setDetails] = useState<any>({});
+		const [alertOpen, setAlertOpen] = useState(false);
+		const [popoverOpen, setPopoverOpen] = useState(false);
+		const [details, setDetails] = useState<any>({});
+		const detailsRequestRef = useRef(0);
 	useEffect(() => {
 		if (!alertOpen) {
 			setDeleteItemData(null);
@@ -243,61 +247,63 @@ function RightLocal() {
 	useEffect(() => {
 		text = "";
 		if (selected) {
-			const mod = { ...modList.find((m) => m.path == selected) } as Mod;
+			const mod = modList.find((m) => m.path == selected) as Mod | undefined;
 			text = mod?.note || "";
 			if (mod) {
+				const requestId = ++detailsRequestRef.current;
+				const cacheKey = `${mod.path}:${JSON.stringify(data[mod.path]?.vars || {})}`;
 				setItem(mod);
-				if (cachcedDetails[mod.path]) {
-					setDetails(cachcedDetails[mod.path]);
+				if (cachcedDetails[cacheKey]) {
+					setDetails(cachcedDetails[cacheKey]);
 				} else {
 					setDetails({
-						keys: item?.keys || [],
-						files: item?.files || {},
+						keys: mod.keys || [],
+						files: mod.files || {},
 					});
 				}
 				getModDetails(mod.path).then((details) => {
-					// cachcedDetails[mod.path] = details;
+					if (detailsRequestRef.current !== requestId) return;
 					const modData = data[mod.path]?.vars;
 					if (modData) {
-						details.keys = details.keys.map((key: any) => {
-							if (modData[key.file] && modData[key.file][key.target]) {
-								key.pref = modData[key.file][key.target].pref;
-								key.reset = modData[key.file][key.target].reset;
-								key.name = modData[key.file][key.target].name || key.target;
-								key.state = modData[key.file][key.target].state || null;
+						console.log("Mod data found for mod details:", modData, details);
+						const applyModData = (key: any) => {
+							const nextKey = { ...key };
+							if (nextKey.namespace && modData[nextKey.namespace] && modData[nextKey.namespace][nextKey.target]) {
+								nextKey.pref = modData[nextKey.namespace][nextKey.target].pref;
+								nextKey.reset = modData[nextKey.namespace][nextKey.target].reset;
+								nextKey.name = modData[nextKey.namespace][nextKey.target].name || nextKey.target;
+								nextKey.state = modData[nextKey.namespace][nextKey.target].state || null;
 							}
-							if (key.namespace && modData["namespace"] && modData["namespace"][key.target]) {
-								key.pref = modData["namespace"][key.target].pref;
-								key.state = modData["namespace"][key.target].state || null;
+							if (modData[nextKey.file] && modData[nextKey.file][nextKey.target]) {
+								nextKey.pref = modData[nextKey.file][nextKey.target].pref;
+								nextKey.reset = modData[nextKey.file][nextKey.target].reset;
+								nextKey.name = modData[nextKey.file][nextKey.target].name || nextKey.target;
+								nextKey.state = modData[nextKey.file][nextKey.target].state || null;
 							}
-							return key;
-						});
-						Object.keys(details.files).forEach((file) => {
-							details.files[file] = details.files[file].map((key: any) => {
-								if (modData[file] && modData[file][key.target]) {
-									key.pref = modData[file][key.target].pref;
-									key.reset = modData[file][key.target].reset;
-									key.name = modData[file][key.target].name || key.target;
-									key.state = modData[file][key.target].state || null;
-								}
-								if (key.namespace && modData["namespace"] && modData["namespace"][key.target]) {
-									key.pref = modData["namespace"][key.target].pref;
-									key.state = modData["namespace"][key.target].state || null;
-								}
-								return key;
-							});
-						});
+							return nextKey;
+						};
+						details = {
+							...details,
+							keys: details.keys.map(applyModData),
+							files: Object.fromEntries(
+								Object.entries(details.files).map(([file, keys]) => [
+									file,
+									(keys as any[]).map((key: any) => applyModData({ ...key, file: key.file || file })),
+								])
+							),
+						};
 					}
 					details.keys = details.keys
 						.map((key: any) => ({ ...key, key: formatHotkeyDisplay(normalizeHotkey(key.key)) }))
 						.sort((a: any, b: any) => a.key.localeCompare(b.key));
 
 					setDetails(details);
-					cachcedDetails[mod.path] = details;
+					cachcedDetails[cacheKey] = details;
 				});
 				return;
 			}
 		}
+		detailsRequestRef.current++;
 		setItem(undefined);
 	}, [selected, modList, data]);
 	useEffect(() => {
@@ -407,7 +413,7 @@ function RightLocal() {
 							"---"
 						)}
 					</div>
-					<SidebarGroup className="min-h-48 max-h-48 overflow-hidden w-82 mt-1 data-zzz:rounded-[1px] border rounded-lg data-zzz:rounded-tr-2xl data-zzz:rounded-bl-2xl select-nzone">
+					<SidebarGroup className="min-h-48 max-h-48 overflow-hidden w-82 mt-1 data-zzz:rounded-[0.0625rem] border rounded-lg data-zzz:rounded-tr-2xl data-zzz:rounded-bl-2xl select-nzone">
 						{/* <EditIcon
 							onClick={() => {
 								item && savePreviewImage(item.path);
@@ -554,6 +560,9 @@ function RightLocal() {
 														updatedAt: Date.now(),
 														viewedAt: 0,
 													};
+													if (!prev[item.path].source) {
+														delete prev[item.path].source;
+													}
 													return { ...prev };
 												});
 												setModList((prev) => {
@@ -740,7 +749,7 @@ function RightLocal() {
 										className="transparent-bg w-1/2 h-8"
 										style={{
 											color: tab == "hotkeys" ? "var(--accent)" : "var(--muted-foreground)",
-											border: "1px solid var(--border)",
+											border: "0.0625rem solid var(--border)",
 											opacity: tab == "hotkeys" ? 1 : 0.4,
 										}}
 									>
@@ -752,7 +761,7 @@ function RightLocal() {
 										className="transparent-bg w-1/2 h-8"
 										style={{
 											color: tab !== "hotkeys" ? "var(--accent)" : "var(--muted-foreground)",
-											border: "1px solid var(--border)",
+											border: "0.0625rem solid var(--border)",
 											opacity: tab !== "hotkeys" ? 1 : 0.4,
 										}}
 									>

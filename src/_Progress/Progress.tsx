@@ -24,7 +24,7 @@ function Progress() {
 			exit={{ opacity: 0, filter: "blur(6px)" }}
 			className="text-accent pointer-eve nts-none bg-background/50 fixed z-50 flex flex-col items-center justify-center w-full h-full duration-200"
 			style={{
-				backdropFilter: "blur(5px)",
+				backdropFilter: "blur(var(--blur-xs))",
 			}}
 		>
 			<div className="min-h-fit text-accent my-6 text-3xl">

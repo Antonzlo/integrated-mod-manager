@@ -6,42 +6,6 @@ import { Category } from "./types";
 import { SETTINGS, store } from "./vars";
 import GAME_DATA from "@/gameData.json";
 
-const GI_CHAR_MAP: any = {
-	Aether: "PlayerBoy",
-	Alhaitham: "Alhatham",
-	Amber: "Ambor",
-	Arataki_Itto: "Itto",
-	Baizhu: "Baizhuer",
-	Hu_Tao: "Hutao",
-	Jean: "Qin",
-	Kaedehara_Kazuha: "Kazuha",
-	Kamisato_Ayaka: "Ayaka",
-	Kamisato_Ayato: "Ayato",
-	Kirara: "Momoka",
-	Kuki_Shinobu: "Shinobu",
-	Kujou_Sara: "Sara",
-	Lan_Yan: "Lanyan",
-	Lumine: "PlayerGirl",
-	Lynette: "Linette",
-	Lyney: "Liney",
-	Manekin: "MannequinBoy",
-	Manekina: "MannequinGirl",
-	Noelle: "Noel",
-	Ororon: "Olorun",
-	Raiden_Shogun: "Shougun",
-	Sangonomiya_Kokomi: "Kokomi",
-	Shikanoin_Heizou: "Heizo",
-	Skirk: "SkirkNew",
-	Thoma: "Tohma",
-	Xianyun: "Liuyun",
-	Yae_Miko: "Yae",
-	Yanfei:"Feiyan",
-	Yumemizuki_Mizuki: "Mizuki",
-	Yun_Jin: "Yunjin",
-};
-function getCharIconURL(name: string) {
-	return `https://api.hakush.in/gi/UI/UI_AvatarIcon_${GI_CHAR_MAP[name] || name}.webp`;
-}
 const API_BASE_URL = "https://gamebanana.com/apiv11/";
 const HEALTH_CHECK = "https://health.wwmm.bhatt.jp/health";
 class ApiClient {
@@ -50,7 +14,6 @@ class ApiClient {
 	setClient(client: string) {
 		this.CLIENT = client;
 	}
-
 	setGame(game: keyof typeof GAME_DATA) {
 		if (GAME_DATA[game]) {
 			this.GAME = game;
@@ -468,7 +431,6 @@ class ApiClient {
 	}
 
 	async categories() {
-		//info("Fetching categories...", await this.healthCheck());
 		this.healthCheck();
 		try {
 			const fetchWithRetry = async (timeouts: number[] = [2000, 5000]): Promise<any> => {
@@ -476,7 +438,6 @@ class ApiClient {
 					try {
 						const controller = new AbortController();
 						const timeoutId = setTimeout(() => controller.abort(), timeouts[i]);
-						//info(`Fetching categories (attempt ${i + 1})...`, timeouts[i]);
 						const response = await this.makeRequest(
 							`Mod/Categories?_idCategoryRow=${this.id.categories}&_sSort=a_to_z&_bShowEmpty=true`,
 							{ signal: controller.signal }
@@ -501,7 +462,7 @@ class ApiClient {
 						this.GAME == "GI"
 							? {
 									...cat,
-									_sIconUrl: cat._sIconUrl || getCharIconURL(cat._sName.replaceAll(/ /g, "_") || ""),
+									_sIconUrl: cat._sIconUrl,
 							  }
 							: cat
 					),
@@ -509,10 +470,7 @@ class ApiClient {
 			];
 			return this.categoryList;
 		} catch (error) {
-			// info(this.categoryList,this.GAME)
 			return [];
-			//console.error("Failed to fetch categories:", error);
-			throw error;
 		}
 	}
 
@@ -539,7 +497,6 @@ class ApiClient {
 			const response = await this.makeRequest(`${mod}/ProfilePage`, signal && { signal });
 			return response;
 		} catch (error) {
-			//console.error("Failed to fetch categories:", error);
 			throw error;
 		}
 	}
@@ -549,29 +506,24 @@ class ApiClient {
 			const response = await this.makeRequest(`${mod}/Updates?_nPage=1&_nPerpage=5`, signal && { signal });
 			return response;
 		} catch (error) {
-			//console.error("Failed to fetch categories:", error);
 			throw error;
 		}
 	}
 	async comments(mod = "Mod/0", page = 1, signal?: AbortSignal) {
-		// https://gamebanana.com/apiv11/Mod/651401/Posts?_nPage=1&_nPerpage=15&_sSort=popular
 		try{
 			const response = await this.makeRequest(`${mod}/Posts?_nPage=${page}&_nPerpage=15&_sSort=popular`, signal && { signal });
 			return response;
 		}
 		catch (error) {
-			//console.error("Failed to fetch comments:", error);
 			throw error;
 		}
 	}
 	async nestedcomments(postId = "0", signal?: AbortSignal) {
-		//https://gamebanana.com/apiv11/Post/13272284/Posts?_nPage=1&_nPerpage=20
 		try{
 			const response = await this.makeRequest(`Post/${postId}/Posts?_nPage=1&_nPerpage=15`, signal && { signal });
 			return response;
 		}
 		catch (error) {
-			//console.error("Failed to fetch nested comments:", error);
 			throw error;
 		}
 
@@ -583,10 +535,7 @@ class ApiClient {
 	}
 
 	async healthCheck() {
-		// return VERSION+"/"+this.GAME+"/"+(this.CLIENT||("_"+Date.now()));
-		//info(this.CLIENT, VERSION, this.GAME, this.CLIENT);
 		const base = `${HEALTH_CHECK}/${VERSION || "2.0.1"}/${this.GAME || "WW"}`;
-		//info(base);
 		try {
 			if (this.CLIENT) fetch(`${base}/${this.CLIENT}`);
 			else {
@@ -597,14 +546,10 @@ class ApiClient {
 							this.CLIENT = data.client;
 							store.set(SETTINGS, (prev) => ({ ...prev, global: { ...prev.global, clientDate: data.client } }));
 							saveConfigs();
-							// config.settings.clientDate = data.client;
-							// store.set(settingsDataAtom, config.settings as Settings);
-							// saveConfig();
 						}
 					});
 			}
 		} catch (error) {
-			//console.error("Health check failed:", error);
 		}
 	}
 }

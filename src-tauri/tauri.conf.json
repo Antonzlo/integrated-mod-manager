@@ -1,11 +1,11 @@
 {
 	"$schema": "https://schema.tauri.app/config/2",
 	"productName": "Integrated Mod Manager (IMM)",
-	"version": "3.1.0",
+	"version": "3.1.1",
 	"identifier": "jp.bhatt.wwmm",
 	"build": {
 		"beforeDevCommand": "npm run dev",
-		"devUrl": "http://localhost:1420",
+		"devUrl": "http://localhost:3420",
 		"beforeBuildCommand": "npm run build",
 		"frontendDist": "../dist"
 	},

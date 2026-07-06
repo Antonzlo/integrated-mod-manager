@@ -7,15 +7,17 @@ import { GAME, LEFT_SIDEBAR_OPEN, ONLINE, SETTINGS, TEXT_DATA, XXMI_MODE } from 
 import { AnimatePresence, motion } from "motion/react";
 import LeftOnline from "./LeftOnline";
 import LeftLocal from "./LeftLocal";
-import Settings from "./components/Settings";
+// import Settings from "./components/Settings";
+import Settings from "./components/NewSettings";
 import { GAME_NAMES, ONLINE_TRANSITION } from "@/utils/consts";
 import { useInstalledItemsManager } from "@/utils/utils";
 import Downloads from "./components/Downloads";
 import BatchOperations from "./components/Batch";
 import { launchGame } from "@/utils/init";
 import Restore from "./components/Restore";
-import { Label } from "@/components/ui/label";
-import { saveConfigs } from "@/utils/filesys";
+import { confirmAndCancelDownloadsForGameSwitch } from "@/utils/downloadManager";
+// import { Label } from "@/components/ui/label";
+// import { saveConfigs } from "@/utils/filesys";
 import Remove from "./components/Remove";
 function LeftSidebar() {
 	const leftSidebarOpen = useAtomValue(LEFT_SIDEBAR_OPEN);
@@ -24,18 +26,19 @@ function LeftSidebar() {
 	const customMode = useAtomValue(XXMI_MODE);
 	const setGame = useSetAtom(GAME);
 	const game = useAtomValue(SETTINGS).global.game;
-	const [settings, setSettings] = useAtom(SETTINGS);
+	// const [settings, setSettings] = useAtom(SETTINGS);
 
 	useInstalledItemsManager();
 	return (
-		<Sidebar collapsible="icon" className="pointer-events-auto pt-8">
+		<Sidebar collapsible="icon" className="pt-8 pointer-events-auto">
 			<SidebarContent className="bg-sidebar bgpattern h-full gap-0 overflow-hidden border border-t-0">
 				<div className="flex flex-col w-full max-h-full min-h-full">
 					<div className="min-h-16 min-w-16 flex items-center justify-center h-16 gap-5 p-0 border-b">
 						<div
 							id="IMMLogo"
 							className="aspect-square logo h-10"
-							onClick={() => {
+							onClick={async () => {
+								if (!(await confirmAndCancelDownloadsForGameSwitch())) return;
 								setGame("");
 							}}
 						></div>
@@ -54,7 +57,7 @@ function LeftSidebar() {
 					<div className="duration-200 px-0 w-full mt-2.5">
 						<SidebarGroupLabel className="justify-between">
 							{textData._LeftSideBar._Left.Mode}{" "}
-							<Label className="text-[10px] min-w-fit opacity-50 text-accent flex items-center">
+							{/* <Label className="text-[10px] min-w-fit opacity-50 text-accent flex items-center">
 								{textData._LeftSideBar._LeftOnline.Chk} :
 								<Button
 									onClick={() => {
@@ -75,7 +78,7 @@ function LeftSidebar() {
 								>
 									{settings.global.chkModUpdates ? "On" : "Off"}
 								</Button>
-							</Label>
+							</Label> */}
 						</SidebarGroupLabel>
 						<div
 							className="min-h-fit grid justify-between w-full grid-cols-2 gap-2 px-2 overflow-hidden"
@@ -110,11 +113,11 @@ function LeftSidebar() {
 						</div>
 					</div>
 					<Separator
-						className="w-full ease-linear duration-200 min-h-[1px] my-2.5 bg-border"
+						className="w-full ease-linear duration-200 min-h-[0.0625rem] my-2.5 bg-border"
 						style={{
 							opacity: leftSidebarOpen ? "0" : "",
 							height: leftSidebarOpen ? "0px" : "",
-							marginBlock: leftSidebarOpen ? "4px" : "",
+							marginBlock: leftSidebarOpen ? "0.25rem" : "",
 						}}
 					/>
 					<div className="flex flex-row w-full h-full max-h-full p-0 overflow-hidden">
@@ -129,7 +132,7 @@ function LeftSidebar() {
 						</AnimatePresence>
 					</div>
 
-					<Separator className="w-full ease-linear duration-200 min-h-[1px]  bg-border" />
+					<Separator className="w-full ease-linear duration-200 min-h-[0.0625rem]  bg-border" />
 					<SidebarFooter className="min-h-fit flex flex-col items-center justify-between w-full gap-2 overflow-hidden duration-200">
 						<Downloads />
 						{leftSidebarOpen ? (
@@ -158,7 +161,7 @@ function LeftSidebar() {
 											disabled={!!customMode}
 											className="bg-tra absolute flex active:scale-100 items-center justify-end h-40 w-40 bg-transparent border rounded-full ml-0.5 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
 										>
-											<div className="w-20 h-20 rounded-tr-full mt-4 -mr-3 text-[10px] flex flex-col items-center justify-center  -translate-y-1/2">
+											<div className="w-20 h-20 rounded-tr-full mt-4 -mr-3 text-[0.625rem] flex flex-col items-center justify-center  -translate-y-1/2">
 												<PlayIcon className="min-w-6 min-h-6 " />
 											</div>
 										</Button>

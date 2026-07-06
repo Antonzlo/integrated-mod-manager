@@ -1,5 +1,6 @@
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogCancel } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { confirmAndCancelDownloadsForGameSwitch } from "@/utils/downloadManager";
 import { verifyDirStruct } from "@/utils/filesys";
 import { CHANGES, GAME, SOURCE, TARGET, TEXT_DATA, XXMI_DIR, XXMI_MODE } from "@/utils/vars";
 import { invoke } from "@tauri-apps/api/core";
@@ -50,6 +51,7 @@ function Page3({ setPage }: { setPage: (page: number) => void }) {
 							<Button
 								className={"w-32 scale-110 my-6"}
 								onClick={async () => {
+									if (!(await confirmAndCancelDownloadsForGameSwitch())) return;
 									setGame("");
 									setPage(1);
 								}}

@@ -14,19 +14,20 @@ import {
 } from "./types";
 import { info } from "@/lib/logger";
 
-export const IMAGE_SERVER = "http://127.0.0.1:1469/preview";
+export const IMAGE_SERVER = "http://127.0.0.1:3469/preview";
 export const OLD_RESTORE = "DISABLED_RESTORE";
+export const DISCORD_LINK = "https://discord.gg/QGkKzNapXZ";
+export const BANANA_LINK = "https://gamebanana.com/mods/593490";
 export const RESTORE = "RESTORE";
 export const IGNORE = "IGNORE";
 export const PREFS = ".USER_PREFS";
-export const DISCORD_LINK = "https://discord.gg/QGkKzNapXZ";
-export const BANANA_LINK = "https://gamebanana.com/mods/593490";
 export const UNCATEGORIZED = "Uncategorized";
 export const OLD_managedSRC = "DISABLED (Managed by IMM)";
 export const OLD_managedTGT = "Mods (Managed by IMM)";
 export const managedSRC = "DISABLED - ALL MODS ARE STORED HERE (Managed by IMM)";
 export const managedTGT = "DO NOT MODIFY (Managed by IMM)";
-export const VERSION = "3.1.0";
+export const INI_BACKUP = ".IMM_INI_BACKUP"; //If changed, also update in src-tauri/src/lib.rs
+export const VERSION = "3.1.1";
 export const GAMES: Games[] = ["WW", "ZZ", "GI", "SR", "EF"];
 export const GAME_GB_IDS: { [key: number]: Games } = {
 	20357: "WW",
@@ -92,23 +93,36 @@ export const DEFAULTS = {
 	GAME: "" as Games,
 	SETTINGS: {
 		global: {
-			bgOpacity: 1,
-			winOpacity: 1,
-			winType: 0,
-			bgType: 2,
-			listType: 0,
-			nsfw: 1,
-			toggleClick: 2,
-			ignore: VERSION,
-			clientDate: "1759866302559426603",
-			XXMI: "",
+			clientDate: "",
+			version: VERSION,
 			lang: "",
+			XXMI: "",
+			preReleases: false,
+			chkModUpdates: true,
+			ignore: "2.1.0",
 			game: "",
+			updatedAt: "",
+			notice: 0,
+			maxConcurrentDownloads: 3,
+			display: {
+				winType: 0,
+				bgType: 1,
+				bgOpacity: 1,
+			},
+			local: {
+				toggleClick: 2,
+				modView: 0,
+				nsfw: 2,
+			},
+			online: {
+				filter: "Mod",
+				modView: 0,
+				nsfw: 1,
+			},
 		},
 		game: {
 			launch: 0,
 			hotReload: 1,
-			onlineType: "Mod",
 			customCategories: {},
 		},
 	} as Settings,
@@ -123,7 +137,7 @@ export const DEFAULTS = {
 	DOWNLOAD_LIST: {
 		...{
 			queue: [] as DownloadItem[],
-			downloading: null as DownloadItem | null,
+			downloading: [] as DownloadItem[],
 			completed: [] as DownloadItem[],
 			extracting: [] as DownloadItem[],
 		},
@@ -148,7 +162,7 @@ export const DEFAULTS = {
 	ONLINE_DATA: {} as OnlineData,
 	ONLINE_TYPE: "Mod",
 	ONLINE_SORT: "",
-	ONLINE_PATH: "home&type=Mod",
+	ONLINE_PATH: "home&_type=Mod",
 	ONLINE_SELECTED: "",
 };
 export const SORT_OPTIONS = Object.fromEntries(

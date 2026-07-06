@@ -22,7 +22,7 @@ mod logger_utils;
 
 const PROGRESS_UPDATE_THRESHOLD: u64 = 1024;
 const BUFFER_SIZE: usize = 8192;
-const IMAGE_SERVER_PORT: u16 = 1469;
+const IMAGE_SERVER_PORT: u16 = 3469;
 
 #[derive(Serialize, Clone)]
 struct DownloadProgress {
@@ -31,6 +31,36 @@ struct DownloadProgress {
     speed: String,
     eta: String,
     key: String,
+}
+
+#[derive(Serialize, Clone)]
+struct DownloadError {
+    key: String,
+    stage: String,
+    message: String,
+}
+
+fn emit_download_error(app_handle: &tauri::AppHandle, key: &str, stage: &str, message: &str) {
+    let _ = app_handle.emit(
+        "download-error",
+        DownloadError {
+            key: key.to_string(),
+            stage: stage.to_string(),
+            message: message.to_string(),
+        },
+    );
+}
+
+fn decrement_download_count(key: &str) {
+    let mut counts = DOWNLOAD_COUNTS.lock().unwrap();
+    if let Some(count) = counts.get_mut(key) {
+        if *count > 0 {
+            *count -= 1;
+        }
+        if *count == 0 {
+            counts.remove(key);
+        }
+    }
 }
 
 /// Format bytes into human-readable format (KB, MB, GB)
@@ -149,7 +179,9 @@ fn clean_folder_before_extraction(
             }
         } else if file_path.is_dir() {
             let dir_name = file_path.file_name().and_then(|n| n.to_str()).unwrap_or("");
-
+            if dir_name == ".IMM_INI_BACKUP" {
+                continue; // Keep the .IMM_INI_BACKUP directory
+            }
             // Delete all directories
             tracing::info!("Cleaning up directory before extraction: {}", dir_name);
             if let Err(e) = std::fs::remove_dir_all(&file_path) {
@@ -252,7 +284,13 @@ async fn extract_archive(
     
     // Clean folder before extraction
     println!("Cleaning folder before extracting archive");
-    clean_folder_before_extraction(Path::new(&save_path), &file_name)?;
+    if let Err(e) = clean_folder_before_extraction(Path::new(&save_path), &file_name) {
+        if emit {
+            decrement_download_count(&key);
+        }
+        emit_download_error(&app_handle, &key, "extract", &e);
+        return Err(e);
+    }
     println!("Starting extraction");
     let before = Instant::now();
     let res = decompress_file(app_handle.clone(), file_path.to_str().unwrap(), &save_path);
@@ -260,9 +298,20 @@ async fn extract_archive(
     println!("extraction completed in: {:.2?}", duration);
     if let Err(e) = res.await {
         println!("extraction error: {}", e);
+        if emit {
+            decrement_download_count(&key);
+        }
+        emit_download_error(&app_handle, &key, "extract", &e);
+        return Err(e);
     } else {
         if del {
-            safe_remove_file(&file_path)?;
+            if let Err(e) = safe_remove_file(&file_path) {
+                if emit {
+                    decrement_download_count(&key);
+                }
+                emit_download_error(&app_handle, &key, "cleanup", &e);
+                return Err(e);
+            }
         }
         println!("Archive file removed after extraction");
     }
@@ -286,6 +335,9 @@ async fn extract_archive(
                     key,
                     counts.get(&key).unwrap()
                 );
+                if counts.get(&key) == Some(&0) {
+                    counts.remove(&key);
+                }
             }
         }
         tracing::info!(
@@ -346,7 +398,14 @@ async fn download_and_unzip(
         .get(&download_url)
         .send()
         .await
-        .map_err(|e| e.to_string())?;
+        .map_err(|e| {
+            let message = e.to_string();
+            if emit {
+                decrement_download_count(&key);
+                emit_download_error(&app_handle, &key, "download", &message);
+            }
+            message
+        })?;
     println!("test3");
 
     let ext = response
@@ -374,13 +433,27 @@ async fn download_and_unzip(
 
     let total_size = response
         .content_length()
-        .ok_or("Failed to get content length")?;
+        .ok_or_else(|| {
+            let message = "Failed to get content length".to_string();
+            if emit {
+                decrement_download_count(&key);
+                emit_download_error(&app_handle, &key, "download", &message);
+            }
+            message
+        })?;
     println!("test5");
 
     let file_path = Path::new(&save_path).join(&file_name);
     println!("{}", file_path.to_str().unwrap());
 
-    let file = File::create(&file_path).map_err(|e| e.to_string())?;
+    let file = File::create(&file_path).map_err(|e| {
+        let message = e.to_string();
+        if emit {
+            decrement_download_count(&key);
+            emit_download_error(&app_handle, &key, "download", &message);
+        }
+        message
+    })?;
     let mut writer = BufWriter::with_capacity(BUFFER_SIZE, file);
 
     let mut stream = response.bytes_stream();
@@ -401,6 +474,9 @@ async fn download_and_unzip(
             );
 
             drop(writer);
+            if emit {
+                decrement_download_count(&key);
+            }
             let _ = remove_file(&file_path);
             return Err(format!(
                 "Download cancelled due to session change (file: {})",
@@ -408,8 +484,38 @@ async fn download_and_unzip(
             ));
         }
 
-        let chunk = item.map_err(|e| e.to_string())?;
-        writer.write_all(&chunk).map_err(|e| e.to_string())?;
+        if emit {
+            let counts = DOWNLOAD_COUNTS.lock().unwrap();
+            let count = counts.get(&key).copied().unwrap_or(0);
+            drop(counts);
+            if count == 0 {
+                tracing::info!(
+                    "Download cancelled for key '{}', aborting download of: {}",
+                    key,
+                    file_name
+                );
+                drop(writer);
+                let _ = remove_file(&file_path);
+                return Err(format!("Download cancelled (file: {})", file_name));
+            }
+        }
+
+        let chunk = item.map_err(|e| {
+            let message = e.to_string();
+            if emit {
+                decrement_download_count(&key);
+                emit_download_error(&app_handle, &key, "download", &message);
+            }
+            message
+        })?;
+        writer.write_all(&chunk).map_err(|e| {
+            let message = e.to_string();
+            if emit {
+                decrement_download_count(&key);
+                emit_download_error(&app_handle, &key, "download", &message);
+            }
+            message
+        })?;
         downloaded += chunk.len() as u64;
 
         if emit && (downloaded - last_progress_update) >= PROGRESS_UPDATE_THRESHOLD {
@@ -451,6 +557,9 @@ async fn download_and_unzip(
         tracing::info!("Session changed after download completed (was: {}, now: {}), aborting processing of: {}", current_sid, global_sid, file_name);
 
         drop(writer);
+        if emit {
+            decrement_download_count(&key);
+        }
         let _ = remove_file(&file_path);
         return Err(format!(
             "Download cancelled due to session change after completion (file: {})",
@@ -458,7 +567,14 @@ async fn download_and_unzip(
         ));
     }
 
-    writer.flush().map_err(|e| e.to_string())?;
+    writer.flush().map_err(|e| {
+        let message = e.to_string();
+        if emit {
+            decrement_download_count(&key);
+            emit_download_error(&app_handle, &key, "download", &message);
+        }
+        message
+    })?;
 
     drop(writer);
 
@@ -499,20 +615,20 @@ async fn download_and_unzip(
                 },
             )
             .map_err(|e| e.to_string())?;
-    }
 
-    // Extract archive if it's a supported format
-    extract_archive(
-        app_handle.clone(),
-        file_path.to_string_lossy().to_string(),
-        save_path.clone(),
-        file_name.clone(),
-        emit,
-        key,
-        current_sid,
-        true,
-    )
-    .await?;
+        // Extract archive if it's a supported format
+        extract_archive(
+            app_handle.clone(),
+            file_path.to_string_lossy().to_string(),
+            save_path.clone(),
+            file_name.clone(),
+            emit,
+            key,
+            current_sid,
+            true,
+        )
+        .await?;
+    }
 
     tracing::info!(
         "Download and extraction completed successfully for session {}: {}",
@@ -527,6 +643,8 @@ async fn download_and_unzip(
 fn cancel_extract(key: String) -> Result<(), String> {
     let mut counts = DOWNLOAD_COUNTS.lock().unwrap();
     if let Some(count) = counts.get_mut(&key) {
+
+        
         if *count > 0 {
             *count -= 1;
             println!("Decreased download count for key '{}': {}", key, *count);
