@@ -29,7 +29,7 @@ import { path } from "@tauri-apps/api";
 import { invoke } from "@tauri-apps/api/core";
 // import { currentMonitor, PhysicalSize } from "@tauri-apps/api/window";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { exists, mkdir, readTextFile, remove, writeTextFile } from "@tauri-apps/plugin-fs";
+import { exists, mkdir, readTextFile, remove, writeTextFile } from "./fs";
 import defConfig from "../default.json";
 import defConfigXX from "../defaultXX.json";
 import { apiClient } from "./api";
@@ -38,6 +38,7 @@ import { switchGameTheme } from "./theme";
 import { executeXXMI, isGameProcessRunning } from "./autolaunch";
 // import { updateIni } from "./iniUpdater";
 import { join, setHotreload, stopWindowMonitoring } from "./hotreload";
+import { toInternal, toFs } from "./pathsep";
 import { registerGlobalHotkeys } from "./hotkeyUtils";
 import TEXT from "@/textData.json";
 import { unregisterAll } from "@tauri-apps/plugin-global-shortcut";
@@ -395,7 +396,7 @@ export async function launchGame() {
 	if (await exists(config.XXMI))
 		isGameProcessRunning(config.game).then((running) => {
 			if (!running) {
-				executeXXMI(join(config.XXMI, "Resources/Bin/XXMI Launcher.exe"));
+				executeXXMI(toFs(join(config.XXMI, "Resources\\Bin\\XXMI Launcher.exe")));
 				addToast({
 					type: "info",
 					message: "Launching Game",
@@ -512,7 +513,7 @@ export async function main(useGame = "" as Games) {
 	invoke("get_username");
 	resetAtoms();
 	removeHelpers();
-	appData = await path.dataDir();
+	appData = toInternal(await path.dataDir());
 	cwd = join(await path.localDataDir(), "Integrated Mod Manager (IMM)");
 	const XXMI = `${appData}/XXMI Launcher`;
 	if (!(await exists("config.json"))) {

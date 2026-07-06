@@ -11,13 +11,14 @@ import { GAME_NAMES, LANG_LIST } from "@/utils/consts";
 import { saveConfigs, setConfig } from "@/utils/filesys";
 import { encodeHotkeyForStorage, formatHotkeyDisplay, processHotkeyCode } from "@/utils/hotkeyUtils";
 import { join, setHotreload } from "@/utils/hotreload";
+import { toFs } from "@/utils/pathsep";
 import { getCwd, setPrePostLaunch, setWindowType } from "@/utils/init";
 import TEXT from "@/textData.json";
 import { exportConfig, keySort } from "@/utils/utils";
 import { INIT_DONE, PRESETS, SAVED_LANG, SETTINGS, SOURCE, store, TARGET, TEXT_DATA, XXMI_MODE } from "@/utils/vars";
 import { Separator } from "@radix-ui/react-separator";
 import { open } from "@tauri-apps/plugin-dialog";
-import { readTextFile } from "@tauri-apps/plugin-fs";
+import { readTextFile } from "@/utils/fs";
 import { useAtom, useAtomValue } from "jotai";
 import {
 	AppWindowIcon,
@@ -74,7 +75,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 				],
 			};
 
-			dialogOptions.defaultPath = join(getCwd(), "backups");
+			dialogOptions.defaultPath = toFs(join(getCwd(), "backups"));
 
 			const filePath = await open(dialogOptions);
 

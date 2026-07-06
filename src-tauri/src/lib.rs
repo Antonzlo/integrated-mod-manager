@@ -2,7 +2,6 @@ use futures_util::StreamExt;
 use once_cell::sync::Lazy;
 use reqwest::Client;
 use serde::Serialize;
-use tauri_plugin_shell::ShellExt;
 use std::collections::HashMap;
 use std::fs::{remove_file, File};
 use std::io::{BufWriter, Write};
@@ -14,6 +13,7 @@ use std::time::Instant;
 use tauri::Emitter;
 use tauri::Manager;
 use tauri_plugin_deep_link::DeepLinkExt;
+use tauri_plugin_shell::ShellExt;
 use tauri_plugin_tracing::{tracing, Builder as Tracing, LevelFilter, MaxFileSize, Rotation, RotationStrategy};
 
 mod hotreload;
@@ -203,30 +203,35 @@ fn mime_to_extension(mime_type: &str) -> Option<&'static str> {
         .find(|(mime, _)| *mime == clean_mime)
         .map(|(_, ext)| *ext)
 }
-
-async fn decompress_file(app_handle: tauri::AppHandle, file_path: &str, save_path: &str) -> Result<(), String> {
+async fn decompress_file(
+    app_handle: tauri::AppHandle,
+    file_path: &str,
+    save_path: &str,
+) -> Result<(), String> {
     #[cfg(target_os = "windows")]
     let program_name = "ext/7z.exe";
-    #[cfg(not(target_os = "windows"))]
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
     let program_name = "ext/7zz";
+    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
+    let program_name = "ext/7zz-aarch64";
 
     let program_path = app_handle
         .path()
         .resolve(program_name, tauri::path::BaseDirectory::Resource)
         .map_err(|e| e.to_string())?;
 
-let output = app_handle
-    .shell()
-    .command(program_path)
-    .args([
-        "x",
-        file_path,
-        &format!("-o{}", save_path),
-        "-y"
-    ])
-    .output()
-    .await
-    .map_err(|e| e.to_string())?;
+    let output = app_handle
+        .shell()
+        .command(program_path.to_str().unwrap())
+        .args([
+            "x",
+            file_path,
+            &format!("-o{}", save_path),
+            "-y",
+        ])
+        .output()
+        .await
+        .map_err(|e| e.to_string())?;
 
     if output.status.success() {
         Ok(())
@@ -256,16 +261,15 @@ async fn extract_archive(
     let save_path = save_path.as_str();
     let file_name = file_name.as_str();
 
-    
     // Clean folder before extraction
     println!("Cleaning folder before extracting archive");
     clean_folder_before_extraction(Path::new(&save_path), &file_name)?;
     println!("Starting extraction");
     let before = Instant::now();
-    let res = decompress_file(app_handle.clone(), file_path.to_str().unwrap(), &save_path).await;
+    let res = decompress_file(app_handle.clone(), file_path.to_str().unwrap(), &save_path);
     let duration = before.elapsed();
     println!("extraction completed in: {:.2?}", duration);
-    if let Err(e) = res {
+    if let Err(e) = res.await {
         println!("extraction error: {}", e);
     } else {
         if del {
@@ -273,7 +277,7 @@ async fn extract_archive(
         }
         println!("Archive file removed after extraction");
     }
-    
+
     if !del {
         app_handle
             .emit("fin", serde_json::json!({ "key": key, "type": "manual" }))
@@ -508,25 +512,18 @@ async fn download_and_unzip(
             .map_err(|e| e.to_string())?;
     }
 
-    if !file_name.starts_with("preview.") {
-        extract_archive(
-            app_handle.clone(),
-            file_path.to_string_lossy().to_string(),
-            save_path.clone(),
-            file_name.clone(),
-            emit,
-            key.clone(),
-            current_sid,
-            true,
-        )
-        .await?;
-    } else {
-        if emit {
-            app_handle
-                .emit("fin", serde_json::json!({ "key": key , "type": "auto" }))
-                .map_err(|e| e.to_string())?;
-        }
-    }
+    // Extract archive if it's a supported format
+    extract_archive(
+        app_handle.clone(),
+        file_path.to_string_lossy().to_string(),
+        save_path.clone(),
+        file_name.clone(),
+        emit,
+        key,
+        current_sid,
+        true,
+    )
+    .await?;
 
     tracing::info!(
         "Download and extraction completed successfully for session {}: {}",
@@ -589,7 +586,45 @@ fn execute_with_args(exe_path: String, args: Vec<String>) -> Result<String, Stri
         return Err(format!("Executable not found: {}", exe_path));
     }
 
-    let mut command = Command::new(&exe_path);
+    let mut command;
+    // Windows executables can't be exec'd natively on Linux, so run them
+    // through Wine (the game itself already runs under Wine/Proton).
+    #[cfg(target_os = "linux")]
+    {
+        let is_exe = Path::new(&exe_path)
+            .extension()
+            .map(|e| e.eq_ignore_ascii_case("exe"))
+            .unwrap_or(false);
+        let parent = Path::new(&exe_path)
+            .parent()
+            .and_then(|p| p.to_str())
+            .map(|s| s.to_string());
+        if is_exe {
+            if Path::new("/.flatpak-info").exists() {
+                // Inside a flatpak sandbox there is no Wine; run it on the host
+                // (where Wine and the game's Wine prefix actually live) via the
+                // spawn portal.
+                command = Command::new("flatpak-spawn");
+                command.arg("--host");
+                if let Some(ref dir) = parent {
+                    command.arg(format!("--directory={}", dir));
+                }
+                command.arg("wine").arg(&exe_path);
+            } else {
+                command = Command::new("wine");
+                command.arg(&exe_path);
+                if let Some(ref dir) = parent {
+                    command.current_dir(dir);
+                }
+            }
+        } else {
+            command = Command::new(&exe_path);
+        }
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        command = Command::new(&exe_path);
+    }
 
     for arg in &args {
         command.arg(arg);

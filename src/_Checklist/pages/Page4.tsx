@@ -10,7 +10,7 @@ import { applyPreset, folderSelector, verifyDirStruct } from "@/utils/filesys";
 import { getDataDir, readXXMIConfig, verifyGameDir } from "@/utils/init";
 import { join } from "@/utils/utils";
 import { CHANGES, GAME, SOURCE, TARGET, TEXT_DATA, XXMI_DIR, XXMI_MODE } from "@/utils/vars";
-import { exists } from "@tauri-apps/plugin-fs";
+import { exists } from "@/utils/fs";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { CheckIcon, FolderCog2Icon, HelpCircleIcon, InfoIcon, XIcon } from "lucide-react";
 import { useState } from "react";

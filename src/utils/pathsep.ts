@@ -1,0 +1,38 @@
+// Cross-platform path separator handling.
+//
+// Internally the whole app uses "\\" (Windows-style) as the canonical
+// separator for every path and key: stored config keys, presets, mod paths,
+// d3dx.ini namespace keys and all string comparisons. This keeps existing
+// Windows data and the d3dx data format (which is always "\\", because the
+// game runs under Wine even on Linux) working unchanged.
+//
+// We only translate at the boundaries:
+//   - toInternal(): call on paths ENTERING from the OS (dialogs, path.*Dir(),
+//     deep links) so the internal representation stays uniformly "\\".
+//   - toFs(): call on paths LEAVING to the OS (filesystem calls, openPath,
+//     IPC). On Windows the native separator is already "\\" so this is a
+//     no-op and Windows behaviour is byte-identical; on Linux it produces
+//     forward-slash paths.
+
+const NATIVE_SEP = typeof navigator !== "undefined" && /windows/i.test(navigator.userAgent) ? "\\" : "/";
+
+/** Join path/key segments using the internal "\\" separator. */
+export function join(...parts: (string | null | undefined)[]) {
+	let result = parts
+		.filter((p): p is string => p !== "" && p != null)
+		.join("\\")
+		.replaceAll("/", "\\")
+		.replaceAll("\\\\", "\\");
+	if (result.endsWith("\\")) result = result.slice(0, -1);
+	return result;
+}
+
+/** Convert an OS-native path into the internal "\\" form. */
+export function toInternal<T extends string | null | undefined>(p: T): T {
+	return (typeof p === "string" ? p.replaceAll("/", "\\") : p) as T;
+}
+
+/** Convert an internal "\\" path into the OS-native form. */
+export function toFs<T extends string | null | undefined>(p: T): T {
+	return (typeof p === "string" ? p.replaceAll("\\", NATIVE_SEP) : p) as T;
+}

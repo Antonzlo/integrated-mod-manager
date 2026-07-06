@@ -5,6 +5,7 @@ import { Provider } from "jotai";
 import App from "./App";
 import ErrorBoundary from "./utils/errorCatcher";
 import Decorations from "./utils/decorations";
+import ResizeHandles from "./utils/ResizeHandles";
 import { interceptConsole } from "@fltsci/tauri-plugin-tracing";
 import { invoke } from "@tauri-apps/api/core";
 
@@ -41,6 +42,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 		<ThemeProvider defaultTheme="dark">
 			<ErrorBoundary>
 				<Decorations />
+				<ResizeHandles />
 				<App />
 			</ErrorBoundary>
 		</ThemeProvider>
