@@ -99,7 +99,7 @@ function ModPreviewCrop({ item, setDialogType }: { item: any, setDialogType: (ty
 							minHeight: aspect >= 1 ? "14.5rem" : "fit-content",
 						}}
 						id="prevImg"
-						className="w-full relative h-full brightness-50 object-cover object-center"
+						className="w-full relative h-full brightness-50 object-contain object-center"
 						draggable={false}
 						src={previewUrl}
 						onError={(e) => {

@@ -42,19 +42,31 @@ const CardLocal = React.memo(({ item, selected, lastUpdated, hasUpdate, updateAv
 				onError={(e) => handleImageError(e, true)}
 			/>
 
-			<div className="relative w-full fadein h-[calc(100%-2.5rem)] flex items-center justify-center -mt-[calc(var(--card-height)-0.125rem)] h-58 duration-200 rounded-t-lg data-gi:rounded-none pointer-events-none overflow-hidden">
+			<div className="relative w-full fadein h-[calc(100%-2.5rem)] flex items-center justify-center -mt-[calc(var(--card-height)-0.125rem)] duration-200 rounded-t-lg data-gi:rounded-none pointer-events-none overflow-hidden">
 				<img
 					style={{
 						filter: item.enabled ? "brightness(1)" : "brightness(0.5) saturate(0.5)",
 						left: `${-(item.crop?.x || 0)}px`,
 						top: `${-(item.crop?.y || 0)}px`,
 						scale: item.crop?.scale || 1,
-						minWidth: item.crop?.vertical ? "14rem" : "fit-content",
-						minHeight: item.crop?.vertical ? "fit-content" : "14.5rem",
+						minWidth: "fit-content",
+						minHeight:  "calc(var(--card-height)-2.5rem)",
 					}}
-					className="w-full h-full relative object-cover object-center"
+					className="w-full h-full relative object-contain object-center"
 					src={previewUrl}
 					onError={(e) => handleImageError(e)}
+					onLoad={(e)=>{
+						const img = e.currentTarget;
+						const aspect = img.naturalWidth/img.naturalHeight;
+						if(aspect>1){
+							img.style.minWidth = "fit-content";
+							img.style.minHeight = "calc(var(--card-height)-2.5rem)";
+						}
+						else{
+							img.style.minWidth = "14rem";
+							img.style.minHeight = "fit-content";
+						}
+					}}
 				/>
 			</div>
 			<div
