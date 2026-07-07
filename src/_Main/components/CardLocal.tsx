@@ -56,7 +56,7 @@ const CardLocal = React.memo(({ item, selected, lastUpdated, hasUpdate, updateAv
 				/>
 			</div>
 			<div
-				className="bg-background/50 rounded-b-xl data-zzz:rounded-bl-3xl fadein backdrop-blur-md
+				className="bg-background/50 rounded-b-xl data-zzz:rounded-bl-3xl fadein backdrop-blur-sm
 			 flex items-center w-full min-h-10 gap-2 px-3 header-img"
 			>
 				{inConflict >= 0 ? (
