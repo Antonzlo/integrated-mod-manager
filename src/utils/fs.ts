@@ -4,7 +4,18 @@
 // content keeps its "\\" namespace keys). Import these instead of importing
 // from "@tauri-apps/plugin-fs" directly.
 import * as fs from "@tauri-apps/plugin-fs";
-import { toFs } from "./pathsep";
+import { toFs, toInternal } from "./pathsep";
+
+function normalizeDirEntry<T extends fs.DirEntry>(entry: T): T {
+	return {
+		...entry,
+		name: toInternal(entry.name),
+		...("path" in entry && typeof entry.path === "string" ? { path: toInternal(entry.path) } : {}),
+		...("children" in entry && Array.isArray(entry.children)
+			? { children: entry.children.map((child) => normalizeDirEntry(child)) }
+			: {}),
+	};
+}
 
 export const readTextFile = (path: string, options?: fs.ReadFileOptions) => fs.readTextFile(toFs(path), options);
 
@@ -13,7 +24,8 @@ export const writeTextFile = (path: string, data: string, options?: fs.WriteFile
 
 export const exists = (path: string, options?: fs.ExistsOptions) => fs.exists(toFs(path), options);
 
-export const readDir = (path: string, options?: fs.ReadDirOptions) => fs.readDir(toFs(path), options);
+export const readDir = async (path: string, options?: fs.ReadDirOptions) =>
+	(await fs.readDir(toFs(path), options)).map((entry) => normalizeDirEntry(entry));
 
 export const mkdir = (path: string, options?: fs.MkdirOptions) => fs.mkdir(toFs(path), options);
 

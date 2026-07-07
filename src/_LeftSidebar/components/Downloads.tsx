@@ -117,12 +117,12 @@ function Downloads() {
 					? item.category
 					: UNCATEGORIZED;
 		const name = sanitizeFileName(item.name);
-		const dlPath = toFs((await createModDownloadDir(category, name)) as string);
+		const dlPath = (await createModDownloadDir(category, name)) as string;
 		return {
 			...item,
 			status: "downloading",
 			name,
-			path: toFs(category + "\\" + name),
+			path: category + "\\" + name,
 			category,
 			updatedAt: item.updated * 1000,
 			dlPath,
@@ -149,7 +149,7 @@ function Downloads() {
 		invoke("download_and_unzip", {
 			fileName: item.name,
 			downloadUrl: item.file,
-			savePath: item.dlPath,
+			savePath: toFs(item.dlPath),
 			key: item.key,
 			emit: true,
 		}).catch((err) => markDownloadFailed(item.key || "", String(err), "download"));
@@ -157,7 +157,7 @@ function Downloads() {
 			invoke("download_and_unzip", {
 				fileName: "preview",
 				downloadUrl: item.preview,
-				savePath: item.dlPath,
+				savePath: toFs(item.dlPath),
 				key: "link_preview_" + item.name,
 				emit: false,
 			}).catch(() => {});

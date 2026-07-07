@@ -147,7 +147,7 @@ function RightOnline({ open }: { open: boolean }) {
 						: item._aCategory?._sName.replaceAll("Skins", UNCATEGORIZED) || UNCATEGORIZED,
 					source: item._sProfileUrl || "",
 					file: file._sDownloadUrl,
-					updated: file._tsDateAdded,
+					updated: file._tsDateModified || file._tsDateAdded,
 					name: target ? target.split("\\")[1] : item._sName + (altPopoverOpen ? ` - ${file._sFile}` : ""),
 					fname: file._sFile,
 				} as any;

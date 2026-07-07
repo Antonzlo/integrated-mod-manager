@@ -290,7 +290,7 @@ export function useInstalledItemsManager() {
 	const [installedItems, setInstalledItems] = useAtom(INSTALLED_ITEMS);
 	const localData = useAtomValue(DATA);
 	const modList = useAtomValue(MOD_LIST);
-	const validPaths = useMemo(() => new Set(modList.map((mod) => mod.path.replace(/[/\\]+/g, "/").replace(/^\/+/, ""))), [modList]);
+	const validPaths = useMemo(() => new Set(modList.map((mod) => mod.path)), [modList]);
 	//info("[IMM] Valid mod paths:", Array.from(validPaths));
 
 	useEffect(() => {

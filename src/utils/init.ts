@@ -329,14 +329,14 @@ export async function initGame(game: Games, status = true) {
 
 	const normalizedData = {} as any;
 	Object.keys(configXX.data || {}).forEach((key) => {
-		const normalizedKey = key.replace(/[/\\]+/g, "/").replace(/^\/+/, "");
-		normalizedData[normalizedKey] = (configXX.data as any)[key];
+		const normalizedKey = key.replace(/[/\\]+/g, "\\").replace(/^\\+/, "");
+		normalizedData[normalizedKey] = {...normalizedData[normalizedKey], ...(configXX.data as any)[key] };
 	});
 	configXX.data = normalizedData;
 
 	const normalizedPresets = (configXX.presets || []).map((preset: any) => ({
 		...preset,
-		data: (preset.data || []).map((p: string) => p.replace(/[/\\]+/g, "/").replace(/^\/+/, "")),
+		data: (preset.data || []).map((p: string) => p.replace(/[/\\]+/g, "\\").replace(/^\\+/, "")),
 	}));
 	configXX.presets = normalizedPresets;
 

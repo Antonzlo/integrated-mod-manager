@@ -1,15 +1,5 @@
 import defConfig from "../default.json";
-import {
-	copyFile,
-	exists,
-	mkdir,
-	readDir,
-	readTextFile,
-	remove,
-	rename,
-	writeFile,
-	writeTextFile,
-} from "./fs";
+import { copyFile, exists, mkdir, readDir, readTextFile, remove, rename, writeFile, writeTextFile } from "./fs";
 import {
 	exts,
 	IGNORE,
@@ -274,8 +264,8 @@ async function copyDir(src: string, dest: string, withProgress = false) {
 				if (result == "Ok") result = "Operation Cancelled";
 				return;
 			}
-			const srcPath = `${src}/${entry.name}`;
-			const destPath = `${dest}/${entry.name}`;
+			const srcPath = join(src, entry.name);
+			const destPath = join(dest, entry.name);
 			if (!entry.isDirectory) {
 				await copyFile(srcPath, destPath);
 				if (withProgress) {
@@ -284,10 +274,10 @@ async function copyDir(src: string, dest: string, withProgress = false) {
 						const percentage = ((completedFiles / totalFiles) * 100).toFixed(2);
 						progressBar.style.width = percentage + "%";
 						progressPerct.innerText = percentage + "%";
-						progressMessage.innerText = `${textMSG.file} ${completedFiles}/${totalFiles}: ${src.replace(
-							rootReplace,
-							""
-						)}/${entry.name}`;
+						progressMessage.innerText = `${textMSG.file} ${completedFiles}/${totalFiles}: ${join(
+							src.replace(rootReplace, ""),
+							entry.name
+						)}`;
 					}
 				}
 			} else {
@@ -614,7 +604,9 @@ export async function categorizeDir(src: string, modifyIni = false) {
 				const np = iniPath(
 					"$\\mods",
 					managedTGT,
-					replaceDisabled(newPath).replaceAll(tgt, "").replace(/[/\\]+/g, "\\")
+					replaceDisabled(newPath)
+						.replaceAll(tgt, "")
+						.replace(/[/\\]+/g, "\\")
 				).toLowerCase();
 				info("[IMM] Updating d3dx_user.ini:", op, "->", np);
 				d3dx = d3dx.map((line: string) => (line.startsWith(op) ? line.replace(op, np) : line));
@@ -645,7 +637,7 @@ export async function verifyDirStruct() {
 			if (await exists(oldTgtPath)) {
 				await rename(oldTgtPath, newTgtPath);
 				//add code to read the file d3dx_user.ini in the parent folder of oldTgtPath, and replace all instances of OLD_managedTGT with managedTGT
-				const parentDir = tgt.split(/[/\\]/).slice(0, -1).join("/");
+				const parentDir = join(...tgt.split(/[/\\]/).slice(0, -1));
 				const iniFilePath = join(parentDir, "d3dx_user.ini");
 				info("[IMM] Updating d3dx_user.ini at:", iniFilePath);
 
@@ -1076,8 +1068,7 @@ async function detectHotkeys(
 				for (const key of Object.keys(modData)) {
 					// @ts-ignore
 					entry[key as "source" | "updatedAt" | "note" | "installedAt"] =
-						data[entry.path as keyof typeof data][key as "source" | "updatedAt" | "note" | "installedAt"] ||
-						(key === "updatedAt" ? 0 : "");
+						modData[key as "source" | "updatedAt" | "note" | "installedAt"] || (key === "updatedAt" ? 0 : "");
 				}
 			}
 			// Parse .ini files for hotkeys
@@ -1126,7 +1117,7 @@ async function detectHotkeys(
 									globalVars[tempKey] = {
 										target: tempKey,
 										file: entry.path.split(/[/\\]/).slice(2).join("\\").toLowerCase(),
-										namespace: fileNamespace.toLowerCase(),
+										namespace,
 										name: tempKey,
 										default: tempVal,
 										pref: null,
@@ -1171,7 +1162,7 @@ async function detectHotkeys(
 										target,
 										file: entry.path.split(/[/\\]/).slice(2).join("\\").toLowerCase(),
 										name: target,
-										namespace: namespace,
+										namespace,
 										default: "",
 										pref: null,
 										reset: null,
@@ -1424,21 +1415,20 @@ export async function refreshModList(maxed = false) {
 		throw err;
 	}
 }
-async function backupIniFiles( cat:string , mod:string , key:string , relPath = "") {
+async function backupIniFiles(cat: string, mod: string, key: string, relPath = "") {
 	const entries = await readDir(join(modRoot, cat, mod, relPath));
-	try{
-	for (const entry of entries) {
-		if (entry.name === INI_BACKUP) continue;
-		const entryRelPath = join(relPath, entry.name);
-		if (entry.isDirectory) {
-			await backupIniFiles(cat, mod, key, entryRelPath);
-		} else if (entry.name.toLowerCase().endsWith(".ini")) {
-			await mkdir(join(modRoot, cat, mod, INI_BACKUP, key,relPath), { recursive: true });
-			await copyFile(join(modRoot, cat, mod, entryRelPath), join(modRoot, cat, mod, INI_BACKUP, key, entryRelPath));
+	try {
+		for (const entry of entries) {
+			if (entry.name === INI_BACKUP) continue;
+			const entryRelPath = join(relPath, entry.name);
+			if (entry.isDirectory) {
+				await backupIniFiles(cat, mod, key, entryRelPath);
+			} else if (entry.name.toLowerCase().endsWith(".ini")) {
+				await mkdir(join(modRoot, cat, mod, INI_BACKUP, key, relPath), { recursive: true });
+				await copyFile(join(modRoot, cat, mod, entryRelPath), join(modRoot, cat, mod, INI_BACKUP, key, entryRelPath));
+			}
 		}
-	}
-}
-	catch(err){
+	} catch (err) {
 		error("[IMM] Error backing up .ini files:", err);
 	}
 }
@@ -1448,8 +1438,7 @@ export async function createModDownloadDir(cat: string, dir: string) {
 		const path = join(src, managedSRC, cat, dir);
 		if (await exists(path)) {
 			if (store.get(BACKUP_INI)) {
-
-				await backupIniFiles(cat, dir,"Update-"+ new Date().toISOString().replace(/[:.]/g, "_"));
+				await backupIniFiles(cat, dir, "Update-" + new Date().toISOString().replace(/[:.]/g, "_"));
 			}
 			return path;
 		}
@@ -1494,7 +1483,7 @@ export async function validateModDownload(path: string, skip = false) {
 		}
 		if (!skip) {
 			const list = store.get(MOD_LIST);
-			const relPath = path.split(new RegExp(managedSRC.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[/\\\\]'))[1];
+			const relPath = path.split(new RegExp(managedSRC.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "[/\\\\]"))[1];
 			info("[IMM] Validating mod download for path:", relPath);
 			const ele = list.find((mod) => mod.path === relPath);
 			if (ele) {
@@ -1711,7 +1700,7 @@ export async function updateIniVars(relPath: string, keyVals: Record<string, str
 	const path = join(modRoot, relPath);
 	console.log("Updating ini vars for:", relPath, "at", path, "with keyVals:", keyVals);
 	const [category, modName, ...rest] = relPath.split("\\");
-	const backupPath = join(modRoot,category,modName,INI_BACKUP,"default",...rest);
+	const backupPath = join(modRoot, category, modName, INI_BACKUP, "default", ...rest);
 	if (!(await exists(backupPath))) {
 		await mkdir(join(...backupPath.split("\\").slice(0, -1)), { recursive: true });
 		await copyFile(path, backupPath);

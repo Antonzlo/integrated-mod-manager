@@ -57,7 +57,7 @@ type BatchNode = {
 function editChild(name: string, parent: string[], treeData: BatchNode[], children: BatchNode[]): BatchNode[] {
 	return treeData
 		? treeData.map((node) => {
-				if (node.name === name && node.parent === parent.join("/")) {
+				if (node.name === name && node.parent === join(...parent)) {
 					return {
 						...node,
 						children,

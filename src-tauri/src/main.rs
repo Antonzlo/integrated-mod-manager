@@ -3,9 +3,9 @@
 #[cfg(not(dev))]
 use std::env;
 fn main() {
-    env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--ignore-gpu-blocklist --enable-gpu-rasterization");
     #[cfg(not(dev))]
     {
+        env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--ignore-gpu-blocklist --enable-gpu-rasterization");
         // On Linux the executable can live anywhere (~/.local/bin, an AppImage
         // mount, /usr/bin, ...), so storing configs next to it is unstable and
         // can pollute arbitrary directories. Use a stable XDG data directory
