@@ -1,5 +1,5 @@
 {
-	"version": "3.1.0",
+	"version": "3.1.1",
 	"game": "",
 	"custom": 0,
 	"sourceDir": "",
@@ -7,7 +7,6 @@
 	"settings": {
 		"launch": 0,
 		"hotReload": 1,
-		"onlineType": "Mod",
 		"customCategories": {}
 	},
 	"data": {},

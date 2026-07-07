@@ -2,10 +2,12 @@ import { useEffect, useMemo } from "react";
 import { IMAGE_SERVER, managedSRC } from "./consts";
 import {
 	DATA,
+	DEV_HIDE_PREVIEWS,
 	FILE_TO_DL,
 	FILTER,
 	GAME,
 	INSTALLED_ITEMS,
+	MOD_CHECK_PROGRESS,
 	MOD_LIST,
 	ONLINE,
 	ONLINE_DATA,
@@ -28,6 +30,10 @@ import { save } from "@tauri-apps/plugin-dialog";
 
 export { join, iniPath };
 let IMAGE_SERVER_URL = IMAGE_SERVER;
+let HIDE_PREVIEWS = false;
+store.sub(DEV_HIDE_PREVIEWS, () => {
+	HIDE_PREVIEWS = store.get(DEV_HIDE_PREVIEWS);
+});
 export function setImageServer(url: string) {
 	IMAGE_SERVER_URL = url;
 }
@@ -105,7 +111,7 @@ store.sub(SETTINGS, () => {
 	check = store.get(SETTINGS).global.chkModUpdates;
 });
 export function getImageUrl(path: string): string {
-	return `${IMAGE_SERVER_URL}/${src}/${managedSRC}/${path}`;
+	return HIDE_PREVIEWS?"":`${IMAGE_SERVER_URL}/${src}/${managedSRC}/${path}`;
 }
 const PRIORITY_KEYS = ["Alt", "Ctrl", "Shift", "Capslock", "Tab", "Up", "Down", "Left", "Right"];
 const PRIORITY_SET = new Set(PRIORITY_KEYS);
@@ -149,9 +155,7 @@ export function getTimeDifference(startTimestamp: number, endTimestamp: number) 
 }
 export async function fetchModNoUpdates(selected: string, signal?: AbortSignal) {
 	let modData = {};
-	// console.log("Fetching mod data for", selected);
 	await apiClient.mod(selected, signal).then((data) => {
-		// console.log("Fetched mod data for", selected, data);
 		if (data._idRow != selected.split("/").slice(-1)[0]) return;
 		modData = data;
 	});
@@ -170,7 +174,6 @@ export async function fetchMod(selected: string, controller?: AbortController) {
 					_aChangeLog: record._aChangeLog,
 					_sName: record._sName,
 				})) || [];
-			// console.log(data);
 			data2._aUpdates = updates;
 			if (data._aRecords && data._aRecords.length > 0) {
 				data2._eUpdate = true;
@@ -244,7 +247,7 @@ function loadCheckedCache(): Record<string, { updated: number; status: number }>
 				}
 			}
 		}
-		info("[IMM] Loaded checked cache:", cleaned);
+		// info("[IMM] Loaded checked cache:", cleaned);
 		return cleaned;
 	} catch {
 		return {};
@@ -288,42 +291,43 @@ export function useInstalledItemsManager() {
 	const localData = useAtomValue(DATA);
 	const modList = useAtomValue(MOD_LIST);
 	const validPaths = useMemo(() => new Set(modList.map((mod) => mod.path.replace(/[/\\]+/g, "/").replace(/^\/+/, ""))), [modList]);
-	info("[IMM] Valid mod paths:", Array.from(validPaths));
+	//info("[IMM] Valid mod paths:", Array.from(validPaths));
 
 	useEffect(() => {
 		if (installedItems.length == 0) initialCheck = true;
 	}, [installedItems]);
 	useEffect(() => {
 		if (Object.keys(localData).length > 0) {
+			now = Date.now();
 			async function checkModStatus(item: any) {
-				info("[IMM] Checking mod status for", item.name);
+				// info("[IMM] Checking mod status for", item.name);
 				let modStatus = 0;
 				if (!check) {
 					return 0;
 				}
 				if (checked.hasOwnProperty(item.name) && now - (checked[item.name]?.updated || 0) < oneHour) {
-					info("[IMM] Mod status found in cache for", item.name);
+					// info("[IMM] Mod status found in cache for", item.name);
 					modStatus = item.updated < checked[item.name].status ? (item.viewed < checked[item.name].status ? 2 : 1) : 0;
 				} else {
 					try {
-						// info("[IMM] Fetching mod url ", modRouteFromURL(item.source));
+						info("[IMM] Fetching mod url ", modRouteFromURL(item.source),`inCache: ${checked.hasOwnProperty(item.name)} | updated: ${item.updated} | cacheUpdated: ${checked[item.name]?.updated} | now: ${now}`);
 						const data = (await fetchModNoUpdates(modRouteFromURL(item.source))) as any;
-						// console.log(data, item);
-						// info("[IMM] Fetched mod data for", item.name, data);
 						if (data._tsDateModified) {
 							let latest = item.updated || 0;
 							data._aFiles.forEach((file: any) => {
 								latest = Math.max(latest, (file._tsDateModified || file._tsDateAdded || 0) * 1000);
 							});
-							// setUpdateCache((prev) => ({ ...prev, [item.name]: latest }));
 							modStatus = item.updated < latest ? (item.viewed < latest ? 2 : 1) : 0;
-							checked[item.name] = { updated: Date.now(), status: latest };
+							checked[item.name] = { updated: now, status: latest };
+						}
+						else{
+							checked[item.name] = { updated: now, status: 0 };
 						}
 					} catch (error) {
 						return 0;
 					}
 				}
-				info("[IMM] Final mod status for", item.name, "is", modStatus);
+				// info("[IMM] Final mod status for", item.name, "is", modStatus);
 				return modStatus;
 			}
 			async function updateInstalledItems(localDataSnapshot: any) {
@@ -350,15 +354,7 @@ export function useInstalledItemsManager() {
 				const processedItems: any[] = [];
 				const totalItems = itemsToProcess.length;
 				const startTime = Date.now();
-				const modsProgressContainer = document.getElementById("mods-progress-container");
-				const modsProgressBar = document.getElementById("mods-progress");
-				const modsCheckedLabel = document.getElementById("mods-checked");
-				const modsTotalLabel = document.getElementById("mods-total");
-				now = Date.now();
-				if (modsProgressContainer && modsTotalLabel) {
-					modsTotalLabel.innerText = totalItems.toString();
-					modsProgressContainer.style.bottom = "0px";
-				}
+				store.set(MOD_CHECK_PROGRESS, { open: totalItems > 0, checked: 0, total: totalItems });
 				if (!check) info("[IMM] Mod update checking is disabled.");
 				for (let i = 0; i < itemsToProcess.length; i += batchSize) {
 					const batch = itemsToProcess.slice(i, i + batchSize);
@@ -373,10 +369,7 @@ export function useInstalledItemsManager() {
 					const checkedCount = Math.min(i + batchSize, totalItems);
 					// const newCount = processedItems.filter((item) => item.modStatus === 2).length;
 
-					if (modsProgressBar && modsCheckedLabel) {
-						modsProgressBar.style.width = `${(checkedCount / totalItems) * 100}%`;
-						modsCheckedLabel.innerText = checkedCount.toString();
-					}
+					store.set(MOD_CHECK_PROGRESS, { open: totalItems > 0, checked: checkedCount, total: totalItems });
 					// Add 1s delay between batches (except after the last batch)
 					if (i + batchSize < itemsToProcess.length && newInBatch.length > 0) {
 						await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -384,7 +377,7 @@ export function useInstalledItemsManager() {
 				}
 
 				const newCount = processedItems.filter((item) => item.modStatus === 2).length;
-				console.log("[IMM] Mod status check completed. New updates found:", newCount);
+				info("[IMM] Mod status check completed. New updates found:", newCount);
 				// Save the updated cache to localStorage
 				saveCheckedCache(checked);
 
@@ -414,11 +407,9 @@ export function useInstalledItemsManager() {
 						Math.max(3500 - (Date.now() - startTime), 0)
 					);
 				}
-				if (modsProgressContainer) {
-					setTimeout(() => {
-						modsProgressContainer.style.bottom = "-48px";
-					}, 500);
-				}
+				setTimeout(() => {
+					store.set(MOD_CHECK_PROGRESS, { open: false, checked: totalItems, total: totalItems });
+				}, 500);
 				setInstalledItems([
 					...processedItems.sort((a: any, b: any) => {
 						const flagDiff = b.modStatus - a.modStatus;

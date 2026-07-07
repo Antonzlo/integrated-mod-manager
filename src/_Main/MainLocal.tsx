@@ -19,7 +19,7 @@ import { AnimatePresence, motion } from "motion/react";
 import CardLocal from "./components/CardLocal";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { preventContextMenu } from "@/utils/utils";
-import { toggleMod } from "@/utils/filesys";
+import { getModDetails, toggleMod } from "@/utils/filesys";
 import MiniSearch from "minisearch";
 import { join, setChange } from "@/utils/hotreload";
 import { toFs } from "@/utils/pathsep";
@@ -31,12 +31,27 @@ import { info } from "@/lib/logger";
 // import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 // import { RefreshCwIcon } from "lucide-react";
 // import { addToast } from "@/_Toaster/ToastProvider";
-
-let searchDB: any = null;
-let prev = "prev";
-let prevEnabled = "noData";
-let filterChangeCount = 0;
-let timeout: any = null;
+const modKeys = [
+	"isDir",
+	"name",
+	"parent",
+	"path",
+	"keys",
+	"files",
+	"namespace",
+	"enabled",
+	"children",
+	"depth",
+	"icon",
+	"source",
+	"updatedAt",
+	"viewedAt",
+	"note",
+	"tags",
+	"hashes",
+	"crop",
+	"maxed",
+];
 function MainLocal() {
 	const initDone = useAtomValue(INIT_DONE);
 	const textData = useAtomValue(TEXT_DATA);
@@ -60,42 +75,47 @@ function MainLocal() {
 	const [visibleRange, setVisibleRange] = useState({ start: -1, end: -1 });
 	const [selected, setSelected] = useAtom(SELECTED);
 	const containerRef = useRef<HTMLDivElement | null>(null);
-	const toggleOn = useAtomValue(SETTINGS).global.toggleClick;
+	const toggleOn = useAtomValue(SETTINGS).global.local.toggleClick;
 	const sort = useAtomValue(SORT);
 	const scrollTimeoutRef = useRef<number | null>(null);
+	const searchDBRef = useRef<MiniSearch<Mod> | null>(null);
+	const prevKeyRef = useRef("prev");
+	const prevEnabledRef = useRef("noData");
+	const filterChangeCountRef = useRef(0);
+	const changeTimeoutRef = useRef<number | null>(null);
 	// const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 	const keyRef = useRef<string | null>(null);
 	useEffect(() => {
-		if (!searchDB && modList.length > 0) {
-			searchDB = new MiniSearch({
+		if (!searchDBRef.current && modList.length > 0) {
+			searchDBRef.current = new MiniSearch<Mod>({
 				idField: "path",
 				fields: ["name", "parent", "path"],
-				storeFields: Object.keys(modList[0]),
+				storeFields: modKeys,
 				searchOptions: { prefix: true, fuzzy: 0.2 },
 			});
 		}
-		if (searchDB) {
-			searchDB.removeAll();
-			searchDB.addAll(modList);
+		if (searchDBRef.current) {
+			searchDBRef.current.removeAll();
+			searchDBRef.current.addAll(modList);
 		}
 
 		if (!initDone) {
-			prevEnabled = "noData";
+			prevEnabledRef.current = "noData";
 		} else {
 			const enabled = modList
 				.filter((m) => m.enabled)
 				.map((m) => m.path)
 				.join(",");
-			if (prevEnabled !== enabled) {
-				if (timeout) {
-					clearTimeout(timeout);
+			if (prevEnabledRef.current !== enabled) {
+				if (changeTimeoutRef.current) {
+					clearTimeout(changeTimeoutRef.current);
 				}
-				timeout = setTimeout(() => {
+				changeTimeoutRef.current = setTimeout(() => {
 					setChange();
 				}, 250);
 			}
 
-			prevEnabled = enabled;
+			prevEnabledRef.current = enabled;
 		}
 		function checkForHashCollisions() {
 			const allHashes: { [key: string]: Set<string> } = {};
@@ -153,24 +173,24 @@ function MainLocal() {
 		checkForHashCollisions();
 	}, [modList]);
 	useEffect(() => {
-		filterChangeCount += 1;
+		filterChangeCountRef.current += 1;
 	}, [filter, category, search, sort]);
 	useEffect(() => {
-		keyRef.current = `${filter}-${category}-${search}-${modList.length}-${filterChangeCount}-${sort}`;
-		if (prev !== keyRef.current) {
+		keyRef.current = `${filter}-${category}-${search}-${modList.length}-${filterChangeCountRef.current}-${sort}`;
+		if (prevKeyRef.current !== keyRef.current) {
 			if (containerRef.current) {
 				containerRef.current.scrollTo({ top: 0 });
 			}
 			setVisibleRange({ start: -1, end: -1 });
 			setInitial(true);
 		}
-		prev = keyRef.current;
-		let newList: Mod[] = searchDB && search ? searchDB.search(search) : [...modList];
-
-		// let enb = filters.shift() || "All";
-		// if (enb != "All") {
-		// 	newList = newList.filter((mod) => mod.enabled == (enb == "Enabled"));
-		// }
+		prevKeyRef.current = keyRef.current;
+		let newList: Mod[] = [...modList];
+		if (search && search.includes("https://") && search.includes("gamebanana.com")) {
+			newList = newList.filter((mod) => mod.source == search);
+		} else if (searchDBRef.current && search) {
+			newList = searchDBRef.current.search(search) as unknown as Mod[];
+		}
 		Object.entries(filter).forEach(([key, value]) => {
 			let modifier = (mod: Mod) => !!mod;
 			switch (key) {
@@ -225,7 +245,7 @@ function MainLocal() {
 		}
 
 		setFilteredList(newList);
-	}, [modList, filter, category, search, filterChangeCount, sort]);
+	}, [modList, filter, category, search, sort]);
 
 	const handleClick = async (e: MouseEvent, mod: Mod) => {
 		const click = e.button;
@@ -237,8 +257,11 @@ function MainLocal() {
 			const ct = (e.currentTarget as HTMLDivElement)?.firstElementChild?.firstElementChild
 				?.nextElementSibling as HTMLImageElement;
 			ct && (ct.style.filter = mod.enabled ? "brightness(0.5) saturate(0.5)" : "brightness(1) ");
+			if (!mod.maxed) {
+				const details = await getModDetails(mod.path)
+			}
 			let success = await toggleMod(mod.path, !mod.enabled);
-			console.log("Toggled mod:", mod.path, "New state:", !mod.enabled, "Success:", success);
+			info("Toggled mod:", mod.path, "New state:", !mod.enabled, "Success:", success);
 			if (success)
 				setModList((prev) => {
 					return prev.map((m) => {
@@ -257,10 +280,11 @@ function MainLocal() {
 		if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
 		scrollTimeoutRef.current = setTimeout(() => {
 			if (containerRef.current) {
+				const scale = parseInt((document.documentElement.style.fontSize || "16px").replace("px", ""))/16;
 				const box = containerRef.current.getBoundingClientRect();
 				const scrollTop = containerRef.current.scrollTop;
-				const itemHeight = 304;
-				const itemWidth = 256;
+				const itemHeight = 304 * scale;
+				const itemWidth = 256 * scale;
 				const itemsPerRow = Math.floor((box.width - 10) / itemWidth);
 				info(itemsPerRow, itemWidth, box.width - 10);
 				setVisibleRange({

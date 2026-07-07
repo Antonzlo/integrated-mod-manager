@@ -1,4 +1,5 @@
 import { store, TOASTS } from "@/utils/vars";
+import { ToastType } from "@/utils/types";
 import { useAtomValue } from "jotai";
 import { AnimatePresence, motion } from "motion/react";
 // import { useEffect, useState } from "react";
@@ -12,7 +13,7 @@ export function addToast({
 	onClick = null,
 }: {
 	id?: number;
-	type?: "success" | "error" | "info" | "warning";
+	type?: ToastType;
 	message: string;
 	duration?: number;
 	onClick?: null | (() => void);
@@ -30,7 +31,7 @@ function ToastProvider() {
 		<>
 			<div className="fixed z-99999 top-5 left-1/2 -translate-x-1/2 w-82 h-2 flex flex-col-reverse items-center justify-center pointer-events-none">
 				<AnimatePresence>
-					{toasts.map((toast: any, index: number) => (
+					{toasts.map((toast, index: number) => (
 						<motion.div
 							key={toast.id}
 							initial={{ opacity: 0, y: -20 }}

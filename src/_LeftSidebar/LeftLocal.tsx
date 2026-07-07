@@ -284,11 +284,11 @@ function LeftLocal() {
 				</SidebarContent>
 			</SidebarGroup>
 			<Separator
-				className="w-full ease-linear duration-200 min-h-px my-2.5 bg-border"
+				className="w-full ease-linear duration-200 min-h-[0.0625rem] my-2.5 bg-border"
 				style={{
 					opacity: leftSidebarOpen ? "0" : "",
 					height: leftSidebarOpen ? "0px" : "",
-					marginBlock: leftSidebarOpen ? "4px" : "",
+					marginBlock: leftSidebarOpen ? "0.25rem" : "",
 				}}
 			/>
 			<SidebarGroup className="">

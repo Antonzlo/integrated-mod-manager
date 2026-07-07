@@ -20,21 +20,22 @@ import Carousel from "./components/Carousel";
 import { preventContextMenu } from "@/utils/utils";
 import { LoaderIcon } from "lucide-react";
 import { OnlineMod } from "@/utils/types";
-import { info } from "@/lib/logger";
+import { error, info } from "@/lib/logger";
 
-const pageCount = {} as any;
+const pageCount: Record<string, number> = {};
 export function resetPageCounts() {
 	Object.keys(pageCount).forEach((key) => {
 		delete pageCount[key];
 	});
 }
-let max = 0;
-let prevLoaded = 0;
 function MainOnline() {
 	const [initial, setInitial] = useState(true);
-	const containerRef = useRef(null as any);
-	const carouselRef = useRef(null as any);
-	const nsfw = useAtomValue(SETTINGS).global.nsfw;
+	const containerRef = useRef<HTMLDivElement | null>(null);
+	const carouselRef = useRef<HTMLDivElement | null>(null);
+	const maxRef = useRef(0);
+	const prevLoadedRef = useRef(0);
+	const [loadError, setLoadError] = useState("");
+	const nsfw = useAtomValue(SETTINGS).global.online.nsfw;
 	const textData = useAtomValue(TEXT_DATA);
 	const [onlineData, setOnlineData] = useAtom(ONLINE_DATA);
 	const onlineType = useAtomValue(ONLINE_TYPE);
@@ -46,7 +47,7 @@ function MainOnline() {
 	const [visibleRange, setVisibleRange] = useState({ start: -1, end: -1 });
 	const game = useAtomValue(GAME);
 	const onModClick = useCallback(
-		(e: MouseEvent, mod: OnlineMod) => {
+		(e: React.MouseEvent<HTMLElement>, mod: OnlineMod) => {
 			let targetTag = (e.target as HTMLElement).tagName.toLowerCase();
 			if (targetTag !== "button") {
 				setSelected(mod ? `${mod._sModelName}/${mod._idRow}` : "");
@@ -57,11 +58,12 @@ function MainOnline() {
 	);
 	const nextPage = useCallback(async (url: string, onlinePath: string) => {
 		const res = await fetch(url);
+		if (!res.ok) throw new Error(`Request failed with ${res.status}`);
 		const data = await res.json();
 		setOnlineData((prev) => {
-			prev[onlinePath] = [...(prev[onlinePath] as OnlineMod[]), ...data._aRecords];
 			return {
 				...prev,
+				[onlinePath]: [...((prev[onlinePath] as OnlineMod[]) || []), ...data._aRecords],
 			};
 		});
 		loadingRef.current = false;
@@ -77,13 +79,16 @@ function MainOnline() {
 		// Check if we're near the bottom (within 100px)
 		if (scrollHeight - scrollTop - clientHeight < 100) {
 			loadingRef.current = true;
+			pageCount[onlinePath] =
+				pageCount[onlinePath] ||
+				Math.max(1, Math.ceil((((onlineData[onlinePath] as OnlineMod[]) || []).length || 15) / 15));
 			pageCount[onlinePath]++;
 
-			if (max > 0 && pageCount[onlinePath] - 1 > max) {
+			if (maxRef.current > 0 && pageCount[onlinePath] - 1 > maxRef.current) {
 				loadingRef.current = false;
 				return;
 			}
-			prevLoaded = (pageCount[onlinePath] - 1) * 15;
+			prevLoadedRef.current = (pageCount[onlinePath] - 1) * 15;
 			try {
 				if (onlinePath.startsWith("home")) {
 					await nextPage(apiClient.home({ page: pageCount[onlinePath], type: onlineType }), onlinePath);
@@ -95,11 +100,15 @@ function MainOnline() {
 					if (term.trim().length == 0) return;
 					await nextPage(apiClient.search({ term, type: onlineType, page: pageCount[onlinePath] }), onlinePath);
 				}
+				setLoadError("");
+			} catch (err) {
+				error("[IMM] Failed to load next online page:", err);
+				setLoadError(textData._Main._components._Updater.Error || "Failed to load online data.");
 			} finally {
 				loadingRef.current = false;
 			}
 		}
-	}, [onlinePath, onlineType, onlineSort]);
+	}, [onlinePath, onlineType, onlineSort, textData]);
 
 	const scrollTimeoutRef = useRef<number | null>(null);
 	// const scrollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -108,12 +117,13 @@ function MainOnline() {
 
 		const box = containerRef.current.getBoundingClientRect();
 		let diff = 0;
+		const scale = parseInt((document.documentElement.style.fontSize || "16px").replace("px", ""))/16;
 		if (carouselRef.current) {
-			diff = carouselRef.current.getBoundingClientRect().height + 42;
+			diff = carouselRef.current.getBoundingClientRect().height + 42 * scale;
 		}
 		const scrollTop = containerRef.current.scrollTop - diff;
-		const itemHeight = 304;
-		const itemWidth = 256;
+		const itemHeight = 304 * scale;
+		const itemWidth = 256 *scale;
 		const itemsPerRow = Math.floor(box.width / itemWidth);
 
 		const newStart = Math.floor(scrollTop / itemHeight) * itemsPerRow;
@@ -152,20 +162,31 @@ function MainOnline() {
 			checkLoadMore();
 		}, 50); // ~60fps
 	}, [updateVisibilityRange, checkLoadMore, containerRef.current, carouselRef.current, initial]);
-	function initialLoad(url: string, onlinePath: string, controller: AbortController) {
+	async function initialLoad(url: string, onlinePath: string, controller: AbortController) {
 		fetch(url, { signal: controller.signal })
-			.then((res) => res.json())
+			.then((res) => {
+				if (!res.ok) throw new Error(`Request failed with ${res.status}`);
+				return res.json();
+			})
 			.then((data) => {
-				max = data._aMetadata._nRecordCount / (data?._aMetadata?._nPerPage || 15);
+				if (controller.signal.aborted) return;
+				maxRef.current = data._aMetadata._nRecordCount / (data?._aMetadata?._nPerPage || 15);
 				setOnlineData((prev) => {
-					prev[onlinePath] = data._aRecords;
 					return {
 						...prev,
+						[onlinePath]: data._aRecords,
 					};
 				});
 				setTimeout(() => {
 					checkLoadMore();
 				}, 100);
+				loadingRef.current = false;
+				setLoadError("");
+			})
+			.catch((err) => {
+				if (controller.signal.aborted) return;
+				error("[IMM] Failed to load online data:", err);
+				setLoadError(textData._Main._components._Updater.Error || "Failed to load online data.");
 				loadingRef.current = false;
 			});
 	}
@@ -175,7 +196,9 @@ function MainOnline() {
 			containerRef.current.scrollTo({ top: 0 });
 		}
 		setVisibleRange({ start: -1, end: -1 });
-		prevLoaded = 0;
+		prevLoadedRef.current = 0;
+		maxRef.current = 0;
+		setLoadError("");
 		setInitial(true);
 		//info("fetching1", onlineData,onlinePath);
 		//info("fetching2");
@@ -186,16 +209,21 @@ function MainOnline() {
 			pageCount[onlinePath] = 1;
 			loadingRef.current = true;
 			if (onlinePath.startsWith("home")) {
-				fetch(apiClient.banner(), { signal: controller.signal }).then((res) =>
-					res.json().then((data) => {
+				fetch(apiClient.banner(), { signal: controller.signal }).then((res) => {
+					if (!res.ok) throw new Error(`Request failed with ${res.status}`);
+					return res.json().then((data) => {
+						if (controller.signal.aborted) return;
 						setOnlineData((prev) => {
 							return {
 								...prev,
 								banner: data || [],
 							};
 						});
-					})
-				);
+					});
+				}).catch((err) => {
+					if (controller.signal.aborted) return;
+					error("[IMM] Failed to load online banner:", err);
+				});
 				initialLoad(apiClient.home({ type: onlineType }), onlinePath, controller);
 			} else if (types.some((t) => onlinePath.startsWith(t._sName) || onlinePath.startsWith("Skins"))) {
 				initialLoad(
@@ -209,11 +237,16 @@ function MainOnline() {
 					initialLoad(apiClient.search({ term, type: onlineType, page: 1 }), onlinePath, controller);
 				else loadingRef.current = false;
 			}
+		} else {
+			const cached = (onlineData[onlinePath] as OnlineMod[]) || [];
+			pageCount[onlinePath] = Math.max(1, Math.ceil(cached.length / 15));
+			prevLoadedRef.current = Math.max(0, (pageCount[onlinePath] - 1) * 15);
+			loadingRef.current = false;
 		}
 		return () => {
 			controller.abort();
 		};
-	}, [onlinePath, onlineType, game, types]);
+	}, [onlinePath, onlineType, game, types, textData]);
 
 	// Memoize the current timestamp to avoid recalculation on every render
 	const now = useMemo(() => Date.now() / 1000, [onlinePath]);
@@ -247,7 +280,7 @@ function MainOnline() {
 			ease: "easeOut" as const,
 			delay: initial ? 0.05 * index : 0,
 		}),
-		[]
+		[initial]
 	);
 
 	// Determine if item should be visible
@@ -285,6 +318,7 @@ function MainOnline() {
 			</div>
 
 			<AnimatePresence mode="popLayout">
+				{loadError && <div className="text-destructive text-xs py-2">{loadError}</div>}
 				<motion.div
 					className="min-h-fit card-grid card-grid-online grid justify-center w-full py-4"
 					layout
@@ -304,8 +338,8 @@ function MainOnline() {
 								initial="hidden"
 								animate="visible"
 								exit="exit"
-								transition={transitionConfig(index - prevLoaded || 0)}
-								onMouseUp={(e: any) => onModClick(e, item)}
+								transition={transitionConfig(index - prevLoadedRef.current || 0)}
+								onMouseUp={(e) => onModClick(e, item)}
 								onContextMenu={preventContextMenu}
 							>
 								{isVisible ? (
@@ -317,7 +351,7 @@ function MainOnline() {
 						);
 					})}
 				</motion.div>
-				{(loadingRef.current || pageCount[onlinePath] < max) && (
+				{(loadingRef.current || pageCount[onlinePath] < maxRef.current) && (
 					<motion.div
 						className="min-w-8 min-h-8 flex justify-center my-2"
 						initial={{ opacity: 0 }}

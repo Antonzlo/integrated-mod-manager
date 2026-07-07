@@ -2,9 +2,9 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
-
+import { execSync } from 'child_process';
 const host = process.env.TAURI_DEV_HOST;
-
+const gitHash = execSync('git rev-parse --short HEAD').toString().trim();
 export default defineConfig({
 	plugins: [
 		tailwindcss(),
@@ -42,14 +42,14 @@ export default defineConfig({
 	clearScreen: false,
 	
 	server: {
-		port: 1420,
+		port: 3420,
 		strictPort: true,
 		host: host || false,
 		hmr: host
 			? {
 					protocol: "ws",
 					host,
-					port: 1421,
+					port: 3421,
 			  }
 			: undefined,
 		watch: {
@@ -68,5 +68,8 @@ export default defineConfig({
 		],
 		
 		exclude: ['@tauri-apps/cli']
-	}
+	},
+	define: {
+    'import.meta.env.VITE_BUILD_ID': JSON.stringify(gitHash),
+  },
 });

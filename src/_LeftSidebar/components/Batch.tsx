@@ -109,6 +109,9 @@ function normalizeManagedMods(targets: string[], tree: BatchNode[], categories: 
 	// info("Normalized:", normalized);
 	return Array.from(normalized.keys()) || [];
 }
+function toManagedRelPath(path: string) {
+	return path.replace(managedSRC + "/", "").replace(managedSRC + "\\", "");
+}
 let prevSelectedIndices = [] as number[];
 let prevState = false;
 
@@ -231,7 +234,7 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 	}, [dialogOpen, refresh]);
 	function toggleSelectedMods(enable: boolean) {
 		const promises = normalizeManagedMods(cleanChecked, treeData, categories).map((modPath) => {
-			return toggleMod(modPath.replaceAll(managedSRC, ""), enable);
+			return toggleMod(toManagedRelPath(modPath), enable);
 		});
 		Promise.all(promises).then(() => {
 			addToast({
@@ -363,7 +366,7 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 								style={{
 									transform:
 										expanded.has(item.path) && !checked.has(item.path)
-											? "rotate(90deg) translateX(-5px) translateY(-2px)"
+											? "rotate(90deg) translateX(-0.3125rem) translateY(-0.125rem)"
 											: "",
 									opacity: item.path === managedTGT ? 0.25 : item.isDir ? 1 : 0,
 								}}
@@ -459,9 +462,9 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 					e.currentTarget.blur();
 				}}
 				style={{
-					maxHeight: isMaximized ? "calc( 98vh - 32px)" : "calc( 98vh - 32px)",
-					height: isMaximized ? "calc( 98vh - 32px)" : "45rem",
-					maxWidth: isMaximized ? "98vw" : "",
+					maxHeight: "calc( 98vh - 2rem)",
+					height: isMaximized ? "calc( 98vh - 2rem)" : "45rem",
+					maxWidth: "98vw",
 					width: isMaximized ? "98vw" : "",
 				}}
 				className="duration-300"
@@ -694,14 +697,16 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 											onSelect={(currentValue) => {
 												// renameMod(item.path, join(currentValue, item.name));
 												// setNewCategory(currentValue);
-												customCategories[currentValue] = {
-													_sIconUrl: "",
-												};
 												setSettings((prev) => ({
 													...prev,
 													game: {
 														...prev.game,
-														customCategories,
+														customCategories: {
+															...(prev.game.customCategories || {}),
+															[currentValue]: {
+																_sIconUrl: "",
+															},
+														},
 													},
 												}));
 												saveConfigs();
@@ -712,7 +717,7 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 												let promises = mods.map((modPath, index) => {
 													info(cleanChecked[index], modPath, !cleanChecked[index].startsWith(managedSRC));
 													return changeModName(
-														cleanChecked[index].replace(managedSRC + "/", "").replace(managedSRC + "\\", ""),
+														toManagedRelPath(cleanChecked[index]),
 														modPath,
 														!cleanChecked[index].startsWith(managedSRC)
 													);
@@ -768,7 +773,7 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 													let promises = mods.map((modPath, index) => {
 														info(cleanChecked[index], modPath, !cleanChecked[index].startsWith(managedSRC));
 														return changeModName(
-															cleanChecked[index].replace(managedSRC + "/", "").replace(managedSRC + "\\", ""),
+															toManagedRelPath(cleanChecked[index]),
 															modPath,
 															!cleanChecked[index].startsWith(managedSRC)
 														);

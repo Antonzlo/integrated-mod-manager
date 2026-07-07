@@ -122,7 +122,7 @@ export default class ErrorBoundary extends React.Component<React.PropsWithChildr
 						animation: "moveDiagonal 15s linear infinite",
 					}}
 				></div>
-				<div className="w-full font-en flex flex-col backdrop-blur-[3px] gap-2 h-screen items-center justify-center bg-background/25 game-font">
+				<div className="w-full font-en flex flex-col backdrop-blur-xs gap-2 h-screen items-center justify-center bg-background/25 game-font">
 					<img
 						src="https://media.tenor.com/gSPV57XXMsAAAAAj/seseren.gif"
 						style={{ objectFit: "cover", objectPosition: "0 -12px" }}

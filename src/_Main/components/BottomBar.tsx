@@ -39,7 +39,7 @@ function BottomBar() {
 		<div
 			className="min-h-20 duration-200 flex items-center justify-center w-full h-20 p-2"
 			style={{
-				height: expanded ? "256px" : "",
+				height: expanded ? "16rem" : "",
 			}}
 		>
 			<div className="bg-sidebar data-zzz:rounded-[3rem] data-gi:rounded-[3rem] z-100 text-accent flex items-center justify-center w-full h-full gap-1 p-2 border rounded-lg">
@@ -79,7 +79,7 @@ function BottomBar() {
 												return;
 											}
 											if (onlinePath.startsWith("Skins/" + cat._sName)) {
-												setOnlinePath("home&type=" + onlineType);
+												setOnlinePath("home&_type=" + onlineType);
 												return;
 											}
 											setOnlinePath(`Skins/${cat._sName}&_sort=${onlineSort}`);

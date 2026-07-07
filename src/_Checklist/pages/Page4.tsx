@@ -37,11 +37,11 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 							className="flex items-center gap-2"
 							style={{
 								opacity: checked ? 0 : 1,
-								height: checked ? "0px" : "40px",
+								height: checked ? "0px" : "2.5rem",
 								transition: "all 0.3s ease-in-out",
 								pointerEvents: checked ? "none" : "auto",
-								marginTop: checked ? "-10px" : 0,
-								marginBottom: checked ? "-10px" : 0,
+								marginTop: checked ? "-0.625rem" : 0,
+								marginBottom: checked ? "-0.625rem" : 0,
 							}}
 						>
 							<Dialog>
@@ -124,11 +124,11 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 							className="flex items-center gap-2 overflow-y-hidden"
 							style={{
 								opacity: !checked ? 0 : 1,
-								height: !checked ? "0px" : "40px",
+								height: !checked ? "0px" : "2.5rem",
 								transition: "all 0.3s ease-in-out",
 								pointerEvents: !checked ? "none" : "auto",
-								marginTop: !checked ? "-10px" : 0,
-								marginBottom: !checked ? "-10px" : 0,
+								marginTop: !checked ? "-0.625rem" : 0,
+								marginBottom: !checked ? "-0.625rem" : 0,
 							}}
 						>
 							<Label className="flex items-center gap-1">
@@ -174,11 +174,11 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 							className="flex items-center gap-2 overflow-y-hidden"
 							style={{
 								opacity: !checked || checked2 ? 0 : 1,
-								height: !checked || checked2 ? "0px" : "40px",
+								height: !checked || checked2 ? "0px" : "2.5rem",
 								transition: "all 0.3s ease-in-out",
 								pointerEvents: !checked || checked2 ? "none" : "auto",
-								marginTop: !checked || checked2 ? "-10px" : 0,
-								marginBottom: !checked || checked2 ? "-10px" : 0,
+								marginTop: !checked || checked2 ? "-0.625rem" : 0,
+								marginBottom: !checked || checked2 ? "-0.625rem" : 0,
 							}}
 						>
 							<Label className="flex items-center gap-1">
@@ -222,11 +222,11 @@ function Page4({ setPage }: { setPage: (page: number) => void }) {
 							className=" min-w-fit flex items-center gap-2"
 							style={{
 								opacity: !checked ? 0 : 1,
-								height: !checked ? "0px" : "40px",
+								height: !checked ? "0px" : "2.5rem",
 								transition: "all 0.3s ease-in-out",
 								pointerEvents: !checked ? "none" : "auto",
-								marginTop: !checked ? "-10px" : 0,
-								marginBottom: !checked ? "-10px" : 0,
+								marginTop: !checked ? "-0.625rem" : 0,
+								marginBottom: !checked ? "-0.625rem" : 0,
 							}}
 						>
 							<Checkbox

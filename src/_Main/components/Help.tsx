@@ -22,8 +22,8 @@ function Help() {
 	return (
 		<Dialog open={helpOpen} onOpenChange={setHelpOpen}>
 			<DialogTrigger asChild>
-				<Button disabled={helpOpen} className="bg-sidebar flex gap-0.5 h-5 pointer-events-auto p-0 px-1 text-[10px] border">
-					<HelpCircle className="py-[1px]" />
+				<Button disabled={helpOpen} className="bg-sidebar flex gap-0.5 h-5 pointer-events-auto p-0 px-1 text-[0.625rem] border">
+					<HelpCircle className="py-[0.0625rem]" />
 					{textData._Checklist._Help.Help}
 				</Button>
 			</DialogTrigger>
@@ -84,7 +84,7 @@ function Help() {
 							) : (
 								<>
 									<motion.div
-										className="text-muted-foreground pointer-events-none gap-4 fixed flex flex-col items-center justify-center w-[640px] h-full"
+										className="text-muted-foreground pointer-events-none gap-4 fixed flex flex-col items-center justify-center w-160 h-full"
 										key="empty"
 										initial={{ opacity: 0, scale: 0.95 }}
 										animate={{ opacity: 1, scale: 1 }}

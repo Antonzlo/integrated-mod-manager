@@ -7,28 +7,36 @@ export interface DirEntry {
 	children?: DirEntry[];
 }
 export interface GlobalSettings {
-	bgOpacity: number;
-	winOpacity: number;
-	winType: 0 | 1 | 2;
-	bgType: 0 | 1 | 2;
-	listType: 0;
-	nsfw: 0 | 1 | 2;
-	toggleClick: 0 | 2;
-	ignore: string;
 	clientDate: string;
-	XXMI: string;
-	lang: Language;
-	game: Games;
 	version?: string;
+	lang: Language;
+	XXMI: string;
+	preReleases: boolean;
+	ignore: string;
+	game: Games;
 	updatedAt?: string;
 	notice?: number;
-	preReleases: boolean;
 	chkModUpdates: boolean;
+	maxConcurrentDownloads: number;
+	display:{
+		winType: 0 | 1 | 2;
+		bgType: 0 | 1 | 2;
+		bgOpacity: number;
+	}
+	local:{
+		toggleClick: 0 | 2;
+		modView: 0 | 1 | 2;
+		nsfw: 0 | 1 | 2;
+	}
+	online:{
+		filter: string;
+		modView: 0 | 1 | 2;
+		nsfw: 0 | 1 | 2;
+	}
 }
 export interface GameSettings {
 	launch: 0 | 1 | 2;
 	hotReload: 0 | 1 | 2;
-	onlineType: string;
 	customCategories: { [key: string]: CustomCategory };
 }
 export interface Settings {
@@ -53,18 +61,26 @@ export interface Category {
 export interface ModData {
 	source?: string;
 	updatedAt?: number;
+	installedAt?: number;
+	addedAt?: number;
 	viewedAt?: number;
 	tags?: string[];
 	note?: string;
-	namespace?: string;
+	namespaces?: Record<string, string>;
 	// state?: { [key: string]: any };
-	vars?: { [key: string]: any };
+	vars?: Record<string, Record<string, ModVarValue>>;
 	crop?: {
 		scale?: number;
 		x?: number;
 		y?: number;
 		vertical?: boolean;
 	};
+}
+export interface ModVarValue {
+	pref?: unknown;
+	reset?: unknown;
+	name?: string;
+	state?: unknown;
 }
 export interface ModDataObj {
 	[key: string]: ModData;
@@ -96,11 +112,16 @@ export interface DownloadItem {
 	updated: number;
 	name: string;
 	fname: string;
+	target?: string;
 	key?: string;
+	dlPath?: string;
+	error?: string;
+	path?: string;
+	updatedAt?: number;
 }
 export interface DownloadList {
 	queue: DownloadItem[];
-	downloading: DownloadItem | null;
+	downloading: DownloadItem[];
 	completed: DownloadItem[];
 	extracting: DownloadItem[];
 }
@@ -117,19 +138,22 @@ export interface ModHotKeys {
 	reset: string | null;
 }
 export interface Mod {
-	isDir: boolean;
 	name: string;
 	parent: string;
 	path: string;
+	depth: number;
+	isDir: boolean;
+	enabled: boolean;
+	children: Mod[];
 	keys: ModHotKeys[];
 	files?: Record<string, ModHotKeys[]>;
 	namespace?: string;
-	enabled: boolean;
-	children: Mod[];
-	depth: number;
+	namespaces?: Set<string>;
 	icon?: string;
 	source?: string;
 	updatedAt?: number;
+	installedAt?: number;
+	addedAt?: number;
 	viewedAt?: number;
 	note?: string;
 	tags?: string[];
@@ -140,6 +164,7 @@ export interface Mod {
 		y?: number;
 		vertical?: boolean;
 	};
+	maxed: boolean;
 }
 export interface ProgressData {
 	title: string;
@@ -147,6 +172,26 @@ export interface ProgressData {
 	button: string;
 	open: boolean;
 	name: string;
+}
+export interface ModCheckProgressData {
+	open: boolean;
+	checked: number;
+	total: number;
+}
+export type ToastType = "success" | "error" | "info" | "warning";
+export interface ToastData {
+	id: number;
+	type: ToastType;
+	message: string;
+	onClick: null | (() => void);
+}
+export interface NoticeData {
+	heading: string;
+	subheading: string;
+	ignoreable: number;
+	timer: number;
+	ver: string;
+	id: number;
 }
 export interface InstalledItem {
 	name: string;
@@ -199,8 +244,8 @@ export interface OnlineMod {
 	_tsDateModified?: number;
 	_tsDateUpdated?: number;
 	_bHasFiles?: boolean;
-	_aTags?: any[];
-	_aFiles?: any[];
+	_aTags?: unknown[];
+	_aFiles?: unknown[];
 	_aPreviewMedia?: OnlineModPreviewMedia;
 	_aSubmitter: OnlineModSubmitter;
 	_aRootCategory: OnlineModCategory;
@@ -214,7 +259,7 @@ export interface OnlineMod {
 	_nViewCount?: number;
 	_bIsOwnedByAccessor?: boolean;
 	_sImageUrl?: string;
-	_aComments?: any[];
+	_aComments?: unknown[];
 	_sPeriod?: "today" | "yesterday" | "week" | "month" | "3month" | "6month" | "year" | "alltime";
 }
 export interface OnlineData {

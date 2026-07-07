@@ -3,6 +3,7 @@
 #[cfg(not(dev))]
 use std::env;
 fn main() {
+    env::set_var("WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS", "--ignore-gpu-blocklist --enable-gpu-rasterization");
     #[cfg(not(dev))]
     {
         // On Linux the executable can live anywhere (~/.local/bin, an AppImage

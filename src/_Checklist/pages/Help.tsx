@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { BANANA_LINK, DISCORD_LINK } from "@/utils/consts";
+import { confirmAndCancelDownloadsForGameSwitch } from "@/utils/downloadManager";
 import { resetWithBackup } from "@/utils/filesys";
 import { GAME, SOURCE, TARGET, TEXT_DATA, UPDATER_OPEN } from "@/utils/vars";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
@@ -33,7 +34,8 @@ function Help({ setPage }: { setPage: (page: number) => void }) {
 						<Button
 							size="sm"
 							className="w-24"
-							onClick={() => {
+							onClick={async () => {
+								if (!(await confirmAndCancelDownloadsForGameSwitch())) return;
 								setGame("");
 								setPage(1);
 							}}

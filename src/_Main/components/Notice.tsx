@@ -40,7 +40,7 @@ function Notice() {
 					className="aspect-square text-ellipsis bg-sidebar flex flex-col h-full p-0 overflow-hidden text-xs border"
 					style={{
 						width: notice.id == 0 ? "0px" : "auto",
-						marginRight: notice.id == 0 ? "-12px" : "0px",
+						marginRight: notice.id == 0 ? "-0.75rem" : "0px",
 						opacity: notice.id == 0 ? "0" : "1",
 						pointerEvents: notice.id == 0 ? "none" : "auto",
 					}}
