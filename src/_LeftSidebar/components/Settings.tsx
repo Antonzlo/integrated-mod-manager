@@ -591,7 +591,6 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 									return { ...prev };
 								});
 								saveConfigs();
-								
 							}}
 							options={[
 								{

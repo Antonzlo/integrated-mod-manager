@@ -144,7 +144,8 @@ export async function setConfig(config: any) {
 	await writeTextFile(`config${curConfig.game}.json`, JSON.stringify(config, null, 2));
 	addToast({ type: "success", message: textData._Toasts.ConfigLoaded });
 	await main();
-	store.set(MOD_LIST, await refreshModList());
+	//EDIT AFTER MERGE
+	// store.set(MOD_LIST, await refreshModList());
 }
 export function getConfig(settings = store.get(SETTINGS)) {
 	const config: GlobalSettings = settings.global;
@@ -1416,6 +1417,7 @@ export async function refreshModList(maxed = false) {
 	}
 }
 async function backupIniFiles(cat: string, mod: string, key: string, relPath = "") {
+	//EDIT AFTER MERGE
 	const entries = await readDir(join(modRoot, cat, mod, relPath));
 	try {
 		for (const entry of entries) {

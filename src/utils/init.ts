@@ -474,7 +474,7 @@ export async function maintainBackups() {
 	const files = GAMES.map((g) => `config${g}.json`);
 	files.push("config.json");
 	mkdir("backups", { recursive: true });
-	const backupPath = "backups/AUTO_";
+	const backupPath = "backups\\AUTO_";
 	for (const file of files) {
 		if (await exists(file)) {
 			try {
@@ -561,7 +561,7 @@ export async function main(useGame = "" as Games) {
 	removeHelpers();
 	appData = toInternal(await path.dataDir());
 	cwd = join(await path.localDataDir(), "Integrated Mod Manager (IMM)");
-	const XXMI = `${appData}/XXMI Launcher`;
+	const XXMI = `${appData}\\XXMI Launcher`;
 	if (!(await exists("config.json"))) {
 		store.set(MAIN_FUNC_STATUS, "Creating default config.json");
 		info("[IMM] Creating default config.json...");

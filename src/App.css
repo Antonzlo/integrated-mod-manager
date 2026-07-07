@@ -661,8 +661,11 @@ a {
 .logo-in {
 	animation: logo-in 1s;
 }
+/*
+//EDIT AFTER MERGE
+*/
 
-.backdrop-blur {
+.backdrop-blur-sm{
 	-webkit-backdrop-filter: blur(8px) !important;
 	backdrop-filter: blur(8px) !important;
 	transform: translateZ(0);

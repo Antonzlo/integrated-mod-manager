@@ -25,7 +25,7 @@ interface CardLocalProps {
 	updateAvl: string;
 	inConflict: number;
 }
-
+//EDIT AFTER MERGE
 const CardLocal = React.memo(({ item, selected, lastUpdated, hasUpdate, updateAvl, inConflict }: CardLocalProps) => {
 	const previewUrl = `${getImageUrl(item.path)}?${lastUpdated}`;
 	return (
