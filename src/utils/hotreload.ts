@@ -1,15 +1,30 @@
 import { invoke } from "@tauri-apps/api/core";
 import { GAME_ID_MAP } from "./consts";
-import { exists, readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { exists, readTextFile, writeTextFile } from "./fs";
+import { message } from "@tauri-apps/plugin-dialog";
+import { join } from "./pathsep";
 
-export function join(...parts: string[]) {
-	let result = parts.join("\\").replace("/", "\\").replaceAll("\\\\", "\\");
+import { ModDataObj } from "./types";
+
+export { join };
+
+export function getModData(data: ModDataObj, path: string) {
+	if (!data || !path) return null;
+	const normalizedPath = path.replace(/[/\\]+/g, "\\").replace(/^\\+/, "");
+	if (data[normalizedPath]) return data[normalizedPath];
+
+	const key = Object.keys(data).find((k) => k.replace(/[/\\]+/g, "\\").replace(/^\\+/, "") === normalizedPath);
+	return key ? data[key] : null;
+}
+// d3dx.ini internal paths — always uses \ (3DMigoto format inside Wine)
+export function iniPath(...parts: string[]) {
+	let result = parts.join("\\").replace(/[/\\]+/g, "\\");
 	result = result.endsWith("\\") ? result.slice(0, -1) : result;
 	result = result.startsWith("\\") ? result.slice(1) : result;
 	return result;
 }
 export function updateIni(tgt: string, foreground = 0) {
-	tgt=tgt.split("\\").slice(0,-1).join("\\");
+	tgt = tgt.split(/[/\\]/).slice(0, -1).join("\\");
 	const target = join(tgt, "d3dx.ini");
 	exists(target).then((res) => {
 		if (!res) return;
@@ -31,6 +46,19 @@ export function updateIni(tgt: string, foreground = 0) {
 }
 export async function setHotreload(enabled: 0 | 1 | 2, game: string, target: string): Promise<void> {
 	try {
+		if (enabled > 0) {
+			const deps = await invoke("check_hotreload_dependencies") as {
+				has_dependencies: boolean;
+				missing_packages: string[];
+				install_command: string;
+			};
+
+			if (!deps.has_dependencies) {
+				await message(`Linux Hotreload is currently disabled.\n\nYou are missing the following required packages:\n${deps.missing_packages.join(", ")}\n\nPlease run the following command to install them:\n${deps.install_command}`, { title: 'Missing Wayland Dependencies', kind: 'error' });
+				enabled = 0;
+			}
+		}
+
 		if (enabled == 1) {
 			updateIni(target, 0);
 		} else {

@@ -6,7 +6,8 @@ import { resetWithBackup } from "./filesys";
 import { addToast } from "@/_Toaster/ToastProvider";
 import { getCwd } from "./init";
 import { join } from "./utils";
-import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
+import { toFs } from "./pathsep";
+import { readTextFile, writeTextFile } from "./fs";
 import { open } from "@tauri-apps/plugin-dialog";
 import { error } from "@/lib/logger";
 import { invoke } from "@tauri-apps/api/core";
@@ -91,7 +92,7 @@ export default class ErrorBoundary extends React.Component<React.PropsWithChildr
 				],
 			};
 
-			dialogOptions.defaultPath = join(getCwd(), "backups");
+			dialogOptions.defaultPath = toFs(join(getCwd(), "backups"));
 
 			const filePath = await open(dialogOptions);
 

@@ -25,7 +25,7 @@ interface CardLocalProps {
 	updateAvl: string;
 	inConflict: number;
 }
-
+//EDIT AFTER MERGE
 const CardLocal = React.memo(({ item, selected, lastUpdated, hasUpdate, updateAvl, inConflict }: CardLocalProps) => {
 	const previewUrl = `${getImageUrl(item.path)}?${lastUpdated}`;
 	return (
@@ -48,9 +48,7 @@ const CardLocal = React.memo(({ item, selected, lastUpdated, hasUpdate, updateAv
 						filter: item.enabled ? "brightness(1)" : "brightness(0.5) saturate(0.5)",
 						left: `${-(item.crop?.x || 0)}px`,
 						top: `${-(item.crop?.y || 0)}px`,
-						scale: item.crop?.scale || 1,
-						minWidth: item.crop?.vertical ? "14rem" : "fit-content",
-						minHeight: item.crop?.vertical ? "fit-content" : "18rem",
+						transform: `scale(${item.crop?.scale || 1})`,
 					}}
 					className="w-full h-full relative object-cover object-center"
 					src={previewUrl}
@@ -58,7 +56,7 @@ const CardLocal = React.memo(({ item, selected, lastUpdated, hasUpdate, updateAv
 				/>
 			</div>
 			<div
-				className="bg-background/50 rounded-b-xl data-zzz:rounded-bl-3xl fadein backdrop-blur
+				className="bg-background/50 rounded-b-xl data-zzz:rounded-bl-3xl fadein backdrop-blur-sm
 			 flex items-center w-full min-h-10 gap-2 px-3 header-img"
 			>
 				{inConflict >= 0 ? (

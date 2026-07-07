@@ -45,6 +45,7 @@ import { useCallback, useEffect, useState } from "react";
 import Carousel from "./components/Carousel";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { createModDownloadDir, refreshModList, saveConfigs } from "@/utils/filesys";
+import { toFs } from "@/utils/pathsep";
 import { Separator } from "@radix-ui/react-separator";
 import { GAME_GB_IDS, UNCATEGORIZED } from "@/utils/consts";
 import { addToast } from "@/_Toaster/ToastProvider";
@@ -146,7 +147,7 @@ function RightOnline({ open }: { open: boolean }) {
 						: item._aCategory?._sName.replaceAll("Skins", UNCATEGORIZED) || UNCATEGORIZED,
 					source: item._sProfileUrl || "",
 					file: file._sDownloadUrl,
-					updated: file._tsDateAdded,
+					updated: file._tsDateModified || file._tsDateAdded,
 					name: target ? target.split("\\")[1] : item._sName + (altPopoverOpen ? ` - ${file._sFile}` : ""),
 					fname: file._sFile,
 				} as any;
@@ -640,7 +641,7 @@ function RightOnline({ open }: { open: boolean }) {
 																							item._aPreviewMedia._aImages[0]._sBaseUrl +
 																							"/" +
 																							item._aPreviewMedia._aImages[0]._sFile,
-																						savePath: await createModDownloadDir(mod.parent, mod.name),
+																						savePath: toFs((await createModDownloadDir(mod.parent, mod.name)) as string),
 																						key: "link_preview_" + mod.name,
 																						emit: false,
 																					});

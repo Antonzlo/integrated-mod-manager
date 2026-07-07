@@ -30,7 +30,7 @@ import { path } from "@tauri-apps/api";
 import { invoke } from "@tauri-apps/api/core";
 // import { currentMonitor, PhysicalSize } from "@tauri-apps/api/window";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { exists, mkdir, readTextFile, remove, writeTextFile } from "@tauri-apps/plugin-fs";
+import { exists, mkdir, readTextFile, remove, writeTextFile } from "./fs";
 import defConfig from "../default.json";
 import defConfigXX from "../defaultXX.json";
 import { apiClient } from "./api";
@@ -39,6 +39,7 @@ import { switchGameTheme } from "./theme";
 import { executeXXMI, isGameProcessRunning } from "./autolaunch";
 // import { updateIni } from "./iniUpdater";
 import { join, setHotreload, stopWindowMonitoring } from "./hotreload";
+import { toInternal, toFs } from "./pathsep";
 import { registerGlobalHotkeys } from "./hotkeyUtils";
 import TEXT from "@/textData.json";
 import { unregisterAll } from "@tauri-apps/plugin-global-shortcut";
@@ -291,7 +292,7 @@ export async function verifyGameDir(game: Games) {
 		(await readTextFile(join(XXPath, "d3dx.ini"))).split("\n").forEach((line: string) => {
 			const [key, value] = line.split("=").map((x: string) => x.trim());
 			if (key == "include_recursive") {
-				const isPath = value.slice(1, 3) == ":\\";
+				const isPath = value.slice(1, 3) == ":\\" || value.startsWith("/");
 				dirs.targetDir = isPath ? value : join(XXPath, value);
 				dirs.sourceDir = isPath ? value : join(XXPath, value);
 			}
@@ -325,6 +326,20 @@ export async function initGame(game: Games, status = true) {
 	} else {
 		dataDir = configXX.targetDir;
 	}
+
+	const normalizedData = {} as any;
+	Object.keys(configXX.data || {}).forEach((key) => {
+		const normalizedKey = key.replace(/[/\\]+/g, "\\").replace(/^\\+/, "");
+		normalizedData[normalizedKey] = {...normalizedData[normalizedKey], ...(configXX.data as any)[key] };
+	});
+	configXX.data = normalizedData;
+
+	const normalizedPresets = (configXX.presets || []).map((preset: any) => ({
+		...preset,
+		data: (preset.data || []).map((p: string) => p.replace(/[/\\]+/g, "\\").replace(/^\\+/, "")),
+	}));
+	configXX.presets = normalizedPresets;
+
 	writeTextFile(`config${game}.json`, JSON.stringify(configXX, null, 2));
 	apiClient.setGame(game as any);
 	await setCategories(game, status);
@@ -427,7 +442,7 @@ export async function launchGame() {
 	if (await exists(config.XXMI))
 		isGameProcessRunning(config.game).then((running) => {
 			if (!running) {
-				executeXXMI(join(config.XXMI, "Resources\\Bin\\XXMI Launcher.exe"));
+				executeXXMI(toFs(join(config.XXMI, "Resources\\Bin\\XXMI Launcher.exe")));
 				addToast({
 					type: "info",
 					message: "Launching Game",
@@ -544,7 +559,7 @@ export async function main(useGame = "" as Games) {
 	invoke("get_username");
 	resetAtoms();
 	removeHelpers();
-	appData = await path.dataDir();
+	appData = toInternal(await path.dataDir());
 	cwd = join(await path.localDataDir(), "Integrated Mod Manager (IMM)");
 	const XXMI = `${appData}\\XXMI Launcher`;
 	if (!(await exists("config.json"))) {

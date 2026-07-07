@@ -32,6 +32,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { GAME_GB_IDS, GAMES, managedSRC } from "@/utils/consts";
 import { getImageUrl, handleImageError, handleInAppLink, join } from "@/utils/utils";
+import { toFs } from "@/utils/pathsep";
 import { Sidebar, SidebarContent, SidebarGroup } from "@/components/ui/sidebar";
 // @ts-ignore: no type declarations available for this optional Tauri plugin
 import { getCurrent, onOpenUrl } from "@tauri-apps/plugin-deep-link";
@@ -223,13 +224,13 @@ function RightLocal() {
 		changeModName(path, newPath)
 			.then((newPath) => {
 				if (newPath) {
-					const name = newPath.split("\\").pop();
+					const name = newPath.split(/[/\\]/).pop();
 					name &&
 						newPath &&
 						setModList((prev) => {
 							return prev.map((m) => {
 								if (m.path == path) {
-									return { ...m, path: newPath, name, parent: newPath.split("\\")[0] };
+									return { ...m, path: newPath, name, parent: newPath.split(/[/\\]/)[0] };
 								}
 								return m;
 							});
@@ -376,7 +377,7 @@ function RightLocal() {
 								<Button
 									className="aspect-square max-h-6"
 									onClick={() => {
-										openPath(join(source, managedSRC, item.path));
+										openPath(toFs(join(source, managedSRC, item.path)));
 									}}
 								>
 									<ArrowUpRightFromSquareIcon className="max-h-3" />
@@ -387,7 +388,7 @@ function RightLocal() {
 									}}
 									onBlur={(e) => {
 										if (e.currentTarget.value != item.name) {
-											renameMod(item.path, join(...item.path.split("\\").slice(0, -1), e.currentTarget.value));
+											renameMod(item.path, join(...item.path.split(/[/\\]/).slice(0, -1), e.currentTarget.value));
 										}
 									}}
 									type="text"

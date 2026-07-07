@@ -8,7 +8,14 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { CATEGORIES, DATA, DOWNLOAD_LIST, LEFT_SIDEBAR_OPEN, MOD_LIST, SETTINGS, TEXT_DATA } from "@/utils/vars";
 import { formatBytes, sanitizeFileName } from "@/utils/utils";
-import { cleanCancelledDownload, createModDownloadDir, refreshModList, saveConfigs, validateModDownload } from "@/utils/filesys";
+import { toFs } from "@/utils/pathsep";
+import {
+	cleanCancelledDownload,
+	createModDownloadDir,
+	refreshModList,
+	saveConfigs,
+	validateModDownload,
+} from "@/utils/filesys";
 import { DownloadItem } from "@/utils/types";
 import { UNCATEGORIZED } from "@/utils/consts";
 import { info } from "@/lib/logger";
@@ -142,7 +149,7 @@ function Downloads() {
 		invoke("download_and_unzip", {
 			fileName: item.name,
 			downloadUrl: item.file,
-			savePath: item.dlPath,
+			savePath: toFs(item.dlPath),
 			key: item.key,
 			emit: true,
 		}).catch((err) => markDownloadFailed(item.key || "", String(err), "download"));
@@ -150,7 +157,7 @@ function Downloads() {
 			invoke("download_and_unzip", {
 				fileName: "preview",
 				downloadUrl: item.preview,
-				savePath: item.dlPath,
+				savePath: toFs(item.dlPath),
 				key: "link_preview_" + item.name,
 				emit: false,
 			}).catch(() => {});
@@ -320,7 +327,7 @@ function Downloads() {
 		<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
 			<DialogTrigger asChild>
 				<Button
-					className="text-ellipsis min-h-12 max-h-12 min-w -80 flex flex-col items-center w-full px-0 overflow-hidden"
+					className="text-ellipsis min-h-12 shrink-0  max-h-12 min-w -80 flex flex-col items-center w-full px-0 overflow-hidden"
 					style={{ width: leftSidebarOpen ? "" : "3rem" }}
 				>
 					{leftSidebarOpen ? (

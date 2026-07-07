@@ -2,7 +2,6 @@ use futures_util::StreamExt;
 use once_cell::sync::Lazy;
 use reqwest::Client;
 use serde::Serialize;
-use tauri_plugin_shell::ShellExt;
 use std::collections::HashMap;
 use std::fs::{remove_file, File};
 use std::io::{BufWriter, Write};
@@ -14,6 +13,7 @@ use std::time::Instant;
 use tauri::Emitter;
 use tauri::Manager;
 use tauri_plugin_deep_link::DeepLinkExt;
+use tauri_plugin_shell::ShellExt;
 use tauri_plugin_tracing::{tracing, Builder as Tracing, LevelFilter, MaxFileSize, Rotation, RotationStrategy};
 
 mod hotreload;
@@ -235,36 +235,48 @@ fn mime_to_extension(mime_type: &str) -> Option<&'static str> {
         .find(|(mime, _)| *mime == clean_mime)
         .map(|(_, ext)| *ext)
 }
-async fn decompress_file(app_handle: tauri::AppHandle, file_path: &str, save_path: &str) -> Result<(), String> {
-   let program_path = app_handle
-    .path()
-    .resolve("ext/7z.exe", tauri::path::BaseDirectory::Resource)
-    .map_err(|e| e.to_string())?;
+async fn decompress_file(
+    app_handle: tauri::AppHandle,
+    file_path: &str,
+    save_path: &str,
+) -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    let program_name = "ext/7z.exe";
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    let program_name = "ext/7zz";
+    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
+    let program_name = "ext/7zz-aarch64";
 
-let output = app_handle
-    .shell()
-    .command(program_path.to_str().unwrap())
-    .args([
-        "x", 
-        file_path, 
-        &format!("-o{}", save_path),
-        "-y"
-    ])
-    .output()
-    .await
-    .map_err(|e| e.to_string())?;
+    let program_path = app_handle
+        .path()
+        .resolve(program_name, tauri::path::BaseDirectory::Resource)
+        .map_err(|e| e.to_string())?;
+
+    let output = app_handle
+        .shell()
+        .command(program_path.to_str().unwrap())
+        .args([
+            "x",
+            file_path,
+            &format!("-o{}", save_path),
+            "-y",
+        ])
+        .output()
+        .await
+        .map_err(|e| e.to_string())?;
 
     if output.status.success() {
         Ok(())
     } else {
         let err = String::from_utf8_lossy(&output.stderr);
-        Err(if err.is_empty() { 
-            String::from_utf8_lossy(&output.stdout).to_string() 
-        } else { 
-            err.to_string() 
+        Err(if err.is_empty() {
+            String::from_utf8_lossy(&output.stdout).to_string()
+        } else {
+            err.to_string()
         })
     }
 }
+
 /// Extract archive file (zip, rar, or 7z) to the specified path
 #[tauri::command]
 async fn extract_archive(
@@ -281,7 +293,6 @@ async fn extract_archive(
     let save_path = save_path.as_str();
     let file_name = file_name.as_str();
 
-    
     // Clean folder before extraction
     println!("Cleaning folder before extracting archive");
     if let Err(e) = clean_folder_before_extraction(Path::new(&save_path), &file_name) {
@@ -315,7 +326,7 @@ async fn extract_archive(
         }
         println!("Archive file removed after extraction");
     }
-    
+
     if !del {
         app_handle
             .emit("fin", serde_json::json!({ "key": key, "type": "manual" }))
@@ -693,7 +704,45 @@ fn execute_with_args(exe_path: String, args: Vec<String>) -> Result<String, Stri
         return Err(format!("Executable not found: {}", exe_path));
     }
 
-    let mut command = Command::new(&exe_path);
+    let mut command;
+    // Windows executables can't be exec'd natively on Linux, so run them
+    // through Wine (the game itself already runs under Wine/Proton).
+    #[cfg(target_os = "linux")]
+    {
+        let is_exe = Path::new(&exe_path)
+            .extension()
+            .map(|e| e.eq_ignore_ascii_case("exe"))
+            .unwrap_or(false);
+        let parent = Path::new(&exe_path)
+            .parent()
+            .and_then(|p| p.to_str())
+            .map(|s| s.to_string());
+        if is_exe {
+            if Path::new("/.flatpak-info").exists() {
+                // Inside a flatpak sandbox there is no Wine; run it on the host
+                // (where Wine and the game's Wine prefix actually live) via the
+                // spawn portal.
+                command = Command::new("flatpak-spawn");
+                command.arg("--host");
+                if let Some(ref dir) = parent {
+                    command.arg(format!("--directory={}", dir));
+                }
+                command.arg("wine").arg(&exe_path);
+            } else {
+                command = Command::new("wine");
+                command.arg(&exe_path);
+                if let Some(ref dir) = parent {
+                    command.current_dir(dir);
+                }
+            }
+        } else {
+            command = Command::new(&exe_path);
+        }
+    }
+    #[cfg(not(target_os = "linux"))]
+    {
+        command = Command::new(&exe_path);
+    }
 
     for arg in &args {
         command.arg(arg);
@@ -721,12 +770,12 @@ fn execute_with_args(exe_path: String, args: Vec<String>) -> Result<String, Stri
 #[tauri::command]
 async fn create_symlink(link_path: String, target_path: String) -> Result<(), String> {
     // First, check if the target path exists
-    let target_metadata = std::fs::metadata(&target_path).map_err(|e| e.to_string())?;
+    let _target_metadata = std::fs::metadata(&target_path).map_err(|e| e.to_string())?;
 
     // Use platform-specific functions
     #[cfg(windows)]
     {
-        if target_metadata.is_dir() {
+        if _target_metadata.is_dir() {
             // On Windows, use symlink_dir for directories
             std::os::windows::fs::symlink_dir(&target_path, &link_path)
                 .map_err(|e| e.to_string())?;
@@ -751,7 +800,6 @@ async fn create_symlink(link_path: String, target_path: String) -> Result<(), St
 
 #[tauri::command]
 async fn set_window_icon(app_handle: tauri::AppHandle, game: String) -> Result<(), String> {
-    #[cfg(target_os = "windows")]
     {
         let icon_bytes = match game.as_str() {
             "WW" => include_bytes!("../icons/WW128x128.png").as_slice(),
@@ -836,7 +884,6 @@ pub fn run() {
                     }
                 }
             });
-            #[cfg(target_os = "windows")]
             if let Ok(icon) = tauri::image::Image::from_bytes(include_bytes!("../icons/128x128.png")) { let _ = app.get_webview_window("main").unwrap().set_icon(icon); }
             // let tray_icon = if cfg!(target_os = "windows") { tauri::image::Image::from_bytes(include_bytes!("../icons/128x128.png"))? } else { app.default_window_icon().unwrap().clone() };
             Ok(())
@@ -859,7 +906,8 @@ pub fn run() {
             hotreload::set_change,
             hotreload::focus_mod_manager_send_f10_return_to_game,
             hotreload::set_window_target,
-            hotreload::is_game_process_running
+            hotreload::is_game_process_running,
+            hotreload::check_hotreload_dependencies
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
