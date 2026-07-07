@@ -235,17 +235,42 @@ fn mime_to_extension(mime_type: &str) -> Option<&'static str> {
         .find(|(mime, _)| *mime == clean_mime)
         .map(|(_, ext)| *ext)
 }
+/// Resource-relative path of the bundled 7-Zip binary for the current platform,
+/// or `None` on platforms/architectures where no binary is bundled. Returning an
+/// `Option` (rather than gating with `#[cfg]` alone) keeps the crate compiling on
+/// unsupported targets and lets callers emit a clear runtime error instead.
+fn seven_zip_program_name() -> Option<&'static str> {
+    #[cfg(target_os = "windows")]
+    {
+        Some("ext/7z.exe")
+    }
+    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
+    {
+        Some("ext/7zz")
+    }
+    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
+    {
+        Some("ext/7zz-aarch64")
+    }
+    #[cfg(not(any(
+        target_os = "windows",
+        all(target_os = "linux", target_arch = "x86_64"),
+        all(target_os = "linux", target_arch = "aarch64")
+    )))]
+    {
+        None
+    }
+}
+
 async fn decompress_file(
     app_handle: tauri::AppHandle,
     file_path: &str,
     save_path: &str,
 ) -> Result<(), String> {
-    #[cfg(target_os = "windows")]
-    let program_name = "ext/7z.exe";
-    #[cfg(all(target_os = "linux", target_arch = "x86_64"))]
-    let program_name = "ext/7zz";
-    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
-    let program_name = "ext/7zz-aarch64";
+    let program_name = seven_zip_program_name().ok_or_else(|| {
+        "No bundled 7-Zip binary for this platform/architecture; archive extraction is unsupported"
+            .to_string()
+    })?;
 
     let program_path = app_handle
         .path()
@@ -859,6 +884,42 @@ pub fn run() {
         .plugin(tauri_plugin_deep_link::init())
         .setup(|app| {
             let app_handle = app.handle().clone();
+
+            // Warn early if the bundled 7-Zip binary can't be found: archive
+            // extraction relies on it and otherwise fails at runtime with an
+            // opaque "os error 2". A common cause is a packaging path that does
+            // not match Tauri's resource dir (/app/lib/${productName} on Linux).
+            match seven_zip_program_name() {
+                None => {
+                    tracing::warn!(
+                        "No bundled 7-Zip binary for this platform/architecture — archive extraction will fail."
+                    );
+                }
+                Some(seven_zip) => match app_handle
+                    .path()
+                    .resolve(seven_zip, tauri::path::BaseDirectory::Resource)
+                {
+                    Ok(p) if p.exists() => {
+                        tracing::info!("7-Zip binary found at {}", p.display());
+                    }
+                    Ok(p) => {
+                        tracing::warn!(
+                            "7-Zip binary missing at {} — archive extraction will fail. \
+                             Check that '{}' is packaged into the app resource directory.",
+                            p.display(),
+                            seven_zip
+                        );
+                    }
+                    Err(e) => {
+                        tracing::warn!(
+                            "Could not resolve 7-Zip binary path ('{}'): {} — archive extraction will fail.",
+                            seven_zip,
+                            e
+                        );
+                    }
+                },
+            }
+
             #[cfg(desktop)]
             app.deep_link().register_all()?;
             tauri::async_runtime::spawn(async move {

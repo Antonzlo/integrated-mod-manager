@@ -47,5 +47,8 @@ modules:
       - install -Dm755 integrated-mod-manager /app/bin/integrated-mod-manager
       - install -Dm644 128x128.png /app/share/icons/hicolor/128x128/apps/jp.bhatt.wwmm.png
       - install -Dm644 jp.bhatt.wwmm.desktop /app/share/applications/jp.bhatt.wwmm.desktop
-      - install -Dm755 7zz /app/lib/integrated-mod-manager/ext/7zz
-      - install -Dm755 7zz-aarch64 /app/lib/integrated-mod-manager/ext/7zz-aarch64
+      # Tauri resolves BaseDirectory::Resource to /app/lib/${productName}, where
+      # productName is "Integrated Mod Manager (IMM)" (see src-tauri/tauri.conf.json).
+      # These MUST match that dir or 7zz won't be found at runtime (extract → os error 2).
+      - install -Dm755 7zz "/app/lib/Integrated Mod Manager (IMM)/ext/7zz"
+      - install -Dm755 7zz-aarch64 "/app/lib/Integrated Mod Manager (IMM)/ext/7zz-aarch64"
