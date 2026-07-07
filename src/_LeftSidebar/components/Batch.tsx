@@ -288,7 +288,7 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 		return Array.from(checked).filter((path) => {
 			let isRedundant = false;
 			checked.forEach((otherPath) => {
-				if (otherPath !== path && path.startsWith(otherPath + "/")) {
+				if (otherPath !== path && (path.startsWith(otherPath + "/") || path.startsWith(otherPath + "\\"))) {
 					isRedundant = true;
 				}
 			});
@@ -533,7 +533,7 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 						}}
 						className="hover:opacity-75 text-blue-300 duration-200 opacity-50 pointer-events-auto"
 					>
-
+						...{toFs("\\"+source.split("\\").slice(-3).join("\\"))}
 					</label>
 					<Tooltip>
 						<TooltipTrigger
