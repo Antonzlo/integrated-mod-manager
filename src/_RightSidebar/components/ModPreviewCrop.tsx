@@ -31,8 +31,8 @@ function ModPreviewCrop({ item, setDialogType }: { item: any, setDialogType: (ty
 		if (disabled) return;
 		const deltaX = mouseDown ? (e.clientX - mouseDownPos.x) / 1 : 0;
 		const deltaY = mouseDown ? (e.clientY - mouseDownPos.y) / 1 : 0;
-		const xRange = (aspect >= 1 ? scale * 288 * aspect - 224 : (scale - 1) * 224) * 0.75;
-		const yRange = (aspect >= 1 ? scale * 288 - 704 / 3 : (scale * 224) / aspect - 704 / 3) * 0.75;
+		const xRange = (aspect >= 1 ? scale * 232 * aspect - 224 : (scale - 1) * 224) * 0.75;
+		const yRange = (aspect >= 1 ? scale * 232 - 232 : (scale * 224) / aspect - 232) * 0.75;
 		setOffset((prev) => ({
 			x: Math.max(-xRange, Math.min(xRange, prev.x - deltaX)),
 			y: Math.max(-yRange, Math.min(yRange, prev.y - deltaY)),
@@ -64,7 +64,7 @@ function ModPreviewCrop({ item, setDialogType }: { item: any, setDialogType: (ty
 			</div>
 			<div className="min-w-full min-h-120 flex items-center justify-center overflow-hidden rounded-lg border border-dashed">
 				<div
-					className="relative fadein w-84 h-88 flex items-center justify-center duration-200 rounded-lg pointer--none"
+					className="relative fadein w-84 h-87 flex items-center justify-center duration-200 rounded-lg pointer--none"
 					style={{
 						overflow: "visible",
 					}}
@@ -95,8 +95,8 @@ function ModPreviewCrop({ item, setDialogType }: { item: any, setDialogType: (ty
 							left: `${-offset.x}px`,
 							top: `${-offset.y}px`,
 							scale: scale,
-							minWidth: aspect >= 1 ? "fit-content" : "21rem",
-							minHeight: aspect >= 1 ? "27rem" : "fit-content",
+							minWidth: aspect >= 1 ? "fit-content" : "14rem",
+							minHeight: aspect >= 1 ? "14.5rem" : "fit-content",
 						}}
 						id="prevImg"
 						className="w-full relative h-full brightness-50 object-cover object-center"
