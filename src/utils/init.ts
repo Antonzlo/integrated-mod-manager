@@ -194,7 +194,7 @@ export async function updateConfig(oconfig = null as any) {
 	if (!oconfig) oconfig = JSON.parse(await readTextFile("config.json"));
 	info("[IMM] Updating config from:", oconfig);
 	if (oconfig.version >= "3.1.1") return oconfig;
-	else if (oconfig.version >= "3.1.0") {
+	else if (oconfig.version >= "2.1.0") {
 		let config = { ...oconfig, version: VERSION };
 		try {
 			config = {
@@ -207,21 +207,21 @@ export async function updateConfig(oconfig = null as any) {
 				ignore: oconfig.ignore || "3.1.0",
 				game: oconfig.game || "",
 				updatedAt: oconfig.updatedAt || "",
-				notice: oconfig.notice || 0,
+				notice: oconfig.notice ?? 0,
 				display: {
-					winType: oconfig.winType || 0,
-					bgType: oconfig.bgType || 2,
-					bgOpacity: oconfig.bgOpacity || 1,
+					winType: oconfig.winType ?? 0,
+					bgType: oconfig.bgType ?? 2,
+					bgOpacity: oconfig.bgOpacity ?? 1,
 				},
 				local: {
-					toggleClick: oconfig.toggleClick || 2,
+					toggleClick: oconfig.toggleClick ?? 2,
 					modView: 0,
 					nsfw: 2,
 				},
 				online: {
 					filter: "Mod",
 					modView: 0,
-					nsfw: oconfig.nsfw || 1,
+					nsfw: oconfig.nsfw ?? 1,
 				},
 			};
 		} catch (e) {

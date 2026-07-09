@@ -49,7 +49,7 @@ import {
 	selectPath,
 } from "@/utils/filesys";
 import { Label } from "@/components/ui/label";
-import { Games, Mod } from "@/utils/types";
+import { Games, Mod, ModDataObj } from "@/utils/types";
 import ManageCategories from "./components/ManageCategories";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -262,7 +262,7 @@ function RightLocal() {
 						files: mod.files || {},
 					});
 				}
-				getModDetails(mod.path).then((details) => {
+				getModDetails(mod.path,mod as any as ModDataObj).then((details) => {
 					if (detailsRequestRef.current !== requestId) return;
 					const modData = data[mod.path]?.vars;
 					if (modData) {

@@ -924,7 +924,7 @@ export async function applyChanges(isMigration = false) {
 		throw err;
 	}
 }
-async function readDirRecr(root: string, path: string, maxDepth = 2, depth = 0, def = true): Promise<Mod[]> {
+async function readDirRecr(root: string, path: string, maxDepth = 2, depth = 0, cached = false): Promise<Mod[]> {
 	if (depth > maxDepth) return [];
 	let entries: DirEntry[] = [];
 	try {
@@ -932,10 +932,12 @@ async function readDirRecr(root: string, path: string, maxDepth = 2, depth = 0, 
 	} catch {
 		return [];
 	}
+	if ( cached && depth == 1 && entries.find((entry) => entry.name == ".imm-cache.json")) 
+		return []
 	const filePromises = entries.map(async (entry) => {
-		if ((entry.name == RESTORE || entry.name == IGNORE || entry.name == PREFS) && def && depth == 0) return null;
+		if ((entry.name == RESTORE || entry.name == IGNORE || entry.name == PREFS) && cached && depth == 0) return null;
 		let children: Mod[] = [];
-		if (entry.isDirectory) children = await readDirRecr(root, join(path, entry.name), maxDepth, depth + 1);
+		if (entry.isDirectory) children = await readDirRecr(root, join(path, entry.name), maxDepth, depth + 1, cached);
 		return {
 			isDir: entry.isDirectory,
 			name: entry.name,
@@ -1055,22 +1057,19 @@ async function detectHotkeys(
 	data: ModDataObj,
 	src: string,
 	depth = 0,
-	def = true,
-	options: { useHashCache?: boolean; writeHashCache?: boolean } = {}
+	cache = 1. // 0 = no cache, 1 = use cache, 2 = write cache, 3 = use and write cache
 ): Promise<[Mod[], any, ModHotKeys[], Set<string>]> {
 	let namespaces = new Set<string>();
 	const entryPromises = entries.map(async (entry) => {
 		let hkData: ModHotKeys[] = [];
 		let hashes = new Set() as any;
 		try {
+			let cacheUsed = false;
+
 			// // Apply stored data to entry
 			const modData = getModData(data, entry.path);
 			if (modData) {
-				for (const key of Object.keys(modData)) {
-					// @ts-ignore
-					entry[key as "source" | "updatedAt" | "note" | "installedAt"] =
-						modData[key as "source" | "updatedAt" | "note" | "installedAt"] || (key === "updatedAt" ? 0 : "");
-				}
+				entry = { ...entry, ...modData } as Mod;
 			}
 			// Parse .ini files for hotkeys
 			if (entry.name.endsWith(".ini")) {
@@ -1187,33 +1186,41 @@ async function detectHotkeys(
 			}
 			if (entry.isDir && entry.children.length > 0 && entry.name !== INI_BACKUP) {
 				try {
-					if (depth == 1 && def && options.useHashCache !== false) {
-						const hashFile = await readTextFile(join(src, entry.path, ".imm-collision-checklist"));
-						hashes = new Set(
-							hashFile
-								.split("\n")
-								.map((h) => h.trim())
-								.filter((h) => h)
-						);
+					if (depth == 1 && cache%2 == 1 && (await exists(join(src, entry.path, ".imm-cache.json")))) {
+						cacheUsed = true;
+						entry = {...entry, ...JSON.parse(await readTextFile(join(src, entry.path, ".imm-cache.json"))), ...modData};
+						hkData = entry.keys || hkData;
+						hashes = new Set(entry.hashes || []);
+						namespaces = new Set(entry.namespaces || []);
+						console.log("[IMM] Cache used for:", entry.path )
+						// const hashFile = await readTextFile(join(src, entry.path, ".imm-collision-checklist"));
+						// hashes = new Set(
+						// 	hashFile
+						// 		.split("\n")
+						// 		.map((h) => h.trim())
+						// 		.filter((h) => h)
+						// );
+						
 					} else {
 						throw new Error("Not depth 1");
 					}
 				} catch {
+					cacheUsed = false;
 					const [updatedChildren, childHashes, childHK, newNamespaces] = await detectHotkeys(
 						entry.children,
 						data,
 						src,
 						depth + 1,
-						def,
-						options
+						cache
 					);
 					hashes = new Set([...Array.from(hashes), ...Array.from(childHashes)]);
 					entry.children = updatedChildren;
 					if (childHK.length > 0 && depth > 0) {
 						hkData = [...hkData, ...childHK];
 					}
-					if (depth == 1 && options.writeHashCache) {
-						await writeTextFile(join(src, entry.path, ".imm-collision-checklist"), Array.from(hashes).join("\n"));
+					if (depth == 1 && cache > 1 && !cacheUsed) {
+						// await writeTextFile(join(src, entry.path, ".imm-collision-checklist"), Array.from(hashes).join("\n"));
+						await writeTextFile(join(src, entry.path, ".imm-cache.json"), JSON.stringify({ ...entry, keys: hkData, hashes: Array.from(hashes), namespaces: Array.from(namespaces) }, null, 2));
 					}
 					namespaces = new Set([...Array.from(namespaces), ...Array.from(newNamespaces)]);
 				}
@@ -1233,12 +1240,12 @@ async function detectHotkeys(
 	const hashes = new Set<string>(results.flatMap((r) => Array.from(r.hashes)));
 	return [processedEntries, hashes, hotkeyData, namespaces];
 }
-export async function getModDetails(relPath: string) {
+export async function getModDetails(relPath: string, data?: ModDataObj) {
+	delete data?.children;
 	const [category, modName] = relPath.split(/[/\\]/);
 	const modSrc = join(src, managedSRC);
-	console.log("Getting mod details for:", relPath, "at", modSrc);
 	try {
-		const entries = await readDirRecr(modSrc, relPath, 9, 0, false);
+		const entries = await readDirRecr(modSrc, relPath, 9);
 		const new_entries = (
 			await detectHotkeys(
 				[
@@ -1268,11 +1275,10 @@ export async function getModDetails(relPath: string) {
 						maxed: true,
 					},
 				],
-				{},
+				data ?{[relPath]: data}: store.get(DATA),
 				modSrc,
 				0,
-				false,
-				{ useHashCache: false, writeHashCache: false }
+				2
 			)
 		)[0] as Mod[];
 		const allVars = new_entries[0].children[0].keys || [];
@@ -1310,10 +1316,8 @@ export async function refreshModList(maxed = false) {
 		}
 		if (!maxed) await categorizeDir(modSrc);
 		if (curId !== deepRefreshId && maxed) return [];
-		const ret = await detectHotkeys(await readDirRecr(modSrc, "", maxed ? 9 : 3), data, modSrc, 0, !maxed, {
-			useHashCache: !maxed,
-			writeHashCache: maxed,
-		});
+		const ret = await detectHotkeys(await readDirRecr(modSrc, "", 9, 0, true), data, modSrc, 0, maxed ? 3 :1);
+		console.log("[IMM] Mod list refresh complete. Entries:", ret[0].length, "Hashes:", ret[1].size, "Hotkeys:", ret[2].length);
 		if (curId !== deepRefreshId && maxed) return [];
 
 		let hasErr = "";
@@ -1401,7 +1405,9 @@ export async function refreshModList(maxed = false) {
 					.filter((entry) => recentlyDownloaded.includes(entry.path))
 					.concat(entries.filter((entry) => !recentlyDownloaded.includes(entry.path)))
 			);
-			return [];
+			return entries
+					.filter((entry) => recentlyDownloaded.includes(entry.path))
+					.concat(entries.filter((entry) => !recentlyDownloaded.includes(entry.path)));
 		}
 		info(
 			"[IMM] Mod list refreshed:",

@@ -257,9 +257,9 @@ function MainLocal() {
 			const ct = (e.currentTarget as HTMLDivElement)?.firstElementChild?.firstElementChild
 				?.nextElementSibling as HTMLImageElement;
 			ct && (ct.style.filter = mod.enabled ? "brightness(0.5) saturate(0.5)" : "brightness(1) ");
-			if (!mod.maxed) {
-				const details = await getModDetails(mod.path)
-			}
+			// if (!mod.maxed) {
+			// 	const details = await getModDetails(mod.path)
+			// }
 			let success = await toggleMod(mod.path, !mod.enabled);
 			info("Toggled mod:", mod.path, "New state:", !mod.enabled, "Success:", success);
 			if (success)

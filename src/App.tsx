@@ -4,6 +4,7 @@ import {
 	ANIMATIONS,
 	BLUR,
 	CHANGES,
+	DATA,
 	DEV_HIDE_PREVIEWS,
 	ERR,
 	GAME,
@@ -18,13 +19,14 @@ import {
 	RIGHT_SLIDEOVER_OPEN,
 	SCALE,
 	SETTINGS,
+	UPDATE_NAMESPACES,
 } from "./utils/vars";
 import { AnimatePresence, motion, MotionGlobalConfig } from "motion/react";
 import Checklist from "./_Checklist/Checklist";
 import { initializeThemes } from "./utils/theme";
 import Changes from "./_Changes/Changes";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { refreshModList, saveConfigs } from "./utils/filesys";
+import { getModDetails, refreshModList, saveConfigs } from "./utils/filesys";
 import { SidebarProvider } from "./components/ui/sidebar";
 import LeftSidebar from "./_LeftSidebar/Left";
 import Main from "./_Main/Main";
@@ -58,11 +60,18 @@ function App() {
 	const [previousOnline, setPreviousOnline] = useState(online);
 	const initializedRef = useRef(false);
 	const devHidePreviews = useAtomValue(DEV_HIDE_PREVIEWS);
+	const [updateNamespaces, setUpdateNamespaces] = useAtom(UPDATE_NAMESPACES);
+	const data = useAtomValue(DATA)
 	const afterInit = useCallback(async () => {
 		saveConfigs();
-		setModList(await refreshModList());
+		const modList = await refreshModList(true);
+		if(game && !Object.hasOwn(updateNamespaces, game)) {
+			console.log(modList,data)
+			// console.log(await getModDetails(modList[2].path))
+		}
+		setModList(modList);
 		return Promise.resolve();
-	}, []);
+	}, [updateNamespaces, setModList, setUpdateNamespaces, game, data]);
 	useEffect(() => {
 		if (initializedRef.current) return;
 		initializedRef.current = true;
