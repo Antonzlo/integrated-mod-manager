@@ -32,20 +32,18 @@ const Online = React.memo((data: CardOnlineProps) => {
 
 	return (
 		<div className="card-generic card-online ">
-			<img
-				className="fadein object-cover w-full h-full pointer-events-none"
-				src={backgroundImage}
-				onError={(e) => handleImageError(e, true)}
-				style={{
-					filter:
-						data._sInitialVisibility === "hide" && data.blur === true
-							? "brightness(0.5) blur(8px)"
-							: "blur(8px)",
-				}}
-			/>
-			<div className="relative w-full fadein h-[calc(100%-4rem)] flex items-center justify-center -mt-[calc(var(--card-height)-2px)] duration-200 rounded-t-lg data-gi:rounded-none pointer-events-none overflow-hidden">
+			<div className="min-h-full static">
 				<img
-					className="w-full h-full relative object-cover object-center"
+					className="fadein flex flex-col relative min-h-full top-0 items-center justify-center object-cover w-full duration-200 bg-center bg-no-repeat rounded-t-lg pointer-events-none"
+					src={backgroundImage}
+					onError={(e) => handleImageError(e,true)}
+					style={{
+						filter:
+							data._sInitialVisibility === "hide" && data.blur === true ? "brightness(0.5) blur(4px)" : "brightness(1)",
+					}}
+				/>
+				<img
+					className="w-full fadein min-h-[calc(100%-3.5rem)] relative -translate-y-[100%] -top-14 duration-200 rounded-t-lg data-gi:rounded-none pointer-events-none object-cover fadein flex flex-col items-center justify-center bg-center bg-no-repeat"
 					src={backgroundImage}
 					onError={(e) => handleImageError(e)}
 					style={{

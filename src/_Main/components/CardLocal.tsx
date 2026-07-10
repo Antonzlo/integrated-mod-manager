@@ -48,11 +48,25 @@ const CardLocal = React.memo(({ item, selected, lastUpdated, hasUpdate, updateAv
 						filter: item.enabled ? "brightness(1)" : "brightness(0.5) saturate(0.5)",
 						left: `${-(item.crop?.x || 0)}px`,
 						top: `${-(item.crop?.y || 0)}px`,
-						transform: `scale(${item.crop?.scale || 1})`,
+						scale: item.crop?.scale || 1,
+						minWidth: "fit-content",
+						minHeight:  "calc(var(--card-height)-2.5rem)",
 					}}
-					className="w-full h-full relative object-cover object-center"
+					className="w-full h-full relative object-contain object-center"
 					src={previewUrl}
 					onError={(e) => handleImageError(e)}
+					onLoad={(e)=>{
+						const img = e.currentTarget;
+						const aspect = img.naturalWidth/img.naturalHeight;
+						if(aspect>1){
+							img.style.minWidth = "fit-content";
+							img.style.minHeight = "calc(var(--card-height)-2.5rem)";
+						}
+						else{
+							img.style.minWidth = "14rem";
+							img.style.minHeight = "fit-content";
+						}
+					}}
 				/>
 			</div>
 			<div

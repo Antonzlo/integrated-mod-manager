@@ -214,6 +214,7 @@ function Downloads() {
 			info("[IMM] Extraction finished for key:", key);
 			delete extractsRef.current[key];
 			delete externalExtracts[key];
+			console.log("[IMM] Finished element:", finishedElement, "Dlpath:", finishedElement.dlPath, "Type:", type);
 			if (!finishedElement.dlPath) return;
 			await validateModDownload(finishedElement.dlPath, type == "manual");
 			if (type == "auto") {
