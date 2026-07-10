@@ -19,7 +19,7 @@ import {
 	RIGHT_SLIDEOVER_OPEN,
 	SCALE,
 	SETTINGS,
-	UPDATE_NAMESPACES,
+	OPTIMIZED,
 } from "./utils/vars";
 import { AnimatePresence, motion, MotionGlobalConfig } from "motion/react";
 import Checklist from "./_Checklist/Checklist";
@@ -35,9 +35,15 @@ import RightOnline from "./_RightSidebar/RightOnline";
 import { main } from "./utils/init";
 import ToastProvider from "./_Toaster/ToastProvider";
 import Progress from "./_Progress/Progress";
-import { setImageServer } from "./utils/utils";
+import { Mod, ModData } from "./utils/types";
+import Optimizing from "./_Optimizing/Optimizing";
+import { OPTIMIZE_TARGET } from "./utils/consts";
 // import { Button } from "./components/ui/button";
-
+const animateProps = {
+	initial: { opacity: 0, filter: "blur(6px)" },
+	animate: { opacity: 1, filter: "blur(0px)" },
+	exit: { opacity: 0, filter: "blur(6px)" },
+};
 function App() {
 	const initDone = useAtomValue(INIT_DONE);
 	const lang = useAtomValue(LANG);
@@ -48,7 +54,6 @@ function App() {
 	const settings = useAtomValue(SETTINGS);
 	const animations = useAtomValue(ANIMATIONS);
 	const leftSidebarOpen = useAtomValue(LEFT_SIDEBAR_OPEN);
-	// const setOnlineSelected = useSetAtom(ONLINE_SELECTED);
 	const scale = useAtomValue(SCALE);
 	const blur = useAtomValue(BLUR);
 	const [rightSidebarOpen, setRightSidebarOpen] = useAtom(RIGHT_SIDEBAR_OPEN);
@@ -59,19 +64,62 @@ function App() {
 	const [_, setShowModeSwitch] = useState(false);
 	const [previousOnline, setPreviousOnline] = useState(online);
 	const initializedRef = useRef(false);
-	const devHidePreviews = useAtomValue(DEV_HIDE_PREVIEWS);
-	const [updateNamespaces, setUpdateNamespaces] = useAtom(UPDATE_NAMESPACES);
-	const data = useAtomValue(DATA)
+	const [optimized, setOptimized] = useAtom(OPTIMIZED);
+	const [data, setData] = useAtom(DATA);
+
+	const [isOptimizing, setIsOptimizing] = useState(false);
+
 	const afterInit = useCallback(async () => {
 		saveConfigs();
 		const modList = await refreshModList(true);
-		if(game && !Object.hasOwn(updateNamespaces, game)) {
-			console.log(modList,data)
-			// console.log(await getModDetails(modList[2].path))
+		if (game && (optimized[game] ?? "0") < OPTIMIZE_TARGET) {
+			const modObj = modList.reduce(
+				(acc, mod) => {
+					acc[mod.path] = mod;
+					return acc;
+				},
+				{} as Record<string, Mod>
+			);
+			const newData = {} as Record<string, ModData>;
+			Object.entries(data).forEach(([key, val]) => {
+				if (val?.vars?.namespace) {
+					const allValidNamespaceVars = {} as Record<string, Set<string>>;
+					const modData = modObj[key];
+					if (modData?.files) {
+						Object.values(modData.files).forEach((vars) => {
+							if (vars.length && vars[0].namespace) {
+								const namespace = vars[0].namespace;
+								vars.map((v) => {
+									if (!Object.hasOwn(allValidNamespaceVars, v.target)) {
+										allValidNamespaceVars[v.target] = new Set();
+									}
+									allValidNamespaceVars[v.target].add(namespace);
+								});
+							}
+						});
+					}
+					const vars = val.vars.namespace;
+					delete val.vars.namespace;
+					Object.entries(vars).forEach(([target, data]) => {
+						if (allValidNamespaceVars[target]?.size == 1) {
+							const namespace = Array.from(allValidNamespaceVars[target])[0];
+							//@ts-ignore
+							val.vars[namespace] = val.vars[namespace] ?? {};
+							//@ts-ignore
+							val.vars[namespace][target] = val.vars[namespace][target] ?? data;
+						}
+					});
+
+					console.log("Namespace found for mod:", key, "Namespace:", val.vars.namespace, "ModData:", modData);
+				}
+				newData[key] = val;
+			});
+			setData(newData);
+			setIsOptimizing(true);
 		}
 		setModList(modList);
 		return Promise.resolve();
-	}, [updateNamespaces, setModList, setUpdateNamespaces, game, data]);
+	}, [optimized, setModList, setOptimized, game, data, setData]);
 	useEffect(() => {
 		if (initializedRef.current) return;
 		initializedRef.current = true;
@@ -83,10 +131,6 @@ function App() {
 			throw new Error(err);
 		}
 	}, [err]);
-	// useEffect(() => {
-	// 	if(devHidePreviews && import.meta.env.DEV)
-	// 	setImageServer("");
-	// }, [devHidePreviews]);
 	useEffect(() => {
 		if (scale) document.documentElement.style.fontSize = 16 * Math.pow(2, scale / 50) + "px";
 		if (typeof blur === "number") {
@@ -212,8 +256,13 @@ function App() {
 				</div>
 			</div>
 			<AnimatePresence>{(!initDone || !lang || !game) && <Checklist />}</AnimatePresence>
-			<AnimatePresence>{changes.title && <Changes afterInit={afterInit} />}</AnimatePresence>
-			<AnimatePresence>{progressOverlay.open && <Progress />}</AnimatePresence>
+			<AnimatePresence>
+				{changes.title && <Changes afterInit={afterInit} animateProps={animateProps} />}
+			</AnimatePresence>
+			<AnimatePresence>{progressOverlay.open && <Progress animateProps={animateProps} />}</AnimatePresence>
+			<AnimatePresence>
+				{isOptimizing && <Optimizing setIsOptimizing={setIsOptimizing} animateProps={animateProps} />}
+			</AnimatePresence>
 			<ToastProvider />
 		</div>
 	);

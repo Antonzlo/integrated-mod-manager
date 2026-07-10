@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 // import { useEffect } from "react";
 import { CHANGES, PROGRESS_OVERLAY, TEXT_DATA } from "@/utils/vars";
 import { cancelRestore, verifyDirStruct } from "@/utils/filesys";
-function Progress() {
+function Progress({animateProps}: {animateProps?: any}) {
 	const textData = useAtomValue(TEXT_DATA);
 	const [restoreInfo, setRestoreInfo] = useAtom(PROGRESS_OVERLAY);
 	const setChanges = useSetAtom(CHANGES);
@@ -19,9 +19,8 @@ function Progress() {
 	//info(restoreInfo);
 	return (
 		<motion.div
-			initial={{ opacity: 0, filter: "blur(6px)" }}
-			animate={{ opacity: 1, filter: "blur(0px)" }}
-			exit={{ opacity: 0, filter: "blur(6px)" }}
+			key="progress-overlay"
+			{...animateProps}
 			className="text-accent pointer-eve nts-none bg-background/50 fixed z-50 flex flex-col items-center justify-center w-full h-full duration-200"
 			style={{
 				backdropFilter: "blur(var(--blur-xs))",

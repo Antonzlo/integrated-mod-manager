@@ -924,7 +924,7 @@ export async function applyChanges(isMigration = false) {
 		throw err;
 	}
 }
-async function readDirRecr(root: string, path: string, maxDepth = 2, depth = 0, cached = false): Promise<Mod[]> {
+async function readDirRecr(root: string, path: string, maxDepth = 2, depth = 0, cached = false, backupMode = false): Promise<Mod[]> {
 	if (depth > maxDepth) return [];
 	let entries: DirEntry[] = [];
 	try {
@@ -932,12 +932,11 @@ async function readDirRecr(root: string, path: string, maxDepth = 2, depth = 0, 
 	} catch {
 		return [];
 	}
-	if ( cached && depth == 1 && entries.find((entry) => entry.name == ".imm-cache.json")) 
-		return []
+	if (cached && depth == 1 && entries.find((entry) => entry.name == ".imm-cache.json")) return [];
 	const filePromises = entries.map(async (entry) => {
 		if ((entry.name == RESTORE || entry.name == IGNORE || entry.name == PREFS) && cached && depth == 0) return null;
 		let children: Mod[] = [];
-		if (entry.isDirectory) children = await readDirRecr(root, join(path, entry.name), maxDepth, depth + 1, cached);
+		if (entry.isDirectory && (!backupMode || entry.name!== INI_BACKUP && !entry.name.startsWith(".imm"))) children = await readDirRecr(root, join(path, entry.name), maxDepth, depth + 1, cached, backupMode);
 		return {
 			isDir: entry.isDirectory,
 			name: entry.name,
@@ -1057,7 +1056,7 @@ async function detectHotkeys(
 	data: ModDataObj,
 	src: string,
 	depth = 0,
-	cache = 1. // 0 = no cache, 1 = use cache, 2 = write cache, 3 = use and write cache
+	cache = 1 // 0 = no cache, 1 = use cache, 2 = write cache, 3 = use and write cache
 ): Promise<[Mod[], any, ModHotKeys[], Set<string>]> {
 	let namespaces = new Set<string>();
 	const entryPromises = entries.map(async (entry) => {
@@ -1186,21 +1185,21 @@ async function detectHotkeys(
 			}
 			if (entry.isDir && entry.children.length > 0 && entry.name !== INI_BACKUP) {
 				try {
-					if (depth == 1 && cache%2 == 1 && (await exists(join(src, entry.path, ".imm-cache.json")))) {
+					if (depth == 1 && cache % 2 == 1 && (await exists(join(src, entry.path, ".imm-cache.json")))) {
 						cacheUsed = true;
-						entry = {...entry, ...JSON.parse(await readTextFile(join(src, entry.path, ".imm-cache.json"))), ...modData};
+						entry = {
+							...entry,
+							...JSON.parse(await readTextFile(join(src, entry.path, ".imm-cache.json"))),
+							...modData,
+							path: entry.path,
+							parent: entry.parent,
+							name: entry.name,
+							isDir: entry.isDir,
+						};
 						hkData = entry.keys || hkData;
 						hashes = new Set(entry.hashes || []);
 						namespaces = new Set(entry.namespaces || []);
-						console.log("[IMM] Cache used for:", entry.path )
-						// const hashFile = await readTextFile(join(src, entry.path, ".imm-collision-checklist"));
-						// hashes = new Set(
-						// 	hashFile
-						// 		.split("\n")
-						// 		.map((h) => h.trim())
-						// 		.filter((h) => h)
-						// );
-						
+						console.log("[IMM] Cache used for:", entry.path);
 					} else {
 						throw new Error("Not depth 1");
 					}
@@ -1219,8 +1218,14 @@ async function detectHotkeys(
 						hkData = [...hkData, ...childHK];
 					}
 					if (depth == 1 && cache > 1 && !cacheUsed) {
-						// await writeTextFile(join(src, entry.path, ".imm-collision-checklist"), Array.from(hashes).join("\n"));
-						await writeTextFile(join(src, entry.path, ".imm-cache.json"), JSON.stringify({ ...entry, keys: hkData, hashes: Array.from(hashes), namespaces: Array.from(namespaces) }, null, 2));
+						await writeTextFile(
+							join(src, entry.path, ".imm-cache.json"),
+							JSON.stringify(
+								{ ...entry, keys: hkData, hashes: Array.from(hashes), namespaces: Array.from(namespaces) },
+								null,
+								2
+							)
+						);
 					}
 					namespaces = new Set([...Array.from(namespaces), ...Array.from(newNamespaces)]);
 				}
@@ -1275,7 +1280,7 @@ export async function getModDetails(relPath: string, data?: ModDataObj) {
 						maxed: true,
 					},
 				],
-				data ?{[relPath]: data}: store.get(DATA),
+				data ? { [relPath]: data } : store.get(DATA),
 				modSrc,
 				0,
 				2
@@ -1316,8 +1321,15 @@ export async function refreshModList(maxed = false) {
 		}
 		if (!maxed) await categorizeDir(modSrc);
 		if (curId !== deepRefreshId && maxed) return [];
-		const ret = await detectHotkeys(await readDirRecr(modSrc, "", 9, 0, true), data, modSrc, 0, maxed ? 3 :1);
-		console.log("[IMM] Mod list refresh complete. Entries:", ret[0].length, "Hashes:", ret[1].size, "Hotkeys:", ret[2].length);
+		const ret = await detectHotkeys(await readDirRecr(modSrc, "", 9, 0, true), data, modSrc, 0, maxed ? 3 : 1);
+		console.log(
+			"[IMM] Mod list refresh complete. Entries:",
+			ret[0].length,
+			"Hashes:",
+			ret[1].size,
+			"Hotkeys:",
+			ret[2].length
+		);
 		if (curId !== deepRefreshId && maxed) return [];
 
 		let hasErr = "";
@@ -1406,8 +1418,8 @@ export async function refreshModList(maxed = false) {
 					.concat(entries.filter((entry) => !recentlyDownloaded.includes(entry.path)))
 			);
 			return entries
-					.filter((entry) => recentlyDownloaded.includes(entry.path))
-					.concat(entries.filter((entry) => !recentlyDownloaded.includes(entry.path)));
+				.filter((entry) => recentlyDownloaded.includes(entry.path))
+				.concat(entries.filter((entry) => !recentlyDownloaded.includes(entry.path)));
 		}
 		info(
 			"[IMM] Mod list refreshed:",
@@ -1457,16 +1469,26 @@ export async function createModDownloadDir(cat: string, dir: string) {
 		throw err;
 	}
 }
-export async function validateModDownload(path: string, skip = false) {
+export async function validateModDownload(path: string, skip = false, addModSrc = false) {
+	if(addModSrc && !path.startsWith(join(src, managedSRC))) {
+		path = join(src, managedSRC, path);
+	}
+	console.log("[IMM] Validating mod download for path:", path);
+	let count = 0;
 	try {
-		const entries = (await readDir(path)).filter((entry) => entry.name !== INI_BACKUP);
-		// const previewCount = entries.filter((entry) => entry.name.startsWith("preview.") && !entry.isDirectory).length;
-		const txtCount = entries.filter((entry) => entry.name.endsWith(".txt") && !entry.isDirectory).length;
-		const imgCount = entries.filter((entry: any) => {
-			const ext = entry.name.split(".").slice(-1)[0].toLowerCase();
-			return exts.includes(ext) && !entry.isDirectory;
-		}).length;
-		if (entries.length - txtCount - imgCount === 1) {
+		let entries: DirEntry[] = [];
+		async function validator() {
+			entries = (await readDir(path)).filter(
+				(entry) => entry.name.toUpperCase() !== INI_BACKUP && !entry.name.toLowerCase().startsWith(".imm")
+			);
+			const txtCount = entries.filter((entry) => entry.name.endsWith(".txt") && !entry.isDirectory).length;
+			const imgCount = entries.filter((entry: any) => {
+				const ext = entry.name.split(".").slice(-1)[0].toLowerCase();
+				return exts.includes(ext) && !entry.isDirectory;
+			}).length;
+			return entries.length - txtCount - imgCount === 1;
+		}
+		while (await validator()) {
 			let hasIni = false;
 			const dirs: string[] = [];
 
@@ -1488,6 +1510,7 @@ export async function validateModDownload(path: string, skip = false) {
 					error("[IMM] Error flattening mod directory structure:", err);
 				}
 			}
+			count++;
 		}
 		if (!skip) {
 			const list = store.get(MOD_LIST);
@@ -1518,7 +1541,7 @@ export async function validateModDownload(path: string, skip = false) {
 		if (!skip) addToast({ type: "error", message: textData._Toasts.ErrDownload });
 		error("[IMM] Error validating mod download:", err);
 	}
-	return true;
+	return count;
 }
 export async function cleanCancelledDownload(path: string) {
 	try {
@@ -1879,11 +1902,11 @@ export async function installFromArchives(archives: string[]) {
 	let success = 0;
 	async function extractArchive(archive: string) {
 		if (!archive) return;
-		const [name] = archive.split(/[/\\]/).pop()!.split(".");
+		const name = archive.split(/[/\\]/).pop()!.split(".").slice(0, -1).join(".");
 		const root = join(src, managedSRC, UNCATEGORIZED);
 		await mkdir(root, { recursive: true });
 		let counter = 0;
-		let finalName = name;
+		let finalName = `${name}_${Date.now()}_${Math.floor(Math.random() * 100000)}`;
 		while (await exists(join(root, finalName))) {
 			finalName = `${name} (${++counter})`;
 		}

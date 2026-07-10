@@ -28,7 +28,7 @@ interface UpdateInfo {
 	body: string;
 	raw: Update | null;
 }
-const UPDATE_NAMESPACES = atomWithStorage("imm-port-namespaces", {} as Record<string, string>);
+const OPTIMIZED = atomWithStorage("imm-optimized", {} as Record<string, string>);
 const DEV_HIDE_PREVIEWS = atomWithStorage("imm-dev-hide-previews", false);
 const SCALE = atomWithStorage("imm-scale", 0);
 const BLUR = atomWithStorage("imm-blur", 1);
@@ -145,7 +145,7 @@ export function resetAtoms() {
 }
 const ERR = atom("");
 export {
-	UPDATE_NAMESPACES,
+	OPTIMIZED,
 	DEV_HIDE_PREVIEWS,
 	CONFLICTS,
 	FILE_TO_DL,
