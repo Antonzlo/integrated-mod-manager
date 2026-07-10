@@ -1,3 +1,4 @@
+import { addToast } from "@/_Toaster/ToastProvider";
 import { OPTIMIZE_TARGET } from "@/utils/consts";
 import { saveConfigs, validateModDownload } from "@/utils/filesys";
 import { DATA, GAME, MOD_LIST, OPTIMIZED } from "@/utils/vars";
@@ -36,6 +37,7 @@ function Optimizing({
 		let comp = { count: 0, cur: "" };
 		setCompleted(comp);
 		async function optimize() {
+            try{
 			for (let i = 0; i < modList.length; i++) {
 				const mod = modList[i];
 				comp.count = i + 1;
@@ -64,6 +66,15 @@ function Optimizing({
 			saveConfigs();
 			setOptimized((prev) => ({ ...prev, [game]: OPTIMIZE_TARGET }));
 			setIsOptimizing(false);
+        }
+        catch(e){
+            console.error("[IMM] Error during optimization:", e);
+            addToast({
+                type: "error",
+                message: "Error during optimization. Please check the console for details.",
+            });
+            setIsOptimizing(false);
+        }
 		}
 		if (total > 0 && game) {
 			optimize();

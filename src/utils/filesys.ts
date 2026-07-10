@@ -1481,6 +1481,8 @@ export async function validateModDownload(path: string, skip = false, addModSrc 
 			entries = (await readDir(path)).filter(
 				(entry) => entry.name.toUpperCase() !== INI_BACKUP && !entry.name.toLowerCase().startsWith(".imm")
 			);
+			const dirs = entries.filter((entry) => entry.isDirectory);
+			if (dirs.length > 1 || dirs.length === 0) return false;
 			const txtCount = entries.filter((entry) => entry.name.endsWith(".txt") && !entry.isDirectory).length;
 			const imgCount = entries.filter((entry: any) => {
 				const ext = entry.name.split(".").slice(-1)[0].toLowerCase();
