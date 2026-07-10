@@ -1,6 +1,6 @@
 import { addToast } from "@/_Toaster/ToastProvider";
 import { OPTIMIZE_TARGET } from "@/utils/consts";
-import { saveConfigs, validateModDownload } from "@/utils/filesys";
+import { saveConfigs, toggleMod, validateModDownload } from "@/utils/filesys";
 import { DATA, GAME, MOD_LIST, OPTIMIZED } from "@/utils/vars";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { motion } from "motion/react";
@@ -61,6 +61,7 @@ function Optimizing({
 						}
 						return prev;
 					});
+                    toggleMod(mod.path, true, true);
 				} else console.log(`[IMM] No optimization needed for mod: ${mod.name}`);
 			}
 			saveConfigs();
