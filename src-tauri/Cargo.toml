@@ -28,11 +28,9 @@ tauri-plugin-http = "2"
 # Optimized reqwest with minimal features for smaller binary size
 reqwest = { version = "0.13.1", features = ["stream"], default-features = false }
 # Use tokio with only required features instead of "full"
-tokio = { version = "1.45.1", features = ["rt-multi-thread", "fs", "io-util", "macros"] }
-zip = "7.3.0"
+tauri-plugin-shell = "2.0.0"
 futures-util = "0.3.31"
-unrar = "0.5.8"
-sevenz-rust2 = "0.20.1"
+tokio = { version = "1.45.1", features = ["rt-multi-thread", "fs", "io-util", "macros"] }
 # HTTP server dependencies
 warp = { version = "0.4.2", features = ["test"] }
 mime_guess = "2.0.4"
@@ -43,7 +41,6 @@ urlencoding = "2.1.3"
 tauri-plugin-tracing = "0.3"
 tauri-plugin-deep-link = "2.0.0"
 tauri-plugin-single-instance = { version = "2.0.0", features = ["deep-link"] }
-tauri-plugin-shell = "2"
 
 # Windows-specific dependencies for hotreload functionality (legacy keybd_event only)
 [target.'cfg(windows)'.dependencies]

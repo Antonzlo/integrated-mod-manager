@@ -22,6 +22,7 @@ import { preventContextMenu } from "@/utils/utils";
 import { getModDetails, toggleMod } from "@/utils/filesys";
 import MiniSearch from "minisearch";
 import { join, setChange } from "@/utils/hotreload";
+import { toFs } from "@/utils/pathsep";
 import { managedSRC } from "@/utils/consts";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { Mod } from "@/utils/types";
@@ -256,9 +257,9 @@ function MainLocal() {
 			const ct = (e.currentTarget as HTMLDivElement)?.firstElementChild?.firstElementChild
 				?.nextElementSibling as HTMLImageElement;
 			ct && (ct.style.filter = mod.enabled ? "brightness(0.5) saturate(0.5)" : "brightness(1) ");
-			if (!mod.maxed) {
-				const details = await getModDetails(mod.path)
-			}
+			// if (!mod.maxed) {
+			// 	const details = await getModDetails(mod.path)
+			// }
 			let success = await toggleMod(mod.path, !mod.enabled);
 			info("Toggled mod:", mod.path, "New state:", !mod.enabled, "Success:", success);
 			if (success)
@@ -353,11 +354,11 @@ function MainLocal() {
 						in{" "}
 						<label
 							onClick={() => {
-								openPath(join(source, managedSRC));
+								openPath(toFs(join(source, managedSRC)));
 							}}
 							className="hover:opacity-75 text-blue-300 duration-200 opacity-50 pointer-events-auto"
 						>
-							{source.split("\\").slice(-2).join("\\")}\{managedSRC}
+							{join(source.split(/[/\\]/).slice(-2).join("/"), managedSRC)}
 						</label>
 					</label>
 				</label>

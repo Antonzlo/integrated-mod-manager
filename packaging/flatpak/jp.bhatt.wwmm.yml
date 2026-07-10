@@ -1,0 +1,54 @@
+id: jp.bhatt.wwmm
+runtime: org.gnome.Platform
+runtime-version: '49'
+sdk: org.gnome.Sdk
+command: integrated-mod-manager
+finish-args:
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --share=ipc
+  - --share=network
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --filesystem=home
+  - --env=WEBKIT_DISABLE_DMABUF_RENDERER=1
+  - --talk-name=org.freedesktop.Flatpak
+modules:
+  - shared-modules/libappindicator/libappindicator-gtk3-12.10.json
+
+  - name: xdg-utils
+    buildsystem: simple
+    sources:
+      - type: file
+        path: xdg-utils/xdg-mime
+      - type: file
+        path: xdg-utils/xdg-open
+      - type: file
+        path: xdg-utils/xdg-settings
+    build-commands:
+      - install -Dm755 xdg-mime /app/bin/xdg-mime
+      - install -Dm755 xdg-open /app/bin/xdg-open
+      - install -Dm755 xdg-settings /app/bin/xdg-settings
+
+  - name: imm
+    buildsystem: simple
+    sources:
+      - type: file
+        path: ../../src-tauri/target/release/integrated-mod-manager
+      - type: file
+        path: ../../src-tauri/icons/128x128.png
+      - type: file
+        path: jp.bhatt.wwmm.desktop
+      - type: file
+        path: ../../src-tauri/ext/7zz
+      - type: file
+        path: ../../src-tauri/ext/7zz-aarch64
+    build-commands:
+      - install -Dm755 integrated-mod-manager /app/bin/integrated-mod-manager
+      - install -Dm644 128x128.png /app/share/icons/hicolor/128x128/apps/jp.bhatt.wwmm.png
+      - install -Dm644 jp.bhatt.wwmm.desktop /app/share/applications/jp.bhatt.wwmm.desktop
+      # Tauri resolves BaseDirectory::Resource to /app/lib/${productName}, where
+      # productName is "Integrated Mod Manager (IMM)" (see src-tauri/tauri.conf.json).
+      # These MUST match that dir or 7zz won't be found at runtime (extract → os error 2).
+      - install -Dm755 7zz "/app/lib/Integrated Mod Manager (IMM)/ext/7zz"
+      - install -Dm755 7zz-aarch64 "/app/lib/Integrated Mod Manager (IMM)/ext/7zz-aarch64"

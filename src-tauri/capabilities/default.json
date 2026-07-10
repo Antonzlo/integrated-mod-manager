@@ -104,19 +104,6 @@
     "fs:allow-watch",
     "fs:read-dirs",
     {
-      "identifier": "shell:allow-execute",
-      "allow": [
-        { "cmd": "sh",
-          "args": [
-            "x",
-            {"validator": ".*"},
-            {"validator": "-o.*"}
-          ],
-          "name": "binaries/7z"
-        }
-      ]
-    },
-    {
       "identifier": "fs:scope",
       "allow": [
         "**/*"
@@ -149,6 +136,53 @@
       "deny": [
         {
           "url": "https://private.tauri.app"
+        }
+      ]
+    },
+    {
+      "identifier": "shell:allow-execute",
+      "allow": [
+        {
+          "cmd": "$RESOURCES/ext/7z.exe",
+          "args": [
+            "x",
+            {
+              "validator": ".*"
+            },
+            {
+              "validator": "-o.*"
+            },
+            "-y"
+          ],
+          "name": "ext/7z.exe"
+        },
+        {
+          "cmd": "$RESOURCES/ext/7zz",
+          "args": [
+            "x",
+            {
+              "validator": ".*"
+            },
+            {
+              "validator": "-o.*"
+            },
+            "-y"
+          ],
+          "name": "ext/7zz"
+        },
+        {
+          "cmd": "$RESOURCES/ext/7zz-aarch64",
+          "args": [
+            "x",
+            {
+              "validator": ".*"
+            },
+            {
+              "validator": "-o.*"
+            },
+            "-y"
+          ],
+          "name": "ext/7zz-aarch64"
         }
       ]
     },

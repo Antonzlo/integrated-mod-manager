@@ -17,7 +17,7 @@ function getChecked() {
 	return checked;
 }
 let onConfirm = () => {};
-function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
+function Changes({ afterInit, animateProps }: { afterInit: () => Promise<void>; animateProps?: any }) {
 	const textData = useAtomValue(TEXT_DATA);
 	const [changes, setChanges] = useAtom(CHANGES);
 	const [source, _] = useAtom(SOURCE);
@@ -47,9 +47,7 @@ function Changes({ afterInit }: { afterInit: () => Promise<void> }) {
 	return changes.before.length ? (
 		<motion.div
 			key="changes"
-			initial={{ opacity: 0, filter: "blur(6px)" }}
-			animate={{ opacity: 1, filter: "blur(0px)" }}
-			exit={{ opacity: 0, filter: "blur(6px)" }}
+			{...animateProps}
 			className="bg-background/50 fixed z-50 flex items-center justify-center w-full h-full duration-200"
 			style={{
 				backdropFilter: "blur(var(--blur-xs))",

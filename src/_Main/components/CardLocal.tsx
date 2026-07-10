@@ -25,7 +25,7 @@ interface CardLocalProps {
 	updateAvl: string;
 	inConflict: number;
 }
-
+//EDIT AFTER MERGE
 const CardLocal = React.memo(({ item, selected, lastUpdated, hasUpdate, updateAvl, inConflict }: CardLocalProps) => {
 	const previewUrl = `${getImageUrl(item.path)}?${lastUpdated}`;
 	return (
@@ -49,16 +49,28 @@ const CardLocal = React.memo(({ item, selected, lastUpdated, hasUpdate, updateAv
 						left: `${-(item.crop?.x || 0)}px`,
 						top: `${-(item.crop?.y || 0)}px`,
 						scale: item.crop?.scale || 1,
-						minWidth: item.crop?.vertical ? "14rem" : "fit-content",
-						minHeight: item.crop?.vertical ? "fit-content" : "18rem",
+						minWidth: "fit-content",
+						minHeight:  "calc(var(--card-height)-2.5rem)",
 					}}
-					className="w-full h-full relative object-cover object-center"
+					className="w-full h-full relative object-contain object-center"
 					src={previewUrl}
 					onError={(e) => handleImageError(e)}
+					onLoad={(e)=>{
+						const img = e.currentTarget;
+						const aspect = img.naturalWidth/img.naturalHeight;
+						if(aspect>1){
+							img.style.minWidth = "fit-content";
+							img.style.minHeight = "calc(var(--card-height)-2.5rem)";
+						}
+						else{
+							img.style.minWidth = "14rem";
+							img.style.minHeight = "fit-content";
+						}
+					}}
 				/>
 			</div>
 			<div
-				className="bg-background/50 rounded-b-xl data-zzz:rounded-bl-3xl fadein backdrop-blur
+				className="bg-background/50 rounded-b-xl data-zzz:rounded-bl-3xl fadein backdrop-blur-sm
 			 flex items-center w-full min-h-10 gap-2 px-3 header-img"
 			>
 				{inConflict >= 0 ? (

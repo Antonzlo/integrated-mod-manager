@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Integrated Mod Manager (IMM)
+Comment=A desktop mod manager for XXMI
+Exec=integrated-mod-manager
+Icon=jp.bhatt.wwmm
+StartupWMClass=jp.bhatt.wwmm
+Terminal=false
+Type=Application
+Categories=Utility;Game;

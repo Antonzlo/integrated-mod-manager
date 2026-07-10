@@ -11,6 +11,12 @@ node_modules
 dist
 dist-ssr
 *.local
+
+# Flatpak local build output
+.flatpak-builder/
+flatpak-build-dir/
+flatpak-tmp/
+.extra
 *._*
 # Editor directories and files
 .vscode/*
