@@ -30,7 +30,7 @@ import { path } from "@tauri-apps/api";
 import { invoke } from "@tauri-apps/api/core";
 // import { currentMonitor, PhysicalSize } from "@tauri-apps/api/window";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
-import { exists, mkdir, readTextFile, remove, writeTextFile } from "./fs";
+import { atomicWriteTextFile, exists, mkdir, readTextFile, remove, writeTextFile } from "./fs";
 import defConfig from "../default.json";
 import defConfigXX from "../defaultXX.json";
 import { apiClient } from "./api";
@@ -48,6 +48,7 @@ import { addToast } from "@/_Toaster/ToastProvider";
 import { Category, Games, Preset, Settings } from "./types";
 import { resetPageCounts } from "@/_Main/MainOnline";
 import { info } from "@/lib/logger";
+import { isVersionAtLeast, isVersionOlderThan } from "./semver";
 // import { v2_0_4_migration } from "./filesys";
 let paths = {
 	"": "",
@@ -193,8 +194,8 @@ invoke<string>("get_image_server_url").then((url) => {
 export async function updateConfig(oconfig = null as any) {
 	if (!oconfig) oconfig = JSON.parse(await readTextFile("config.json"));
 	info("[IMM] Updating config from:", oconfig);
-	if (oconfig.version >= "3.1.1") return oconfig;
-	else if (oconfig.version >= "2.1.0") {
+	if (isVersionAtLeast(oconfig.version, "3.1.1")) return oconfig;
+	else if (isVersionAtLeast(oconfig.version, "2.1.0")) {
 		let config = { ...oconfig, version: VERSION };
 		try {
 			config = {
@@ -340,7 +341,7 @@ export async function initGame(game: Games, status = true) {
 	}));
 	configXX.presets = normalizedPresets;
 
-	writeTextFile(`config${game}.json`, JSON.stringify(configXX, null, 2));
+	await atomicWriteTextFile(`config${game}.json`, JSON.stringify(configXX, null, 2));
 	apiClient.setGame(game as any);
 	await setCategories(game, status);
 	invoke("set_window_icon", { game });
@@ -358,7 +359,7 @@ export async function initGame(game: Games, status = true) {
 	);
 	store.set(TYPES, apiClient.generic.types);
 	if (
-		(configXX.version && configXX.version < "3.1.0") ||
+		(configXX.version && isVersionOlderThan(configXX.version, "3.1.0")) ||
 		(configXX.updatedAt && configXX.updatedAt < "2026-02-24T13:30:00.000Z")
 	) {
 		Object.keys(configXX.data).forEach((key) => {
@@ -468,12 +469,13 @@ export async function checkWWMM() {
 	}
 	return null;
 }
-export async function maintainBackups() {
+export async function maintainBackups(): Promise<boolean> {
 	info("[IMM] Maintaining backups...");
 	store.set(MAIN_FUNC_STATUS, "Maintaining backups");
 	const files = GAMES.map((g) => `config${g}.json`);
 	files.push("config.json");
-	mkdir("backups", { recursive: true });
+	await mkdir("backups", { recursive: true });
+	let recoverySucceeded = true;
 	const backupPath = "backups\\AUTO_";
 	for (const file of files) {
 		if (await exists(file)) {
@@ -489,7 +491,7 @@ export async function maintainBackups() {
 						) {
 							info(`[IMM] Creating backup for: ${file}...`);
 							try {
-								remove(backupPath + file + ".bak.bak");
+								await remove(backupPath + file + ".bak.bak");
 							} catch {}
 							await writeTextFile(backupPath + file + ".bak.bak", await readTextFile(backupPath + file + ".bak"));
 							await writeTextFile(backupPath + file + ".bak", JSON.stringify(data, null, 2));
@@ -503,6 +505,7 @@ export async function maintainBackups() {
 					await writeTextFile(backupPath + file + ".bak", JSON.stringify(data, null, 2));
 				}
 			} catch (e) {
+				console.log(e);
 				info(`[IMM] Detected corrupted config file: ${file}, restoring from backup...`);
 				store.set(MAIN_FUNC_STATUS, `Config file corrupted, restoring from backup`);
 				if (await exists(backupPath + file + ".bak")) {
@@ -527,6 +530,7 @@ export async function maintainBackups() {
 										backupPath + file + ".bak.bak"
 									}. Unable to proceed, please restore manually or press ESC x3 to reset IMM.`
 								);
+								recoverySucceeded = false;
 							}
 						} else {
 							store.set(
@@ -535,6 +539,7 @@ export async function maintainBackups() {
 									backupPath + file + ".bak"
 								}. Unable to proceed, please restore manually or press ESC x3 to reset IMM.`
 							);
+							recoverySucceeded = false;
 						}
 					}
 				} else {
@@ -543,10 +548,12 @@ export async function maintainBackups() {
 						ERR,
 						`Corrupted config file detected: ${file}. Unable to proceed, please restore manually or press ESC x3 to reset IMM.`
 					);
+					recoverySucceeded = false;
 				}
 			}
 		}
 	}
+	return recoverySucceeded;
 }
 let cwd = "";
 export function getCwd() {
@@ -556,7 +563,7 @@ export async function main(useGame = "" as Games) {
 	store.set(MAIN_FUNC_STATUS, "Initializing App");
 	isInitialized = false;
 	info("[IMM] Initializing application...");
-	invoke("get_username");
+	await invoke("get_username");
 	resetAtoms();
 	removeHelpers();
 	appData = toInternal(await path.dataDir());
@@ -565,11 +572,13 @@ export async function main(useGame = "" as Games) {
 	if (!(await exists("config.json"))) {
 		store.set(MAIN_FUNC_STATUS, "Creating default config.json");
 		info("[IMM] Creating default config.json...");
-		await writeTextFile("config.json", JSON.stringify(defConfig, null, 2));
+		await atomicWriteTextFile("config.json", JSON.stringify(defConfig, null, 2));
 	}
-	await maintainBackups();
+	if (!(await maintainBackups())) {
+		throw new Error("Configuration recovery failed. See the on-screen error for recovery instructions.");
+	}
 	config = safeLoadJson(defConfig, JSON.parse(await readTextFile("config.json")));
-	if (config.version < "2.2.0") {
+	if (isVersionOlderThan(config.version, "2.2.0")) {
 		config.chkModUpdates = true;
 		config.bgType = 1;
 	}
@@ -601,14 +610,14 @@ export async function main(useGame = "" as Games) {
 		sessionStorage.removeItem("imm-deep-link-game");
 	}
 	if (config.game) apiClient.setGame(config.game);
-	if (config.version < "2.1.0") {
+	if (isVersionOlderThan(config.version, "2.1.0")) {
 		config = await updateConfig();
 	}
-	if (config.version < "3.1.0") {
+	if (isVersionOlderThan(config.version, "3.1.0")) {
 		config = await updateConfig();
 	}
 	info("[IMM] Saving config...");
-	writeTextFile("config.json", JSON.stringify(config, null, 2));
+	await atomicWriteTextFile("config.json", JSON.stringify(config, null, 2));
 	await readXXMIConfig(config.XXMI || "");
 	store.set(MAIN_FUNC_STATUS, "Initializing game");
 	info("[IMM] Initializing game...");

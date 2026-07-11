@@ -53,6 +53,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { invoke } from "@tauri-apps/api/core";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { apiClient } from "@/utils/api";
+import { sanitizeRemoteHtml } from "@/utils/safeHtml";
 let now = Date.now() / 1000;
 const typeToBg = {
 	positive: "bg-success",
@@ -455,7 +456,7 @@ function RightOnline({ open }: { open: boolean }) {
 								<div className="w-full flex flex-col gap-4 h-auto overflow-hidden pl-14 pb-3 pr-3">
 									<div
 										className="w-full select-text duration-200 font-sans "
-										dangerouslySetInnerHTML={{ __html: comment._sText }}
+										dangerouslySetInnerHTML={{ __html: sanitizeRemoteHtml(comment._sText) }}
 									/>
 									{comment.children?.length > 0 && recursiveComments(comment.children, depth + 1)}
 									{comment._nReplyCount > 0 && !comment.children && (
@@ -752,7 +753,7 @@ function RightOnline({ open }: { open: boolean }) {
 														</Button>
 													</CollapsibleTrigger>
 													<CollapsibleContent className="border-accent w-full pt-2 pl-2 mt-2">
-														<div className="w-full font-sans" dangerouslySetInnerHTML={{ __html: item._sText }}></div>
+												<div className="w-full font-sans" dangerouslySetInnerHTML={{ __html: sanitizeRemoteHtml(item._sText) }}></div>
 													</CollapsibleContent>
 												</Collapsible>
 											)}
@@ -816,7 +817,7 @@ function RightOnline({ open }: { open: boolean }) {
 																		{itm._sText && (
 																			<div
 																				className="w-full font-sans"
-																				dangerouslySetInnerHTML={{ __html: itm._sText }}
+																							dangerouslySetInnerHTML={{ __html: sanitizeRemoteHtml(itm._sText) }}
 																			/>
 																		)}
 																	</div>

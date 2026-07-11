@@ -43,6 +43,7 @@ import { ChangeInfo, DirEntry, GameConfig, GlobalSettings, Mod, ModDataObj, ModH
 import { openPath } from "@tauri-apps/plugin-opener";
 import { error, info, warn } from "@/lib/logger";
 import { addToExtracts } from "@/_LeftSidebar/components/Downloads";
+import { isVersionOlderThan } from "./semver";
 export async function setGame(game: string) {
 	try {
 		const config = await readTextFile(`config.json`);
@@ -126,7 +127,7 @@ store.sub(CATEGORIES, () => {
 export async function setConfig(config: any) {
 	info("[IMM] Setting config...");
 	if (!config) return;
-	if (config.version && config.version < "2.1.0") {
+	if (config.version && isVersionOlderThan(config.version, "2.1.0")) {
 		info("[IMM] Old config version, migrating...");
 		await updateConfig(config);
 		addToast({ type: "success", message: textData._Toasts.SuccessPort });
