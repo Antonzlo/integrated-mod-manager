@@ -43,7 +43,7 @@ import { toInternal, toFs } from "./pathsep";
 import { registerGlobalHotkeys } from "./hotkeyUtils";
 import TEXT from "@/textData.json";
 import { unregisterAll } from "@tauri-apps/plugin-global-shortcut";
-import { isOlderThanOneDay, safeLoadJson, setImageServer } from "./utils";
+import { isOlderThanOneDay, safeLoadJson, sanitizeFileName, setImageServer } from "./utils";
 import { addToast } from "@/_Toaster/ToastProvider";
 import { Category, Games, Preset, Settings } from "./types";
 import { resetPageCounts } from "@/_Main/MainOnline";
@@ -430,7 +430,7 @@ export async function setCategories(game = prevGame, status = true) {
 		for (let key of Object.keys(customCats)) {
 			catObj[key] = { ...catObj[key], _sName: key, ...customCats[key] };
 		}
-		categories = Object.values(catObj).map((cat) => ({ ...cat, _sIconUrl: cat._sIconUrl || "/who.jpg" }));
+		categories = Object.values(catObj).map((cat) => ({ ...cat, _sIconUrl: cat._sIconUrl || "/who.jpg", _sName: sanitizeFileName(cat._sName) }));
 		store.set(CATEGORIES, categories);
 	}
 }

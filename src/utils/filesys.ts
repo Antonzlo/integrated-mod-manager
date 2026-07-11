@@ -933,7 +933,7 @@ async function readDirRecr(root: string, path: string, maxDepth = 2, depth = 0, 
 	} catch {
 		return [];
 	}
-	if (cached && depth == 1 && entries.find((entry) => entry.name == ".imm-cache.json")) return [];
+	if (cached && depth == 2 && entries.find((entry) => entry.name == ".imm-cache.json")) return [];
 	const filePromises = entries.map(async (entry) => {
 		if ((entry.name == RESTORE || entry.name == IGNORE || entry.name == PREFS) && cached && depth == 0) return null;
 		let children: Mod[] = [];

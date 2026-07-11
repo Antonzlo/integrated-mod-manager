@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { fetchMod, formatSize, getImageUrl, getTimeDifference, handleImageError, modRouteFromURL } from "@/utils/utils";
 import { confirmAndCancelDownloadsForGameSwitch } from "@/utils/downloadManager";
 import {
+	CATEGORIES,
 	DATA,
 	DOWNLOAD_LIST,
 	FILE_TO_DL,
@@ -98,6 +99,7 @@ function StampIcons({ title, className }: any) {
 function RightOnline({ open }: { open: boolean }) {
 	const textData = useAtomValue(TEXT_DATA);
 	const selected = useAtomValue(ONLINE_SELECTED);
+	const categories = useAtomValue(CATEGORIES);
 	const setRightSlideOverOpen = useSetAtom(RIGHT_SLIDEOVER_OPEN);
 	const [modList, setModList] = useAtom(MOD_LIST);
 	const [data, setData] = useAtom(DATA);
@@ -125,6 +127,7 @@ function RightOnline({ open }: { open: boolean }) {
 	const gameMatched = item?._aGame ? ignoreGameCheck || GAME_GB_IDS[item._aGame._idRow] == game : false;
 	// const installedItem = installedItems.find((it) => it.source && modRouteFromURL(it.source) == selected) || null;
 	const type = installedItems.length ? (installedItems?.find((x) => x.modStatus) ? "Update" : "Reinstall") : "Install";
+	
 	const addToDownloadQueue = useCallback(
 		async (file: any) => {
 			let target = "";
@@ -145,7 +148,7 @@ function RightOnline({ open }: { open: boolean }) {
 							: "",
 					category: target
 						? target.split("\\")[0]
-						: item._aCategory?._sName.replaceAll("Skins", UNCATEGORIZED) || UNCATEGORIZED,
+						: categories.find((cat) => cat._idRow === item._aCategory?._idRow)?._sName || UNCATEGORIZED,
 					source: item._sProfileUrl || "",
 					file: file._sDownloadUrl,
 					updated: file._tsDateModified || file._tsDateAdded,
