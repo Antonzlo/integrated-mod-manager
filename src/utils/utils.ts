@@ -278,6 +278,7 @@ export function handleInAppLink(url: string) {
 			store.set(FILE_TO_DL, temp[1]);
 		}
 	}
+	console.log("[IMM] Handling in-app link:", url);
 	if (!url.startsWith("http")) return;
 	let mod = modRouteFromURL(url);
 	if (mod) {

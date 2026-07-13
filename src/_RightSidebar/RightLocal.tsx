@@ -113,6 +113,9 @@ function RightLocal() {
 					throw new Error("Invalid game in URL or same as current game.");
 				}
 			}
+			else{
+				throw new Error("URL does not contain a game or mode parameter.");
+			}
 		},
 		[game]
 	);
