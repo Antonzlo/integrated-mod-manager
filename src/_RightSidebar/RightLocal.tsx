@@ -64,6 +64,8 @@ import ModPreferences from "./components/ModPreferences";
 import { info } from "@/lib/logger";
 import ModPreviewCrop from "./components/ModPreviewCrop";
 import ModPreview from "./components/ModPreview";
+import { savePreviewImageFromData } from "@/utils/filesys";
+import { useDropzone } from "react-dropzone";
 
 let text = "";
 let curUrlIndex = 0;
@@ -220,6 +222,29 @@ function RightLocal() {
 	}
 	const [category, setCategory] = useState({ name: "-1", icon: "" });
 	const lastUpdated = useAtomValue(LAST_UPDATED);
+	const [isPreviewDragActive, setIsPreviewDragActive] = useState(false);
+	const onPreviewDrop = useCallback(
+		async (acceptedFiles: File[]) => {
+			if (!item?.path || acceptedFiles.length === 0) return;
+			const file = acceptedFiles[0];
+			const extension = file.type.split("/").pop() || "png";
+			const data = new Uint8Array(await file.arrayBuffer());
+			await savePreviewImageFromData(item.path, extension, data);
+			setDialogType("preview-crop");
+			setDialogOpen(true);
+		},
+		[item?.path]
+	);
+	const { getRootProps: getPreviewRootProps, getInputProps: getPreviewInputProps } = useDropzone({
+		onDrop: onPreviewDrop,
+		multiple: false,
+		accept: { "image/png": [".png"], "image/jpeg": [".jpg", ".jpeg"], "image/gif": [".gif"], "image/webp": [".webp"] },
+		noClick: true,
+		onDragEnter: () => setIsPreviewDragActive(true),
+		onDragLeave: () => setIsPreviewDragActive(false),
+		onDropAccepted: () => setIsPreviewDragActive(false),
+		onDropRejected: () => setIsPreviewDragActive(false),
+	});
 	function renameMod(path: string, newPath: string) {
 		changeModName(path, newPath)
 			.then((newPath) => {
@@ -414,7 +439,8 @@ function RightLocal() {
 							"---"
 						)}
 					</div>
-					<SidebarGroup className="min-h-48 max-h-48 overflow-hidden w-82 mt-1 data-zzz:rounded-[0.0625rem] border rounded-lg data-zzz:rounded-tr-2xl data-zzz:rounded-bl-2xl select-nzone">
+					<SidebarGroup {...getPreviewRootProps()} className={`min-h-48 max-h-48 overflow-hidden w-82 mt-1 data-zzz:rounded-[0.0625rem] border rounded-lg data-zzz:rounded-tr-2xl data-zzz:rounded-bl-2xl select-nzone relative ${isPreviewDragActive ? "border-accent" : ""}`}>
+						<input {...getPreviewInputProps()} />
 						{/* <EditIcon
 							onClick={() => {
 								item && savePreviewImage(item.path);
@@ -465,6 +491,11 @@ function RightLocal() {
 								>
 									Edit Preview Image
 								</Button>
+							</div>
+						)}
+						{isPreviewDragActive && item?.path && (
+							<div className="absolute inset-0 z-20 flex items-center justify-center border-2 border-dashed border-accent bg-background/70 text-sm text-accent pointer-events-none">
+								Drop image to set preview
 							</div>
 						)}
 					</SidebarGroup>

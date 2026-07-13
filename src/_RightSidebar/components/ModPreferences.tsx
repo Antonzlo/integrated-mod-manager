@@ -558,7 +558,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 											const val = e.currentTarget.value;
 											queueDataChange("pref", dataFile, keyConfig.target, val, keyConfig.pref);
 										}}
-										placeholder={keyConfig.state ?? "None"}
+										placeholder={keyConfig.state ? `${textData._RightSideBar._components._ModPreferences.AutoSaved} ${keyConfig.state}` : "None"}
 									/>
 
 									<Button

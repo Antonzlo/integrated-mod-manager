@@ -37,6 +37,15 @@ import ToastProvider from "./_Toaster/ToastProvider";
 import Progress from "./_Progress/Progress";
 import { Mod, ModData } from "./utils/types";
 import Optimizing from "./_Optimizing/Optimizing";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogTitle,
+} from "./components/ui/alert-dialog";
 import { OPTIMIZE_TARGET } from "./utils/consts";
 // import { Button } from "./components/ui/button";
 const animateProps = {
@@ -45,6 +54,14 @@ const animateProps = {
 	exit: { opacity: 0, filter: "blur(6px)" },
 };
 function App() {
+	const [switchConfirm, setSwitchConfirm] = useState<{ message: string; resolve: (value: boolean) => void } | null>(
+		null
+	);
+	useEffect(() => {
+		const handler = (event: Event) => setSwitchConfirm((event as CustomEvent).detail);
+		window.addEventListener("download-switch-confirm", handler);
+		return () => window.removeEventListener("download-switch-confirm", handler);
+	}, []);
 	const initDone = useAtomValue(INIT_DONE);
 	const lang = useAtomValue(LANG);
 	const err = useAtomValue(ERR);
@@ -264,6 +281,34 @@ function App() {
 				{isOptimizing && <Optimizing setIsOptimizing={setIsOptimizing} animateProps={animateProps} />}
 			</AnimatePresence>
 			<ToastProvider />
+			<AlertDialog
+				open={!!switchConfirm}
+				onOpenChange={(open) => {
+					if (!open && switchConfirm) {
+						switchConfirm.resolve(false);
+						setSwitchConfirm(null);
+					}
+				}}
+			>
+				<AlertDialogContent>
+					<AlertDialogTitle>Cancel Downloads?</AlertDialogTitle>
+					<AlertDialogDescription className="whitespace-pre-line">{switchConfirm?.message}</AlertDialogDescription>
+					<AlertDialogFooter className="sm:flex-row sm:justify-evenly w-full">
+						<AlertDialogCancel
+						variant="warn"
+						>Keep Downloading</AlertDialogCancel>
+						<AlertDialogAction
+							variant="destructive"
+							onClick={() => {
+								switchConfirm?.resolve(true);
+								setSwitchConfirm(null);
+							}}
+						>
+							Cancel Downloads
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</div>
 	);
 }
