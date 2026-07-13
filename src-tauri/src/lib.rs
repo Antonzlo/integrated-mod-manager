@@ -285,6 +285,8 @@ async fn decompress_file(
             file_path,
             &format!("-o{}", save_path),
             "-y",
+            // Never allow 7-Zip to wait for an interactive password prompt.
+            "-p-",
         ])
         .output()
         .await
@@ -293,12 +295,20 @@ async fn decompress_file(
     if output.status.success() {
         Ok(())
     } else {
-        let err = String::from_utf8_lossy(&output.stderr);
-        Err(if err.is_empty() {
-            String::from_utf8_lossy(&output.stdout).to_string()
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let details = format!("{}\n{}", stderr, stdout).to_lowercase();
+        if details.contains("password")
+            || details.contains("enter password")
+            || details.contains("wrong password")
+            || details.contains("encrypted")
+            || details.contains("can not open encrypted archive")
+            || details.contains("cannot open encrypted archive")
+        {
+            Err("Failure: Password protected archive".to_string())
         } else {
-            err.to_string()
-        })
+            Err(if stderr.trim().is_empty() { stdout.to_string() } else { stderr.to_string() })
+        }
     }
 }
 

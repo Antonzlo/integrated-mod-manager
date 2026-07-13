@@ -51,9 +51,10 @@ function Credits() {
 						<div className="text-xl mb-6">YourBadLuck</div>
 
 						<div className="text-3xl font-bold textaccent text-accent mb-2">CONTRIBUTORS</div>
-						<div className="text-xl mb-2">Antonzlo (Dev,TL-ru)</div>
-						<div className="text-xl mb-2">118ununoctium (TL-cn)</div>
-						<div className="text-xl mb-8">EgoMaw (Dev)</div>
+						<div className="text-xl mb-2">Antonzlo ( Dev(Win, Linux), TL-ru )</div>
+						<div className="text-xl mb-2">118ununoctium ( TL-cn )</div>
+						<div className="text-xl mb-8">EgoMaw ( Dev(Win) )</div>
+						<div className="text-xl mb-8">EvilNick2 ( Dev(Linux) )</div>
 
 						<div className="text-3xl font-bold textaccent text-accent mb-2">EMERGENCY FOOD</div>
 						<div className="text-xl mb-8">Paimon (allegedly)</div>
