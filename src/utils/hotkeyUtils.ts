@@ -264,6 +264,9 @@ const vkReplacements = {
 
 export function vkToDisplay(vkString: string): string {
 	if (!vkString.trim()) return "";
+	if (vkString.toUpperCase() == "D I S A B L E") {
+		return "DISABLED";
+	}
 
 	return vkString
 		.split(/\s+/)
@@ -287,7 +290,8 @@ export function vkToDisplay(vkString: string): string {
 
 export function encodeToVK(displayString: string): string {
 	if (!displayString.trim()) return "";
-
+	if (displayString === "DISABLED")
+		return "D I S A B L E";
 	const inverseVkReplacements = {
 		ctrl: "VK_CONTROL",
 		alt: "VK_MENU",

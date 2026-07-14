@@ -1513,12 +1513,10 @@ export async function validateModDownload(path: string, skip = false, addModSrc 
 		if (!skip) {
 			const list = store.get(MOD_LIST);
 			const relPath = path.split(new RegExp(managedSRC.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "[/\\\\]"))[1];
-			info("[IMM] Validating mod download for path:", relPath);
-			const ele = list.find((mod) => mod.path === relPath);
-			if (ele) {
-				const keys = ele.keys || [];
+			info("[IMM] Validating mod download for path:", relPath)
+			const keys = JSON.parse(sessionStorage.getItem("modData_" + relPath) || "[]") as any[];
+			if (keys) {
 				const files = {} as Record<string, Record<string, { def?: string, hk?:string }>>;
-				console.log(ele);
 				for (const hk of keys) {
 					if (hk.default) {
 						if (!files[hk.file]) files[hk.file] = {};
@@ -1526,6 +1524,14 @@ export async function validateModDownload(path: string, skip = false, addModSrc 
 							def: hk.default,
 						};
 					}
+					if (hk.key) {
+						if (!files[hk.file]) files[hk.file] = {};
+						files[hk.file][hk.target] = {
+							...files[hk.file][hk.target],
+							hk: hk.key,
+						};
+					}
+
 				}
 				const promises = [] as Promise<any>[];
 				Object.keys(files).forEach((file) => {
@@ -1540,6 +1546,7 @@ export async function validateModDownload(path: string, skip = false, addModSrc 
 			const total = completed + downloads.queue.length;
 			addToast({ type: "success", message: `${textData._Toasts.DownloadComplete} (${completed}/${total})` });
 		}
+		
 	} catch (err) {
 		if (!skip) addToast({ type: "error", message: textData._Toasts.ErrDownload });
 		error("[IMM] Error validating mod download:", err);

@@ -2,6 +2,12 @@ import { Button } from "@/components/ui/button";
 import { DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { openFile, saveConfigs, toggleMod, updateIniVars } from "@/utils/filesys";
 import { join, setChange } from "@/utils/hotreload";
 import { ModHotKeys } from "@/utils/types";
@@ -16,6 +22,8 @@ import {
 	FileIcon,
 	InfoIcon,
 	IterationCcwIcon,
+	MoreVerticalIcon,
+	BanIcon,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { info } from "@/lib/logger";
@@ -130,6 +138,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		await toggleMod(path, true, true);
 		setChange();
 	}
+
 	const queueDataChange = useCallback(
 		(type: QueuedDataChange["type"], file: string, target: string, value: any, original: any) => {
 			console.log("queueDataChange", type, file, target, value, original);
@@ -285,7 +294,22 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 			</TooltipContent>
 		</Tooltip>,
 	];
-	console.log(dataChanges, iniChanges);
+	const hotKeyBlur = useCallback(
+		(file: string, target: string, val: string, comp: string, reset: string) => {
+			queueIniChange("hk", file, target, val, comp);
+			// console.log("val", val, "comp", comp, "keyConfig.keyReset", keyConfig.keyReset);
+			if (val === reset) {
+				queueDataChange("keyReset", file, target, null, reset);
+			} else if (val == comp || (!val && !comp)) {
+				queueDataChange("keyReset", file, target, reset, reset);
+			} else if (reset === null || reset === undefined) {
+				queueDataChange("keyReset", file, target, comp, null);
+			} else {
+				queueDataChange("keyReset", file, target, reset, reset);
+			}
+		},
+		[queueDataChange, queueIniChange]
+	);
 	return (
 		<DialogContent
 			className="min-w-250"
@@ -613,106 +637,122 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 										</Button>
 									</div>,
 									<div className="text-muted-foreground flex items-center justify-center w-full">
-										{(keyConfig.values.toSorted().join(" , ") || "unknown").replace(
+										{keyConfig.key?(keyConfig.values.toSorted().join(" , ") || "unknown").replace(
 											"unknown",
 											textData._RightSideBar._components._ModPreferences.Unknown
-										)}
+										):"---"}
 									</div>,
 									<div className="w-full flex items-center">
-										<Input
-											className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
-											style={{
-												textAlign: isNaN(Number(keyConfig.pref ?? keyConfig.default)) ? "left" : "right",
-												paddingRight: keyDefault ? "" : "2rem",
-											}}
-											defaultValue={vkToDisplay(displayKey)}
-											key={displayKey}
-											autoFocus={false}
-											contentEditable={false}
-											onKeyDownCapture={(e) => {
-												e.stopPropagation();
-												e.preventDefault();
-												let next: any = [];
-												let key = formatKeysToDisplay(e.code)
-													.split("")
-													.map((x, i) => (i == 0 ? x.toUpperCase() : x))
-													.join("");
-												if (keyslist.includes(key)) {
-													next = keyslist;
-												} else {
-													if (!keysdown.includes(e.code)) keysdown.push(e.code);
-													keyslist.push(key);
-													next = sortHotkeys(keyslist);
-												}
-												e.currentTarget.value = next.join(" ﹢ ");
-												// }
-											}}
-											onKeyUpCapture={(e) => {
-												e.stopPropagation();
-												e.preventDefault();
-												let key = e.code;
-												let keyIndex = keysdown.indexOf(key);
-												if (keyIndex > -1) keysdown.splice(keyIndex, 1);
-												if (keysdown.length == 0) {
-													keyslist = [];
-													// console.log(encodeToVK(e.currentTarget.value));
-													e.currentTarget.blur();
-												}
-											}}
-											onBlur={(e) => {
-												keysdown = [];
-												keyslist = [];
-												const val = encodeToVK(e.currentTarget.value);
-												const comp = encodeToVK(vkToDisplay(keyConfig.key));
-												queueIniChange("hk", keyConfig.file, keyConfig.target, val, comp);
-												// console.log("val", val, "comp", comp, "keyConfig.keyReset", keyConfig.keyReset);
-												if (val === keyConfig.keyReset) {
-													queueDataChange("keyReset", keyConfig.file, keyConfig.target, null, keyConfig.keyReset);
-												}
-												else if (val == comp || (!val && !comp)) {
-													queueDataChange(
-														"keyReset",
-														keyConfig.file,
-														keyConfig.target,
-														keyConfig.keyReset,
-														keyConfig.keyReset
-													);
-												} else if (keyConfig.keyReset === null || keyConfig.keyReset === undefined) {
-													queueDataChange("keyReset", keyConfig.file, keyConfig.target, comp, null);
-												} else {
-													queueDataChange(
-														"keyReset",
-														keyConfig.file,
-														keyConfig.target,
-														keyConfig.keyReset,
-														keyConfig.keyReset
-													);
-												}
-											}}
-											placeholder={"None"}
-										/>
+										{keyConfig.key ? (
+											<>
+												<Input
+													id={`mod-hotkey-${encodeURIComponent(`${keyConfig.file}-${keyConfig.target}`)}`}
+													className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
+													style={{
+														textAlign: isNaN(Number(keyConfig.pref ?? keyConfig.default)) ? "left" : "right",
+														paddingRight: "2rem",
+													}}
+													defaultValue={vkToDisplay(displayKey)}
+													key={displayKey}
+													autoFocus={false}
+													contentEditable={false}
+													onKeyDownCapture={(e) => {
+														e.stopPropagation();
+														e.preventDefault();
+														let next: any = [];
+														let key = formatKeysToDisplay(e.code)
+															.split("")
+															.map((x, i) => (i == 0 ? x.toUpperCase() : x))
+															.join("");
+														if (keyslist.includes(key)) {
+															next = keyslist;
+														} else {
+															if (!keysdown.includes(e.code)) keysdown.push(e.code);
+															keyslist.push(key);
+															next = sortHotkeys(keyslist);
+														}
+														e.currentTarget.value = next.join(" ﹢ ");
+														// }
+													}}
+													onKeyUpCapture={(e) => {
+														e.stopPropagation();
+														e.preventDefault();
+														let key = e.code;
+														let keyIndex = keysdown.indexOf(key);
+														if (keyIndex > -1) keysdown.splice(keyIndex, 1);
+														if (keysdown.length == 0) {
+															keyslist = [];
+															// console.log(encodeToVK(e.currentTarget.value));
+															e.currentTarget.blur();
+														}
+													}}
+													onBlur={(e) => {
+														keysdown = [];
+														keyslist = [];
+														const val = encodeToVK(e.currentTarget.value);
+														const comp = encodeToVK(vkToDisplay(keyConfig.key));
+														hotKeyBlur(keyConfig.file, keyConfig.target, val, comp, keyConfig.keyReset);
+													}}
+													placeholder={"None"}
+												/>
 
-										<Button
-											variant="ghost"
-											className=" h-7 w-7 ml-0.75"
-											style={{
-												pointerEvents: keyDefault ? "none" : "auto",
-												opacity: keyDefault ? 0 : 1,
-											}}
-											onClick={(e) => {
-												const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
-												if (prev) {
-													prev.focus();
-													prev.value =
-														(keyConfig.keyReset ?? keyConfig.key)
-															? vkToDisplay(keyConfig.keyReset ?? keyConfig.key)
-															: "";
-													prev.blur();
-												}
-											}}
-										>
-											<IterationCcwIcon className="max-h-4 rotate-180" />
-										</Button>
+												<DropdownMenu>
+													<DropdownMenuTrigger asChild>
+														<Button variant="ghost" className="h-7 w-7 ml-0.75" aria-label="Hotkey options">
+															<MoreVerticalIcon className="max-h-4" />
+														</Button>
+													</DropdownMenuTrigger>
+													<DropdownMenuContent align="end" className="min-w-32">
+														<DropdownMenuItem
+															disabled={keyDefault}
+															onSelect={() => {
+																const input = document.getElementById(
+																	`mod-hotkey-${encodeURIComponent(`${keyConfig.file}-${keyConfig.target}`)}`
+																) as HTMLInputElement | null;
+																console.log("input", input);
+																if (!input) return;
+																input.value =
+																	(keyConfig.keyReset ?? keyConfig.key)
+																		? vkToDisplay(keyConfig.keyReset ?? keyConfig.key)
+																		: "";
+																hotKeyBlur(
+																	keyConfig.file,
+																	keyConfig.target,
+																	encodeToVK(input.value),
+																	encodeToVK(vkToDisplay(keyConfig.key)),
+																	keyConfig.keyReset
+																);
+															}}
+														>
+															<IterationCcwIcon className="rotate-180" />
+															Reset
+														</DropdownMenuItem>
+														<DropdownMenuItem
+															disabled={!displayKey}
+															onSelect={() => {
+																const input = document.getElementById(
+																	`mod-hotkey-${encodeURIComponent(`${keyConfig.file}-${keyConfig.target}`)}`
+																) as HTMLInputElement | null;
+																if (!input) return;
+																input.value = vkToDisplay("D I S A B L E");
+																hotKeyBlur(
+																	keyConfig.file,
+																	keyConfig.target,
+																	encodeToVK(input.value),
+																	encodeToVK(vkToDisplay(keyConfig.key)),
+																	keyConfig.keyReset
+																);
+															}}
+														>
+															<BanIcon />
+															Disable
+														</DropdownMenuItem>
+													</DropdownMenuContent>
+												</DropdownMenu>
+											</>
+										) : (
+											<div className="w-full text-center">---</div>
+										)}
 									</div>,
 								];
 								return (
