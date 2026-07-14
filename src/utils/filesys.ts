@@ -925,7 +925,14 @@ export async function applyChanges(isMigration = false) {
 		throw err;
 	}
 }
-async function readDirRecr(root: string, path: string, maxDepth = 2, depth = 0, cached = false, backupMode = false): Promise<Mod[]> {
+async function readDirRecr(
+	root: string,
+	path: string,
+	maxDepth = 2,
+	depth = 0,
+	cached = false,
+	backupMode = false
+): Promise<Mod[]> {
 	if (depth > maxDepth) return [];
 	let entries: DirEntry[] = [];
 	try {
@@ -937,7 +944,8 @@ async function readDirRecr(root: string, path: string, maxDepth = 2, depth = 0, 
 	const filePromises = entries.map(async (entry) => {
 		if ((entry.name == RESTORE || entry.name == IGNORE || entry.name == PREFS) && cached && depth == 0) return null;
 		let children: Mod[] = [];
-		if (entry.isDirectory && (!backupMode || entry.name!== INI_BACKUP && !entry.name.startsWith(".imm"))) children = await readDirRecr(root, join(path, entry.name), maxDepth, depth + 1, cached, backupMode);
+		if (entry.isDirectory && (!backupMode || (entry.name !== INI_BACKUP && !entry.name.startsWith(".imm"))))
+			children = await readDirRecr(root, join(path, entry.name), maxDepth, depth + 1, cached, backupMode);
 		return {
 			isDir: entry.isDirectory,
 			name: entry.name,
@@ -1091,7 +1099,8 @@ async function detectHotkeys(
 						let ln = line
 							.trim()
 							.replaceAll(/[\r\n]+/g, "")
-							.replaceAll(" ", "");
+							.replaceAll(" ", "")
+							.toLowerCase();
 						if (ln.startsWith("[") && ln.endsWith("]")) {
 							section = ln.slice(1, -1).toLowerCase();
 						}
@@ -1133,21 +1142,7 @@ async function detectHotkeys(
 							hashes.add(val);
 						}
 						if (counter === 0 && ln.startsWith("key=")) {
-							key =
-								line
-									.split("=")[1]
-									?.trim()
-									// .split(" ")
-									// .map((k) => {
-									// 	k = k.toLowerCase();
-									// 	if (k.startsWith("no_")) k = "";
-									// 	else {
-									// 		k = k.replace("vk_", "");
-									// 	}
-									// 	return k.trim();
-									// })
-									// .filter((k) => k)
-									// .join("+") || "";
+							key = line.split("=")[1]?.trim();
 							counter++;
 						} else if (counter === 1 && ln.startsWith("type=")) {
 							type = line.split("=")[1]?.trim() || "";
@@ -1471,7 +1466,7 @@ export async function createModDownloadDir(cat: string, dir: string) {
 	}
 }
 export async function validateModDownload(path: string, skip = false, addModSrc = false) {
-	if(addModSrc && !path.startsWith(join(src, managedSRC))) {
+	if (addModSrc && !path.startsWith(join(src, managedSRC))) {
 		path = join(src, managedSRC, path);
 	}
 	console.log("[IMM] Validating mod download for path:", path);
@@ -1522,10 +1517,15 @@ export async function validateModDownload(path: string, skip = false, addModSrc 
 			const ele = list.find((mod) => mod.path === relPath);
 			if (ele) {
 				const keys = ele.keys || [];
-				const files = {} as any;
+				const files = {} as Record<string, Record<string, { def?: string, hk?:string }>>;
+				console.log(ele);
 				for (const hk of keys) {
-					if (!files[hk.file]) files[hk.file] = {};
-					if (hk.default) files[hk.file][hk.target] = hk.default;
+					if (hk.default) {
+						if (!files[hk.file]) files[hk.file] = {};
+						files[hk.file][hk.target] = {
+							def: hk.default,
+						};
+					}
 				}
 				const promises = [] as Promise<any>[];
 				Object.keys(files).forEach((file) => {
@@ -1730,9 +1730,10 @@ async function updatePrefsIniFromData(modPath: string, oldPath = "") {
 		);
 	}
 }
-export async function updateIniVars(relPath: string, keyVals: Record<string, string>) {
+
+export async function updateIniVars(relPath: string, keyVals: Record<string, { def?: string; hk?: string }>) {
 	const path = join(modRoot, relPath);
-	console.log("Updating ini vars for:", relPath, "at", path, "with keyVals:", keyVals);
+	console.log("Updating ini vars for:", relPath, "at", path, "with keyVals:", JSON.parse(JSON.stringify(keyVals)));
 	const [category, modName, ...rest] = relPath.split("\\");
 	const backupPath = join(modRoot, category, modName, INI_BACKUP, "default", ...rest);
 	if (!(await exists(backupPath))) {
@@ -1743,22 +1744,41 @@ export async function updateIniVars(relPath: string, keyVals: Record<string, str
 	const lines = file.split("\n");
 	try {
 		let section = "";
+		let keyLine = -1;
+		let counter = 0;
 		for (let i = 0; i < lines.length; i++) {
 			let ln = lines[i]
 				.trim()
 				.replaceAll(/[\r\n]+/g, "")
-				.replaceAll(" ", "");
+				.replaceAll(" ", "")
+				.toLowerCase();
 			if (ln.startsWith("[") && ln.endsWith("]")) {
 				section = ln.slice(1, -1).toLowerCase();
 			}
 			if (section === "constants" && ln.includes("$") && ln.includes("=")) {
 				const modKey = ln.split("$")[1].split("=")[0].trim().toLowerCase();
-				if (keyVals.hasOwnProperty(modKey)) {
-					lines[i] = `${lines[i].split("=")[0]}= ${keyVals[modKey]}`;
+				if (keyVals.hasOwnProperty(modKey) && keyVals[modKey].hasOwnProperty("def")) {
+					lines[i] = `${lines[i].split("=")[0]}= ${keyVals[modKey].def}`;
 					info(`[IMM] Updating Mod: ${path} | Line${i}: ${lines[i]}`);
 				}
-				delete keyVals[modKey];
 				if (Object.keys(keyVals).length === 0) break;
+			}
+			if (section !== "constants") {
+				if (counter === 0 && ln.startsWith("key=")) {
+					keyLine = i;
+					console.log("yo")
+					counter++;
+				} else if (counter === 1 && ln.startsWith("type=")) {
+					counter++;
+				} else if (counter === 2 && ln.startsWith("$")) {
+					let [target] = ln.split("=").map((part) => part.trim());
+					target = target?.slice(1) || "";
+					counter = 0;
+
+					if (keyVals.hasOwnProperty(target) && keyVals[target].hasOwnProperty("hk")) {
+						lines[keyLine] = `key = ${keyVals[target].hk}`;
+					}
+				}
 			}
 		}
 	} catch {

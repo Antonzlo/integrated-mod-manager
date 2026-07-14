@@ -29,7 +29,7 @@ let prevItemPath = "";
 const pageLimit = 20;
 let lastKeyList: string = "";
 type QueuedDataChange = {
-	type: "pref" | "reset" | "name";
+	type: "pref" | "reset" | "name" | "keyReset";
 	file: string;
 	target: string;
 	value: any;
@@ -37,7 +37,10 @@ type QueuedDataChange = {
 type QueuedIniChange = {
 	file: string;
 	target: string;
-	value: string;
+	value: {
+		def?: string;
+		hk?: string;
+	};
 };
 let keyslist = [] as any[];
 let keysdown = [] as any[];
@@ -129,6 +132,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 	}
 	const queueDataChange = useCallback(
 		(type: QueuedDataChange["type"], file: string, target: string, value: any, original: any) => {
+			console.log("queueDataChange", type, file, target, value, original);
 			setDataChanges((prev) => {
 				const next = { ...prev };
 				const key = dataChangeKey(type, file, target);
@@ -139,22 +143,26 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		},
 		[]
 	);
-	const queueIniChange = useCallback((file: string, target: string, value: string, original: string) => {
-		setIniChanges((prev) => {
-			const next = { ...prev };
-			const key = iniChangeKey(file, target);
-			if (value == original || (!value && !original)) delete next[key];
-			else next[key] = { file, target, value };
-			return next;
-		});
-	}, []);
+	const queueIniChange = useCallback(
+		(type: "def" | "hk", file: string, target: string, value: string, original: string) => {
+			setIniChanges((prev) => {
+				const next = { ...prev };
+				const key = iniChangeKey(file, target);
+				if (value == original || (!value && !original)) delete next[key];
+				else next[key] = { file, target, value: { ...(next[key]?.value || {}), [type]: value } };
+				return next;
+			});
+		},
+		[]
+	);
 	const getDataValue = useCallback(
 		(type: QueuedDataChange["type"], file: string, target: string, original: any) =>
 			dataChanges[dataChangeKey(type, file, target)]?.value ?? original,
 		[dataChanges]
 	);
 	const getIniValue = useCallback(
-		(file: string, target: string, original: string) => iniChanges[iniChangeKey(file, target)]?.value ?? original,
+		(type: "def" | "hk", file: string, target: string, original: string) =>
+			iniChanges[iniChangeKey(file, target)]?.value[type] ?? original,
 		[iniChanges]
 	);
 	const applyQueuedChanges = useCallback(async () => {
@@ -195,7 +203,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 					acc[change.file][change.target.toLowerCase()] = change.value;
 					return acc;
 				},
-				{} as Record<string, Record<string, string>>
+				{} as Record<string, Record<string, { def?: string; hk?: string }>>
 			);
 			const iniResults = await Promise.all(
 				Object.keys(iniByFile).map((file) => {
@@ -277,6 +285,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 			</TooltipContent>
 		</Tooltip>,
 	];
+	console.log(dataChanges, iniChanges);
 	return (
 		<DialogContent
 			className="min-w-250"
@@ -503,13 +512,20 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 								{file.file}
 							</div>
 							{file.keys.map((keyConfig: any, index: number) => {
-								const displayDefault = getIniValue(keyConfig.file, keyConfig.target, keyConfig.default);
 								const dataFile = keyConfig.namespace || keyConfig.file;
+
+								const displayDefault = getIniValue("def", keyConfig.file, keyConfig.target, keyConfig.default);
 								const displayName = getDataValue("name", keyConfig.file, keyConfig.target, keyConfig.name);
 								const displayPref = getDataValue("pref", dataFile, keyConfig.target, keyConfig.pref);
+								const displayKey = getIniValue("hk", keyConfig.file, keyConfig.target, keyConfig.key);
+								const displayDefaultReset = getDataValue("reset", keyConfig.file, keyConfig.target, keyConfig.reset);
+								const displayKeyReset = getDataValue("keyReset", keyConfig.file, keyConfig.target, keyConfig.keyReset);
+
 								const nameDefault = displayName == keyConfig.target;
-								const defDefault = keyConfig.reset === null || keyConfig.reset === undefined;
 								const prefDefault = displayPref === null || displayPref === undefined || displayPref === "";
+								const defDefault = displayDefaultReset === null || displayDefaultReset === undefined;
+								const keyDefault = displayKeyReset === null || displayKeyReset === undefined || displayKeyReset === "";
+								console.log("keydef", keyConfig);
 								const elements = [
 									<div className="w-full flex items-center">
 										<Input
@@ -526,7 +542,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 													e.currentTarget.value = displayDefault;
 													return;
 												}
-												queueIniChange(keyConfig.file, keyConfig.target, val, keyConfig.default);
+												queueIniChange("def", keyConfig.file, keyConfig.target, val, keyConfig.default);
 												if (val == keyConfig.default || (!val && !keyConfig.default)) {
 													queueDataChange("reset", keyConfig.file, keyConfig.target, keyConfig.reset, keyConfig.reset);
 												} else if (keyConfig.reset === null || keyConfig.reset === undefined) {
@@ -549,7 +565,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 												const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
 												if (prev) {
 													prev.focus();
-													prev.value = keyConfig.reset;
+													prev.value = keyConfig.reset ?? keyConfig.default;
 													prev.blur();
 												}
 											}}
@@ -607,28 +623,15 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 											className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
 											style={{
 												textAlign: isNaN(Number(keyConfig.pref ?? keyConfig.default)) ? "left" : "right",
-												paddingRight: prefDefault ? "" : "2rem",
+												paddingRight: keyDefault ? "" : "2rem",
 											}}
-											defaultValue={vkToDisplay(keyConfig.key)}
-											// onBlur={(e) => {
-											// 	const val = e.currentTarget.value;
-											// 	if (val == keyConfig.key || (!val && !keyConfig.key)) {
-											// 		return;
-											// 	}
-											// }}
+											defaultValue={vkToDisplay(displayKey)}
+											key={displayKey}
 											autoFocus={false}
 											contentEditable={false}
 											onKeyDownCapture={(e) => {
 												e.stopPropagation();
 												e.preventDefault();
-												// if (e.code == "Backspace") {
-												// 	e.currentTarget.value = "";
-												// 	// saveConfigs();
-												// } else if (e.code == "Escape") {
-												// 	e.currentTarget.value = formatHotkeyDisplay(preset?.hotkey || "");
-												// 	keysdown = [];
-												// 	keys = [];
-												// } else {
 												let next: any = [];
 												let key = formatKeysToDisplay(e.code)
 													.split("")
@@ -652,39 +655,58 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 												if (keyIndex > -1) keysdown.splice(keyIndex, 1);
 												if (keysdown.length == 0) {
 													keyslist = [];
-													console.log(encodeToVK(e.currentTarget.value));
+													// console.log(encodeToVK(e.currentTarget.value));
 													e.currentTarget.blur();
 												}
 											}}
 											onBlur={(e) => {
 												keysdown = [];
 												keyslist = [];
-												// setPresets((prev) => {
-												// 	prev[index].hotkey = encodeHotkeyForStorage(e.currentTarget.value);
-												// 	return [...prev];
-												// });
-												// saveConfigs();
+												const val = encodeToVK(e.currentTarget.value);
+												const comp = encodeToVK(vkToDisplay(keyConfig.key));
+												queueIniChange("hk", keyConfig.file, keyConfig.target, val, comp);
+												// console.log("val", val, "comp", comp, "keyConfig.keyReset", keyConfig.keyReset);
+												if (val === keyConfig.keyReset) {
+													queueDataChange("keyReset", keyConfig.file, keyConfig.target, null, keyConfig.keyReset);
+												}
+												else if (val == comp || (!val && !comp)) {
+													queueDataChange(
+														"keyReset",
+														keyConfig.file,
+														keyConfig.target,
+														keyConfig.keyReset,
+														keyConfig.keyReset
+													);
+												} else if (keyConfig.keyReset === null || keyConfig.keyReset === undefined) {
+													queueDataChange("keyReset", keyConfig.file, keyConfig.target, comp, null);
+												} else {
+													queueDataChange(
+														"keyReset",
+														keyConfig.file,
+														keyConfig.target,
+														keyConfig.keyReset,
+														keyConfig.keyReset
+													);
+												}
 											}}
-											placeholder={
-												"None"
-												// keyConfig.state
-												// 	? `${textData._RightSideBar._components._ModPreferences.AutoSaved} ${keyConfig.state}`
-												// 	: textData._RightSideBar._components._ModPreferences.Default
-											}
+											placeholder={"None"}
 										/>
 
 										<Button
 											variant="ghost"
 											className=" h-7 w-7 ml-0.75"
 											style={{
-												pointerEvents: prefDefault ? "none" : "auto",
-												opacity: prefDefault ? 0 : 1,
+												pointerEvents: keyDefault ? "none" : "auto",
+												opacity: keyDefault ? 0 : 1,
 											}}
 											onClick={(e) => {
 												const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
 												if (prev) {
 													prev.focus();
-													prev.value = "";
+													prev.value =
+														(keyConfig.keyReset ?? keyConfig.key)
+															? vkToDisplay(keyConfig.keyReset ?? keyConfig.key)
+															: "";
 													prev.blur();
 												}
 											}}

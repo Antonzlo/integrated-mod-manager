@@ -112,8 +112,7 @@ function RightLocal() {
 				} else {
 					throw new Error("Invalid game in URL or same as current game.");
 				}
-			}
-			else{
+			} else {
 				throw new Error("URL does not contain a game or mode parameter.");
 			}
 		},
@@ -199,10 +198,10 @@ function RightLocal() {
 	const [data, setData] = useAtom(DATA);
 	const [item, setItem] = useState<Mod | undefined>();
 
-		const [alertOpen, setAlertOpen] = useState(false);
-		const [popoverOpen, setPopoverOpen] = useState(false);
-		const [details, setDetails] = useState<any>({});
-		const detailsRequestRef = useRef(0);
+	const [alertOpen, setAlertOpen] = useState(false);
+	const [popoverOpen, setPopoverOpen] = useState(false);
+	const [details, setDetails] = useState<any>({});
+	const detailsRequestRef = useRef(0);
 	useEffect(() => {
 		if (!alertOpen) {
 			setDeleteItemData(null);
@@ -290,24 +289,20 @@ function RightLocal() {
 						files: mod.files || {},
 					});
 				}
-				getModDetails(mod.path,mod as any as ModDataObj).then((details) => {
+				getModDetails(mod.path, mod as any as ModDataObj).then((details) => {
 					if (detailsRequestRef.current !== requestId) return;
 					const modData = data[mod.path]?.vars;
 					if (modData) {
 						console.log("Mod data found for mod details:", modData, details);
 						const applyModData = (key: any) => {
 							const nextKey = { ...key };
-							if (nextKey.namespace && modData[nextKey.namespace] && modData[nextKey.namespace][nextKey.target]) {
-								nextKey.pref = modData[nextKey.namespace][nextKey.target].pref;
-								nextKey.reset = modData[nextKey.namespace][nextKey.target].reset;
-								nextKey.name = modData[nextKey.namespace][nextKey.target].name || nextKey.target;
-								nextKey.state = modData[nextKey.namespace][nextKey.target].state || null;
-							}
-							if (modData[nextKey.file] && modData[nextKey.file][nextKey.target]) {
-								nextKey.pref = modData[nextKey.file][nextKey.target].pref;
-								nextKey.reset = modData[nextKey.file][nextKey.target].reset;
-								nextKey.name = modData[nextKey.file][nextKey.target].name || nextKey.target;
-								nextKey.state = modData[nextKey.file][nextKey.target].state || null;
+							nextKey.ns = nextKey.namespace || nextKey.file;
+							if (modData[nextKey.ns] && modData[nextKey.ns][nextKey.target]) {
+								nextKey.pref = modData[nextKey.ns][nextKey.target].pref;
+								nextKey.reset = modData[nextKey.ns][nextKey.target].reset;
+								nextKey.name = modData[nextKey.ns][nextKey.target].name || nextKey.target;
+								nextKey.state = modData[nextKey.ns][nextKey.target].state || null;
+								nextKey.keyReset = modData[nextKey.ns][nextKey.target].keyReset || null;
 							}
 							return nextKey;
 						};
@@ -317,15 +312,12 @@ function RightLocal() {
 							files: Object.fromEntries(
 								Object.entries(details.files).map(([file, keys]) => [
 									file,
-									(keys as any[]).map((key: any) => applyModData({ ...key, file: key.file || file })),
+									(keys as any[]).map((key: any) => applyModData({ ...key, file: key.file || file })).sort((a: any, b: any) => a.target.localeCompare(b.target))
 								])
 							),
 						};
 					}
-					details.keys = details.keys
-						.map((key: any) => ({ ...key, key: formatKeysToDisplay(key.key) }))
-						.sort((a: any, b: any) => a.key.localeCompare(b.key));
-
+					details.keys = details.keys.sort((a: any, b: any) => a.target.localeCompare(b.target));
 					setDetails(details);
 					cachcedDetails[cacheKey] = details;
 				});
@@ -442,7 +434,10 @@ function RightLocal() {
 							"---"
 						)}
 					</div>
-					<SidebarGroup {...getPreviewRootProps()} className={`min-h-48 max-h-48 overflow-hidden w-82 mt-1 data-zzz:rounded-[0.0625rem] border rounded-lg data-zzz:rounded-tr-2xl data-zzz:rounded-bl-2xl select-nzone relative ${isPreviewDragActive ? "border-accent" : ""}`}>
+					<SidebarGroup
+						{...getPreviewRootProps()}
+						className={`min-h-48 max-h-48 overflow-hidden w-82 mt-1 data-zzz:rounded-[0.0625rem] border rounded-lg data-zzz:rounded-tr-2xl data-zzz:rounded-bl-2xl select-nzone relative ${isPreviewDragActive ? "border-accent" : ""}`}
+					>
 						<input {...getPreviewInputProps()} />
 						{/* <EditIcon
 							onClick={() => {
@@ -458,7 +453,6 @@ function RightLocal() {
 						></img>
 						<img
 							id="preview"
-							
 							className="w-82 h-48 -mb-48 backdrop-blur-md bg-background/50 object-contain peer"
 							onError={(e) => {
 								handleImageError(e);
@@ -474,7 +468,10 @@ function RightLocal() {
 							src={`${getImageUrl(item?.path || "")}?${lastUpdated}`}
 						></img>
 						{item?.path && (
-							<div key={lastUpdated} className="w-82 h-48 flex items-center justify-center text-xs text-accent backdrop-blur-sm bg-background/20 opacity-0 pointer-events-none peer-hover:opacity-100 hover:opacity-100 duration-300">
+							<div
+								key={lastUpdated}
+								className="w-82 h-48 flex items-center justify-center text-xs text-accent backdrop-blur-sm bg-background/20 opacity-0 pointer-events-none peer-hover:opacity-100 hover:opacity-100 duration-300"
+							>
 								<Button
 									className="pointer-events-auto"
 									onClick={async (e) => {
@@ -828,16 +825,18 @@ function RightLocal() {
 															</label>
 															|
 															<div className=" flex items-center w-2/3 gap-1">
-																{(vkToDisplay(hotkey.key as string)).split(" ﹢ ").map((key, i, arr) => (
-																	<span key={i} className="flex items-center">
-																		<kbd className="text-accent bg-sidebar border-border min-w-8 px-2 py-1 text-sm font-semibold text-center border rounded-md shadow-sm">
-																			{key}
-																		</kbd>
-																		{i < arr.length - 1 && (
-																			<span className="text-muted-foreground mx-1 text-xs">+</span>
-																		)}
-																	</span>
-																))}
+																{vkToDisplay(hotkey.key as string)
+																	.split(" ﹢ ")
+																	.map((key, i, arr) => (
+																		<span key={i} className="flex items-center">
+																			<kbd className="text-accent bg-sidebar border-border min-w-8 px-2 py-1 text-sm font-semibold text-center border rounded-md shadow-sm">
+																				{key}
+																			</kbd>
+																			{i < arr.length - 1 && (
+																				<span className="text-muted-foreground mx-1 text-xs">+</span>
+																			)}
+																		</span>
+																	))}
 															</div>
 														</div>
 													))}
