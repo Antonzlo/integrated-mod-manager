@@ -46,7 +46,7 @@ export const GAME_NAMES: { [key in Games]: string } = {
 	EF: "Endfield",
 };
 export const exts = ["png", "jpg", "jpeg", "webp", "gif"];
-export const PRIORITY_KEYS = ["Alt", "Ctrl", "Shift", "Capslock", "Tab", "Up", "Down", "Left", "Right"] as const;
+export const PRIORITY_KEYS = ["Alt", "Ctrl", "Shift", "Win", "Capslock", "Tab", "Up", "Down", "Left", "Right"] as const;
 export const LANG_LIST: { Name: string; Flag: string; Code: Language }[] = [
 	{
 		Name: TEXT.en.Current,

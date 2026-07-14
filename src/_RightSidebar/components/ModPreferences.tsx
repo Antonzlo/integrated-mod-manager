@@ -24,6 +24,7 @@ import { PopoverTrigger } from "@radix-ui/react-popover";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Toggle } from "@/components/ui/toggle";
 import JSONEditor from "@/_Main/components/JSONEditor";
+import { encodeToVK, formatKeysToDisplay, sortHotkeys, vkToDisplay } from "@/utils/hotkeyUtils";
 let prevItemPath = "";
 const pageLimit = 20;
 let lastKeyList: string = "";
@@ -38,6 +39,8 @@ type QueuedIniChange = {
 	target: string;
 	value: string;
 };
+let keyslist = [] as any[];
+let keysdown = [] as any[];
 const dataChangeKey = (type: QueuedDataChange["type"], file: string, target: string) => `${type}|${file}|${target}`;
 const iniChangeKey = (file: string, target: string) => `${file}|${target}`;
 const textData2 = {
@@ -136,18 +139,15 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		},
 		[]
 	);
-	const queueIniChange = useCallback(
-		(file: string, target: string, value: string, original: string) => {
-			setIniChanges((prev) => {
-				const next = { ...prev };
-				const key = iniChangeKey(file, target);
-				if (value == original || (!value && !original)) delete next[key];
-				else next[key] = { file, target, value };
-				return next;
-			});
-		},
-		[]
-	);
+	const queueIniChange = useCallback((file: string, target: string, value: string, original: string) => {
+		setIniChanges((prev) => {
+			const next = { ...prev };
+			const key = iniChangeKey(file, target);
+			if (value == original || (!value && !original)) delete next[key];
+			else next[key] = { file, target, value };
+			return next;
+		});
+	}, []);
 	const getDataValue = useCallback(
 		(type: QueuedDataChange["type"], file: string, target: string, original: any) =>
 			dataChanges[dataChangeKey(type, file, target)]?.value ?? original,
@@ -189,11 +189,14 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 				});
 			}
 
-			const iniByFile = queuedIniChanges.reduce((acc, change) => {
-				if (!acc[change.file]) acc[change.file] = {};
-				acc[change.file][change.target.toLowerCase()] = change.value;
-				return acc;
-			}, {} as Record<string, Record<string, string>>);
+			const iniByFile = queuedIniChanges.reduce(
+				(acc, change) => {
+					if (!acc[change.file]) acc[change.file] = {};
+					acc[change.file][change.target.toLowerCase()] = change.value;
+					return acc;
+				},
+				{} as Record<string, Record<string, string>>
+			);
 			const iniResults = await Promise.all(
 				Object.keys(iniByFile).map((file) => {
 					info("Updating ini", {
@@ -213,8 +216,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 							...mod,
 							keys: mod.keys.map((k: any) => {
 								const change = queuedIniChanges.find(
-									(queued) =>
-										updatedFiles.has(queued.file) && queued.file === k.file && queued.target === k.target
+									(queued) => updatedFiles.has(queued.file) && queued.file === k.file && queued.target === k.target
 								);
 								return change ? { ...k, default: change.value } : k;
 							}),
@@ -276,14 +278,20 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		</Tooltip>,
 	];
 	return (
-		<DialogContent className="min-w-250">
+		<DialogContent
+			className="min-w-250"
+			onEscapeKeyDown={(e) => {
+				if ((e.target as HTMLElement).tagName === "INPUT") {
+					e.preventDefault();
+				}
+			}}
+		>
 			<Tooltip>
 				<TooltipTrigger></TooltipTrigger>
 				<TooltipContent className="opacity-0"></TooltipContent>
 			</Tooltip>
 
-			<div className="min-h-fit my-6 text-accent text-3xl"
-			>
+			<div className="min-h-fit my-6 text-accent text-3xl">
 				{" "}
 				{textData._RightSideBar._components._ModPreferences.EditConfig}
 			</div>
@@ -434,7 +442,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 				</div>
 			</div>
 			<div
-			style={{
+				style={{
 					opacity: !configMode ? 1 : 0,
 					pointerEvents: !configMode ? "auto" : "none",
 					userSelect: !configMode ? "auto" : "none",
@@ -442,7 +450,8 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 					marginBottom: !configMode ? 0 : "-1.5rem",
 					marginTop: !configMode ? 0 : "-1.5rem",
 				}}
-			className="bg-background/80 button-like text-border duration-200 backdrop-blur-sm border-muted/20 sticky top-0 z-10 w-full px-10 items-center py-2 border rounded-md">
+				className="bg-background/80 button-like text-border duration-200 backdrop-blur-sm border-muted/20 sticky top-0 z-10 w-full px-10 items-center py-2 border rounded-md"
+			>
 				<div
 					className="text-border grid w-full -ml-2"
 					style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
@@ -463,220 +472,277 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 			<label className="text-xs text-accent/50 -my-3">
 				{textData._RightSideBar._components._ModPreferences.Priority}
 			</label>
-			
-			{configMode?<JSONEditor rootJSON={item?.vars} rootKey={item?.path}/>:<div
-				className="max-h-90 min-h-90 flex flex-col w-full h-full p-2 pt-0 overflow-x-hidden overflow-y-scroll text-gray-300 rounded-sm"
-				style={{
-					minHeight: `calc(var(--spacing) * ${fileMode?83:90})`
-				}}
-				key={"" + fileMode + pageNo + selectedFile + keys.length + forceKeyUpdate}
-			>
-				{keys.map((file: any, index: number) => (
-					<div
-						key={index}
-						className="min-h-fit flex flex-col w-full px-4 py-2 mt-2 border rounded-md"
-						style={{
-							marginTop: index === 0 ? "0px" : "",
-						}}
-					>
-						<div className="text-accent flex items-center gap-1 mb-2 text-sm">
-							<Button
-								className="aspect-square mt-0.5 max-h-5 max-w-5"
-								onClick={() => {
-									openFile(join(item.path, file.file));
-								}}
-							>
-								<ArrowUpRightFromSquareIcon className="max-h-3" />
-							</Button>
-							{file.file}
-						</div>
-						{file.keys.map((keyConfig: any, index: number) => {
-							const displayDefault = getIniValue(keyConfig.file, keyConfig.target, keyConfig.default);
-							const dataFile = keyConfig.namespace || keyConfig.file;
-							const displayName = getDataValue("name", keyConfig.file, keyConfig.target, keyConfig.name);
-							const displayPref = getDataValue("pref", dataFile, keyConfig.target, keyConfig.pref);
-							const nameDefault = displayName == keyConfig.target;
-							const defDefault = keyConfig.reset === null || keyConfig.reset === undefined;
-							const prefDefault = displayPref === null || displayPref === undefined || displayPref === "";
-							const elements = [
-								<div className="w-full flex items-center">
-									<Input
-										className="text-muted-foreground w-full bg-transparent -mr-8.5"
-										style={{
-											textAlign: isNaN(Number(displayDefault)) ? "left" : "right",
-											paddingRight: defDefault ? "" : "2rem",
-										}}
-										key={displayDefault}
-										defaultValue={displayDefault}
-										onBlur={(e) => {
-											const val = e.currentTarget.value;
-											if (!val) {
-												e.currentTarget.value = displayDefault;
-												return;
-											}
-											queueIniChange(keyConfig.file, keyConfig.target, val, keyConfig.default);
-											if (val == keyConfig.default || (!val && !keyConfig.default)) {
-												queueDataChange("reset", keyConfig.file, keyConfig.target, keyConfig.reset, keyConfig.reset);
-											} else if (keyConfig.reset === null || keyConfig.reset === undefined) {
-												queueDataChange("reset", keyConfig.file, keyConfig.target, keyConfig.default, null);
-											} else if (val === keyConfig.reset) {
-												queueDataChange("reset", keyConfig.file, keyConfig.target, null, keyConfig.reset);
-											} else {
-												queueDataChange("reset", keyConfig.file, keyConfig.target, keyConfig.reset, keyConfig.reset);
-											}
-										}}
-									/>
-									<Button
-										variant="ghost"
-										className=" h-7 w-7 ml-0.75"
-										style={{
-											pointerEvents: defDefault ? "none" : "auto",
-											opacity: defDefault ? 0 : 1,
-										}}
-										onClick={(e) => {
-											const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
-											if (prev) {
-												prev.focus();
-												prev.value = keyConfig.reset;
-												prev.blur();
-											}
-										}}
-									>
-										<IterationCcwIcon className="max-h-4 rotate-180" />
-									</Button>
-								</div>,
-								<div className="w-full flex items-center">
-									<Input
-										className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
-										style={{
-											textAlign: isNaN(Number(displayPref ?? keyConfig.default)) ? "left" : "right",
-											paddingRight: prefDefault ? "" : "2rem",
-										}}
-										key={displayPref ?? ""}
-										defaultValue={displayPref}
-										onBlur={(e) => {
-											const val = e.currentTarget.value;
-											queueDataChange("pref", dataFile, keyConfig.target, val, keyConfig.pref);
-										}}
-										placeholder={keyConfig.state ? `${textData._RightSideBar._components._ModPreferences.AutoSaved} ${keyConfig.state}` : "None"}
-									/>
 
-									<Button
-										variant="ghost"
-										className=" h-7 w-7 ml-0.75"
-										style={{
-											pointerEvents: prefDefault ? "none" : "auto",
-											opacity: prefDefault ? 0 : 1,
-										}}
-										onClick={(e) => {
-											const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
-											if (prev) {
-												prev.focus();
-												prev.value = "";
-												prev.blur();
-											}
-										}}
-									>
-										<IterationCcwIcon className="max-h-4 rotate-180" />
-									</Button>
-								</div>,
-								<div className="text-muted-foreground flex items-center justify-center w-full">
-									{(keyConfig.values.toSorted().join(" , ") || "unknown").replace(
-										"unknown",
-										textData._RightSideBar._components._ModPreferences.Unknown
-									)}
-								</div>,
-								<div className="w-full flex items-center">
-									<Input
-										className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
-										style={{
-											textAlign: isNaN(Number(keyConfig.pref ?? keyConfig.default)) ? "left" : "right",
-											paddingRight: prefDefault ? "" : "2rem",
-										}}
-										defaultValue={keyConfig.key}
-										onBlur={(e) => {
-											const val = e.currentTarget.value;
-											if (val == keyConfig.key || (!val && !keyConfig.key)) {
-												return;
-											}
-										}}
-										placeholder={
-											"None"
-											// keyConfig.state
-											// 	? `${textData._RightSideBar._components._ModPreferences.AutoSaved} ${keyConfig.state}`
-											// 	: textData._RightSideBar._components._ModPreferences.Default
-										}
-									/>
-
-									<Button
-										variant="ghost"
-										className=" h-7 w-7 ml-0.75"
-										style={{
-											pointerEvents: prefDefault ? "none" : "auto",
-											opacity: prefDefault ? 0 : 1,
-										}}
-										onClick={(e) => {
-											const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
-											if (prev) {
-												prev.focus();
-												prev.value = "";
-												prev.blur();
-											}
-										}}
-									>
-										<IterationCcwIcon className="max-h-4 rotate-180" />
-									</Button>
-								</div>,
-							];
-							return (
-								<div
-									key={index}
-									className="odd:bg-background/50 even:bg-background/30 text-border grid w-full gap-4 px-5 py-2 rounded-md"
-									style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
+			{configMode ? (
+				<JSONEditor rootJSON={item?.vars} rootKey={item?.path} />
+			) : (
+				<div
+					className="max-h-90 min-h-90 flex flex-col w-full h-full p-2 pt-0 overflow-x-hidden overflow-y-scroll text-gray-300 rounded-sm"
+					style={{
+						minHeight: `calc(var(--spacing) * ${fileMode ? 83 : 90})`,
+					}}
+					key={"" + fileMode + pageNo + selectedFile + keys.length + forceKeyUpdate}
+				>
+					{keys.map((file: any, index: number) => (
+						<div
+							key={index}
+							className="min-h-fit flex flex-col w-full px-4 py-2 mt-2 border rounded-md"
+							style={{
+								marginTop: index === 0 ? "0px" : "",
+							}}
+						>
+							<div className="text-accent flex items-center gap-1 mb-2 text-sm">
+								<Button
+									className="aspect-square mt-0.5 max-h-5 max-w-5"
+									onClick={() => {
+										openFile(join(item.path, file.file));
+									}}
 								>
+									<ArrowUpRightFromSquareIcon className="max-h-3" />
+								</Button>
+								{file.file}
+							</div>
+							{file.keys.map((keyConfig: any, index: number) => {
+								const displayDefault = getIniValue(keyConfig.file, keyConfig.target, keyConfig.default);
+								const dataFile = keyConfig.namespace || keyConfig.file;
+								const displayName = getDataValue("name", keyConfig.file, keyConfig.target, keyConfig.name);
+								const displayPref = getDataValue("pref", dataFile, keyConfig.target, keyConfig.pref);
+								const nameDefault = displayName == keyConfig.target;
+								const defDefault = keyConfig.reset === null || keyConfig.reset === undefined;
+								const prefDefault = displayPref === null || displayPref === undefined || displayPref === "";
+								const elements = [
 									<div className="w-full flex items-center">
 										<Input
-											className="text-muted-foreground w-full bg-transparent text-ellipsis -mr-8.5"
-											key={displayName ?? ""}
-											defaultValue={displayName}
+											className="text-muted-foreground w-full bg-transparent -mr-8.5"
 											style={{
-												paddingRight: nameDefault ? "" : "2rem",
+												textAlign: isNaN(Number(displayDefault)) ? "left" : "right",
+												paddingRight: defDefault ? "" : "2rem",
 											}}
+											key={displayDefault}
+											defaultValue={displayDefault}
 											onBlur={(e) => {
 												const val = e.currentTarget.value;
-												if (val === keyConfig.target) {
-													queueDataChange("name", keyConfig.file, keyConfig.target, null, keyConfig.name);
+												if (!val) {
+													e.currentTarget.value = displayDefault;
 													return;
 												}
-												queueDataChange("name", keyConfig.file, keyConfig.target, val, keyConfig.name);
+												queueIniChange(keyConfig.file, keyConfig.target, val, keyConfig.default);
+												if (val == keyConfig.default || (!val && !keyConfig.default)) {
+													queueDataChange("reset", keyConfig.file, keyConfig.target, keyConfig.reset, keyConfig.reset);
+												} else if (keyConfig.reset === null || keyConfig.reset === undefined) {
+													queueDataChange("reset", keyConfig.file, keyConfig.target, keyConfig.default, null);
+												} else if (val === keyConfig.reset) {
+													queueDataChange("reset", keyConfig.file, keyConfig.target, null, keyConfig.reset);
+												} else {
+													queueDataChange("reset", keyConfig.file, keyConfig.target, keyConfig.reset, keyConfig.reset);
+												}
 											}}
 										/>
 										<Button
 											variant="ghost"
 											className=" h-7 w-7 ml-0.75"
 											style={{
-												pointerEvents: nameDefault ? "none" : "auto",
-												opacity: nameDefault ? 0 : 1,
+												pointerEvents: defDefault ? "none" : "auto",
+												opacity: defDefault ? 0 : 1,
 											}}
 											onClick={(e) => {
 												const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
 												if (prev) {
 													prev.focus();
-													prev.value = keyConfig.target;
+													prev.value = keyConfig.reset;
 													prev.blur();
 												}
 											}}
 										>
 											<IterationCcwIcon className="max-h-4 rotate-180" />
 										</Button>
+									</div>,
+									<div className="w-full flex items-center">
+										<Input
+											className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
+											style={{
+												textAlign: isNaN(Number(displayPref ?? keyConfig.default)) ? "left" : "right",
+												paddingRight: prefDefault ? "" : "2rem",
+											}}
+											key={displayPref ?? ""}
+											defaultValue={displayPref}
+											onBlur={(e) => {
+												const val = e.currentTarget.value;
+												queueDataChange("pref", dataFile, keyConfig.target, val, keyConfig.pref);
+											}}
+											placeholder={
+												keyConfig.state
+													? `${textData._RightSideBar._components._ModPreferences.AutoSaved} ${keyConfig.state}`
+													: "None"
+											}
+										/>
+
+										<Button
+											variant="ghost"
+											className=" h-7 w-7 ml-0.75"
+											style={{
+												pointerEvents: prefDefault ? "none" : "auto",
+												opacity: prefDefault ? 0 : 1,
+											}}
+											onClick={(e) => {
+												const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
+												if (prev) {
+													prev.focus();
+													prev.value = "";
+													prev.blur();
+												}
+											}}
+										>
+											<IterationCcwIcon className="max-h-4 rotate-180" />
+										</Button>
+									</div>,
+									<div className="text-muted-foreground flex items-center justify-center w-full">
+										{(keyConfig.values.toSorted().join(" , ") || "unknown").replace(
+											"unknown",
+											textData._RightSideBar._components._ModPreferences.Unknown
+										)}
+									</div>,
+									<div className="w-full flex items-center">
+										<Input
+											className="text-muted-foreground w-full bg-transparent duration-200 -mr-8.5"
+											style={{
+												textAlign: isNaN(Number(keyConfig.pref ?? keyConfig.default)) ? "left" : "right",
+												paddingRight: prefDefault ? "" : "2rem",
+											}}
+											defaultValue={vkToDisplay(keyConfig.key)}
+											// onBlur={(e) => {
+											// 	const val = e.currentTarget.value;
+											// 	if (val == keyConfig.key || (!val && !keyConfig.key)) {
+											// 		return;
+											// 	}
+											// }}
+											autoFocus={false}
+											contentEditable={false}
+											onKeyDownCapture={(e) => {
+												e.stopPropagation();
+												e.preventDefault();
+												// if (e.code == "Backspace") {
+												// 	e.currentTarget.value = "";
+												// 	// saveConfigs();
+												// } else if (e.code == "Escape") {
+												// 	e.currentTarget.value = formatHotkeyDisplay(preset?.hotkey || "");
+												// 	keysdown = [];
+												// 	keys = [];
+												// } else {
+												let next: any = [];
+												let key = formatKeysToDisplay(e.code)
+													.split("")
+													.map((x, i) => (i == 0 ? x.toUpperCase() : x))
+													.join("");
+												if (keyslist.includes(key)) {
+													next = keyslist;
+												} else {
+													if (!keysdown.includes(e.code)) keysdown.push(e.code);
+													keyslist.push(key);
+													next = sortHotkeys(keyslist);
+												}
+												e.currentTarget.value = next.join(" ﹢ ");
+												// }
+											}}
+											onKeyUpCapture={(e) => {
+												e.stopPropagation();
+												e.preventDefault();
+												let key = e.code;
+												let keyIndex = keysdown.indexOf(key);
+												if (keyIndex > -1) keysdown.splice(keyIndex, 1);
+												if (keysdown.length == 0) {
+													keyslist = [];
+													console.log(encodeToVK(e.currentTarget.value));
+													e.currentTarget.blur();
+												}
+											}}
+											onBlur={(e) => {
+												keysdown = [];
+												keyslist = [];
+												// setPresets((prev) => {
+												// 	prev[index].hotkey = encodeHotkeyForStorage(e.currentTarget.value);
+												// 	return [...prev];
+												// });
+												// saveConfigs();
+											}}
+											placeholder={
+												"None"
+												// keyConfig.state
+												// 	? `${textData._RightSideBar._components._ModPreferences.AutoSaved} ${keyConfig.state}`
+												// 	: textData._RightSideBar._components._ModPreferences.Default
+											}
+										/>
+
+										<Button
+											variant="ghost"
+											className=" h-7 w-7 ml-0.75"
+											style={{
+												pointerEvents: prefDefault ? "none" : "auto",
+												opacity: prefDefault ? 0 : 1,
+											}}
+											onClick={(e) => {
+												const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
+												if (prev) {
+													prev.focus();
+													prev.value = "";
+													prev.blur();
+												}
+											}}
+										>
+											<IterationCcwIcon className="max-h-4 rotate-180" />
+										</Button>
+									</div>,
+								];
+								return (
+									<div
+										key={index}
+										className="odd:bg-background/50 even:bg-background/30 text-border grid w-full gap-4 px-5 py-2 rounded-md"
+										style={{ gridTemplateColumns: `repeat(${colCount}, minmax(0, 1fr))` }}
+									>
+										<div className="w-full flex items-center">
+											<Input
+												className="text-muted-foreground w-full bg-transparent text-ellipsis -mr-8.5"
+												key={displayName ?? ""}
+												defaultValue={displayName}
+												style={{
+													paddingRight: nameDefault ? "" : "2rem",
+												}}
+												onBlur={(e) => {
+													const val = e.currentTarget.value;
+													if (val === keyConfig.target) {
+														queueDataChange("name", keyConfig.file, keyConfig.target, null, keyConfig.name);
+														return;
+													}
+													queueDataChange("name", keyConfig.file, keyConfig.target, val, keyConfig.name);
+												}}
+											/>
+											<Button
+												variant="ghost"
+												className=" h-7 w-7 ml-0.75"
+												style={{
+													pointerEvents: nameDefault ? "none" : "auto",
+													opacity: nameDefault ? 0 : 1,
+												}}
+												onClick={(e) => {
+													const prev = e.currentTarget.previousElementSibling as HTMLInputElement;
+													if (prev) {
+														prev.focus();
+														prev.value = keyConfig.target;
+														prev.blur();
+													}
+												}}
+											>
+												<IterationCcwIcon className="max-h-4 rotate-180" />
+											</Button>
+										</div>
+										{columns.map((key, i) => toggles[key] && elements[i])}
 									</div>
-									{columns.map((key, i) => toggles[key] && elements[i])}
-								</div>
-							);
-						})}
-					</div>
-				))}
-			</div>}
+								);
+							})}
+						</div>
+					))}
+				</div>
+			)}
 			<div className="flex w-full sticky bottom-0 justify-end -my-2 -mr-2px-2">
 				<Button onClick={applyQueuedChanges} disabled={!queuedChangeCount || applyingChanges} variant="destructive">
 					{applyingChanges ? "Applying..." : `Apply${queuedChangeCount ? ` (${queuedChangeCount})` : ""}`}

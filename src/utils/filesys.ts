@@ -1137,17 +1137,17 @@ async function detectHotkeys(
 								line
 									.split("=")[1]
 									?.trim()
-									.split(" ")
-									.map((k) => {
-										k = k.toLowerCase();
-										if (k.startsWith("no_")) k = "";
-										else {
-											k = k.replace("vk_", "");
-										}
-										return k.trim();
-									})
-									.filter((k) => k)
-									.join("+") || "";
+									// .split(" ")
+									// .map((k) => {
+									// 	k = k.toLowerCase();
+									// 	if (k.startsWith("no_")) k = "";
+									// 	else {
+									// 		k = k.replace("vk_", "");
+									// 	}
+									// 	return k.trim();
+									// })
+									// .filter((k) => k)
+									// .join("+") || "";
 							counter++;
 						} else if (counter === 1 && ln.startsWith("type=")) {
 							type = line.split("=")[1]?.trim() || "";

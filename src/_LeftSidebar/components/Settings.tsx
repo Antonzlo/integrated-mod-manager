@@ -10,12 +10,12 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { GAME_NAMES, LANG_LIST } from "@/utils/consts";
 import { saveConfigs, setConfig } from "@/utils/filesys";
-import { encodeHotkeyForStorage, formatHotkeyDisplay, processHotkeyCode } from "@/utils/hotkeyUtils";
+import { encodeHotkeyForStorage, formatKeysToDisplay, sortHotkeys } from "@/utils/hotkeyUtils";
 import { join, setHotreload } from "@/utils/hotreload";
 import { toFs } from "@/utils/pathsep";
 import { getCwd, setPrePostLaunch, setWindowType } from "@/utils/init";
 import TEXT from "@/textData.json";
-import { exportConfig, keySort } from "@/utils/utils";
+import { exportConfig } from "@/utils/utils";
 import {
 	ANIMATIONS,
 	BACKUP_INI,
@@ -742,7 +742,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 						presets.map((preset, index) => (
 							<SettingRow key={`${preset?.name}-${index}`} label={preset?.name}>
 								<Input
-									defaultValue={formatHotkeyDisplay(preset?.hotkey || "")}
+									defaultValue={formatKeysToDisplay(preset?.hotkey || "").split(" ﹢ ").map((x, i) => x.split("").map((x,i) => (i == 0 ? x.toUpperCase() : x)).join("")).join(" ﹢ ")}
 									autoFocus={false}
 									contentEditable={false}
 									onKeyDownCapture={(e) => {
@@ -751,12 +751,12 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 											e.currentTarget.value = "";
 											saveConfigs();
 										} else if (e.code == "Escape") {
-											e.currentTarget.value = formatHotkeyDisplay(preset?.hotkey || "");
+											e.currentTarget.value = formatKeysToDisplay(preset?.hotkey || "");
 											keysdown = [];
 											keys = [];
 										} else {
 											let next: any = [];
-											let key = processHotkeyCode(e.code)
+											let key = formatKeysToDisplay(e.code)
 												.split("")
 												.map((x, i) => (i == 0 ? x.toUpperCase() : x))
 												.join("");
@@ -765,8 +765,9 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 											} else {
 												if (!keysdown.includes(e.code)) keysdown.push(e.code);
 												keys.push(key);
-												next = keySort(keys);
+												next = sortHotkeys(keys);
 											}
+											// console.log(formatKeysToDisplay(next.join(" ﹢ ")))
 											e.currentTarget.value = next.join(" ﹢ ");
 										}
 									}}

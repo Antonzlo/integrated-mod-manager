@@ -53,7 +53,7 @@ import { Games, Mod, ModDataObj } from "@/utils/types";
 import ManageCategories from "./components/ManageCategories";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { formatHotkeyDisplay, normalizeHotkey } from "@/utils/hotkeyUtils";
+import { formatKeysToDisplay, vkToDisplay } from "@/utils/hotkeyUtils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence, motion } from "motion/react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent } from "@/components/ui/alert-dialog";
@@ -323,7 +323,7 @@ function RightLocal() {
 						};
 					}
 					details.keys = details.keys
-						.map((key: any) => ({ ...key, key: formatHotkeyDisplay(normalizeHotkey(key.key)) }))
+						.map((key: any) => ({ ...key, key: formatKeysToDisplay(key.key) }))
 						.sort((a: any, b: any) => a.key.localeCompare(b.key));
 
 					setDetails(details);
@@ -828,7 +828,7 @@ function RightLocal() {
 															</label>
 															|
 															<div className=" flex items-center w-2/3 gap-1">
-																{(hotkey.key as string).split(" ﹢ ").map((key, i, arr) => (
+																{(vkToDisplay(hotkey.key as string)).split(" ﹢ ").map((key, i, arr) => (
 																	<span key={i} className="flex items-center">
 																		<kbd className="text-accent bg-sidebar border-border min-w-8 px-2 py-1 text-sm font-semibold text-center border rounded-md shadow-sm">
 																			{key}
