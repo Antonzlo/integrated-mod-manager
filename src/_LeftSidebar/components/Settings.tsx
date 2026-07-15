@@ -66,7 +66,6 @@ import {
 	UploadIcon,
 	XIcon,
 } from "lucide-react";
-import { AnimatePresence, motion } from "motion/react";
 import { ComponentType, ReactNode, useRef, useState } from "react";
 let bg: HTMLBodyElement | null = null;
 let keys = [] as any[];
@@ -314,13 +313,6 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 								document.documentElement.style.fontSize = 16 * Math.pow(2, e[0] / 50) + "px";
 								setScale(e[0]);
 							}}
-							onValueCommit={(e) => {
-								// setSettings((prev) => {
-								// 	prev.global.display.bgOpacity = e[0] / 100;
-								// 	return { ...prev };
-								// });
-								// saveConfigs();
-							}}
 						/>
 					</SettingRow>
 					<SettingRow label={"Animations"}>
@@ -353,13 +345,6 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							onValueChange={(e) => {
 								// document.documentElement.style.fontSize = 16 * Math.pow(2,e[0]/50) + "px";
 								setBlur(e[0] / 50);
-							}}
-							onValueCommit={(e) => {
-								// setSettings((prev) => {
-								// 	prev.global.display.bgOpacity = e[0] / 100;
-								// 	return { ...prev };
-								// });
-								// saveConfigs();
 							}}
 						/>
 					</SettingRow>
@@ -742,7 +727,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 						presets.map((preset, index) => (
 							<SettingRow key={`${preset?.name}-${index}`} label={preset?.name}>
 								<Input
-									defaultValue={formatKeysToDisplay(preset?.hotkey || "").split(" ﹢ ").map((x, i) => x.split("").map((x,i) => (i == 0 ? x.toUpperCase() : x)).join("")).join(" ﹢ ")}
+									defaultValue={formatKeysToDisplay(preset?.hotkey || "").split(" ﹢ ").map((x) => x.split("").map((x,i) => (i == 0 ? x.toUpperCase() : x)).join("")).join(" ﹢ ")}
 									autoFocus={false}
 									contentEditable={false}
 									onKeyDownCapture={(e) => {

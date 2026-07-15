@@ -53,7 +53,7 @@ import { Games, Mod, ModDataObj } from "@/utils/types";
 import ManageCategories from "./components/ManageCategories";
 import { Dialog } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { formatKeysToDisplay, vkToDisplay } from "@/utils/hotkeyUtils";
+import { vkToDisplay } from "@/utils/hotkeyUtils";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence, motion } from "motion/react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent } from "@/components/ui/alert-dialog";

@@ -8,7 +8,6 @@ import { useDropzone } from "react-dropzone";
 function ModPreview({
 	item,
 	setDialogType,
-	isBlank,
 }: {
 	item: any;
 	setDialogType: (type: string) => void;

@@ -3,7 +3,6 @@ import { register, unregisterAll } from "@tauri-apps/plugin-global-shortcut";
 import { invoke } from "@tauri-apps/api/core";
 import { CURRENT_PRESET, MOD_LIST, PRESETS, store } from "./vars";
 import { applyPreset, refreshModList } from "./filesys";
-import { info } from "@/lib/logger";
 
 export function formatKeysToDisplay(hotkey: string): string {
 	const replacements = {

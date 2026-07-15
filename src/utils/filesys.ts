@@ -39,7 +39,7 @@ import { toFs, toInternal } from "./pathsep";
 import { main, updateConfig } from "./init";
 import { addToast } from "@/_Toaster/ToastProvider";
 import MiniSearch from "minisearch";
-import { ChangeInfo, DirEntry, GameConfig, GlobalSettings, Mod, ModDataObj, ModHotKeys, Settings } from "./types";
+import { ChangeInfo, DirEntry, GameConfig, GlobalSettings, Mod, ModDataObj, ModHotKeys } from "./types";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { error, info, warn } from "@/lib/logger";
 import { addToExtracts } from "@/_LeftSidebar/components/Downloads";
@@ -1511,7 +1511,6 @@ export async function validateModDownload(path: string, skip = false, addModSrc 
 			count++;
 		}
 		if (!skip) {
-			const list = store.get(MOD_LIST);
 			const relPath = path.split(new RegExp(managedSRC.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "[/\\\\]"))[1];
 			info("[IMM] Validating mod download for path:", relPath)
 			const keys = JSON.parse(sessionStorage.getItem("modData_" + relPath) || "[]") as any[];

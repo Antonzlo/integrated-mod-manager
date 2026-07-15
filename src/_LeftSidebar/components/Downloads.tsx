@@ -17,7 +17,7 @@ import {
 	saveConfigs,
 	validateModDownload,
 } from "@/utils/filesys";
-import { DownloadItem, Mod, ModData, ModDataObj } from "@/utils/types";
+import { DownloadItem, ModData, ModDataObj } from "@/utils/types";
 import { UNCATEGORIZED } from "@/utils/consts";
 import { info } from "@/lib/logger";
 
@@ -100,18 +100,18 @@ function Downloads() {
 			],
 		}));
 	};
-	const resetAllProgress = () => {
-		progressRef.current = {};
-		lastSpeedUpdate.current = {};
-		setProgressView({});
-		Object.values(rowRefs.current).forEach((ref) => {
-			if (ref) ref.style.width = "0%";
-		});
-		if (headerRef.current) headerRef.current.style.width = "0%";
-		if (collapsedRef.current) {
-			collapsedRef.current.style.background = "conic-gradient( var(--accent) 0% 0%, var(--button) 0% 100%)";
-		}
-	};
+	// const resetAllProgress = () => {
+	// 	progressRef.current = {};
+	// 	lastSpeedUpdate.current = {};
+	// 	setProgressView({});
+	// 	Object.values(rowRefs.current).forEach((ref) => {
+	// 		if (ref) ref.style.width = "0%";
+	// 	});
+	// 	if (headerRef.current) headerRef.current.style.width = "0%";
+	// 	if (collapsedRef.current) {
+	// 		collapsedRef.current.style.background = "conic-gradient( var(--accent) 0% 0%, var(--button) 0% 100%)";
+	// 	}
+	// };
 
 	const prepareDownload = async (item: DownloadItem): Promise<DownloadQueueItem> => {
 		const category =

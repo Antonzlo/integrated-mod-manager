@@ -2,7 +2,7 @@ import { addToast } from "@/_Toaster/ToastProvider";
 import { OPTIMIZE_TARGET } from "@/utils/consts";
 import { saveConfigs, toggleMod, validateModDownload } from "@/utils/filesys";
 import { DATA, GAME, MOD_LIST, OPTIMIZED } from "@/utils/vars";
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 
@@ -13,7 +13,7 @@ function Optimizing({
 	setIsOptimizing: (value: boolean) => void;
 	animateProps?: any;
 }) {
-	const [modList, setModList] = useAtom(MOD_LIST);
+	const modList = useAtomValue(MOD_LIST);
 	const game = useAtomValue(GAME);
 	const setOptimized = useSetAtom(OPTIMIZED);
 	const setData = useSetAtom(DATA);

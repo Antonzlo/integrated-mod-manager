@@ -1,4 +1,4 @@
-import { getCurrentWindow, LogicalSize, PhysicalSize } from "@tauri-apps/api/window";
+import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import type { CSSProperties } from "react";
 
 // The window is borderless (decorations: false), so on Wayland there is no

@@ -8,10 +8,9 @@ import { IMM_UPDATE, SETTINGS, TEXT_DATA, UPDATER_OPEN } from "@/utils/vars";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAtom, useAtomValue } from "jotai";
 import { CircleAlert, DownloadIcon, Loader2Icon, UploadIcon } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { saveConfigs } from "@/utils/filesys";
 import Credits from "./Credits";
-import { getVersion } from '@tauri-apps/api/app';
 
 
 let prev = 0;
@@ -26,11 +25,7 @@ function Updater() {
 	const [updaterOpen, setUpdaterOpen] = useAtom(UPDATER_OPEN);
 	const [settings, setSettings] = useAtom(SETTINGS);
 	const preReleases = settings.global.preReleases;
-	const [buildVersion, setBuildVersion] = useState("---");
 	useEffect(() => {
-		getVersion().then((version) => {
-			setBuildVersion(version);
-		});
 		let interval: ReturnType<typeof setInterval>;
 		if (update?.status === "ready" && counter == 3000)
 			interval = setInterval(() => {

@@ -5,7 +5,6 @@ import {
 	BLUR,
 	CHANGES,
 	DATA,
-	DEV_HIDE_PREVIEWS,
 	ERR,
 	GAME,
 	INIT_DONE,
@@ -26,7 +25,7 @@ import Checklist from "./_Checklist/Checklist";
 import { initializeThemes } from "./utils/theme";
 import Changes from "./_Changes/Changes";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { getModDetails, refreshModList, saveConfigs } from "./utils/filesys";
+import { refreshModList, saveConfigs } from "./utils/filesys";
 import { SidebarProvider } from "./components/ui/sidebar";
 import LeftSidebar from "./_LeftSidebar/Left";
 import Main from "./_Main/Main";
