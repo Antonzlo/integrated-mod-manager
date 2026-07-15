@@ -47,6 +47,7 @@ import {
 	AlertDialogTitle,
 } from "./components/ui/alert-dialog";
 import { OPTIMIZE_TARGET } from "./utils/consts";
+import { scaleHandler } from "./utils/ResizeHandles";
 // import { Button } from "./components/ui/button";
 const animateProps = {
 	initial: { opacity: 0, filter: "blur(6px)" },
@@ -149,7 +150,9 @@ function App() {
 		}
 	}, [err]);
 	useEffect(() => {
-		if (scale) document.documentElement.style.fontSize = 16 * Math.pow(2, scale / 50) + "px";
+		if (scale){ 
+			scaleHandler(scale);
+		};
 		if (typeof blur === "number") {
 			document.documentElement.style.setProperty("--blur-xs", `${4 * blur}px`);
 			document.documentElement.style.setProperty("--blur-sm", `${8 * blur}px`);
