@@ -235,7 +235,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 		},
 		{
 			key: "disp",
-			label: "Display",
+			label: textData.Others.display,
 			icon: MonitorIcon,
 			content: (
 				<>
@@ -302,7 +302,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							]}
 						/>
 					</SettingRow>
-					<SettingRow label={"Scale"}>
+					<SettingRow label={textData.Others.scale}>
 						<Slider
 							defaultValue={[scale]}
 							max={0}
@@ -315,7 +315,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							}}
 						/>
 					</SettingRow>
-					<SettingRow label={"Animations"}>
+					<SettingRow label={textData.Others.animation}>
 						<SettingTabs
 							defaultValue={animations ? "1" : "0"}
 							onValueChange={(e) => {
@@ -335,7 +335,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							]}
 						/>
 					</SettingRow>
-					<SettingRow label={"Blur"}>
+					<SettingRow label={textData.Others.blur}>
 						<Slider
 							defaultValue={[blur * 50]}
 							max={100}
@@ -353,7 +353,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 		},
 		{
 			key: "local",
-			label: "Local",
+			label: textData.Others.local,
 			icon: HardDriveIcon,
 			content: (
 				<>
@@ -418,7 +418,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 							]}
 						/>
 					</SettingRow>
-					<SettingRow label={"Backup INIs before Updates"}>
+					<SettingRow label={textData.Others.backupInis}>
 						<SettingTabs
 							defaultValue={backupIni ? "1" : "0"}
 							onValueChange={(e) => {
@@ -443,11 +443,11 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 		},
 		{
 			key: "online",
-			label: "Online",
+			label: textData.Others.online,
 			icon: Globe2,
 			content: (
 				<>
-					<SettingRow label={"Concurrent Downloads"}>
+					<SettingRow label={textData.Others.concDLs}>
 						<div className="flex items-center w-full gap-3">
 							<Slider
 								value={[settings.global.maxConcurrentDownloads || 1]}
@@ -790,7 +790,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 		},
 		{
 			key: "misc",
-			label: "Misc",
+			label: textData.Others.misc,
 			icon: Settings2Icon,
 			content: (
 				<>

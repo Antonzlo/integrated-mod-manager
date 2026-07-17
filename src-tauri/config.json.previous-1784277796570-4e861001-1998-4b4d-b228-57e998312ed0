@@ -1,0 +1,31 @@
+{
+  "clientDate": "1784277451183556028",
+  "version": "3.1.2",
+  "lang": "en",
+  "XXMI": "C:\\Users\\jatan\\AppData\\Roaming\\XXMI Launcher",
+  "preReleases": false,
+  "chkModUpdates": true,
+  "ignore": "2.1.0",
+  "game": "WW",
+  "updatedAt": "2026-07-17T08:43:14.100Z",
+  "notice": 0,
+  "maxConcurrentDownloads": 3,
+  "display": {
+    "winType": 0,
+    "bgType": 1,
+    "bgOpacity": 1
+  },
+  "local": {
+    "toggleClick": 2,
+    "modView": 0,
+    "nsfw": 2
+  },
+  "online": {
+    "filter": "Mod",
+    "modView": 0,
+    "nsfw": 1
+  },
+  "datetime": false,
+  "date": "dd/mm/yyyy",
+  "time": "12"
+}

@@ -66,9 +66,9 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 	const [pageNo, setPageNo] = useState(0);
 	const textData = useAtomValue(TEXT_DATA);
 	const textData2 = {
-		default: "Default",
+		default: textData.Others.def,
 		pref: textData._RightSideBar._components._ModPreferences.Pref,
-		expected: "Expected",
+		expected: textData.Others.exp,
 		keys: textData._RightSideBar._RightLocal.HotKeys,
 	} as const;
 	const columns = Object.keys(textData2) as (keyof typeof textData2)[];
@@ -289,7 +289,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 				{textData._RightSideBar._RightLocal.HotKeys}
 			</TooltipTrigger>
 			<TooltipContent className="w-48 px-1 text-center">
-				{textData._RightSideBar._components._ModPreferences.PrefTip}
+				{textData.Others.hkTip}
 			</TooltipContent>
 		</Tooltip>,
 	];
@@ -309,6 +309,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		},
 		[queueDataChange, queueIniChange]
 	);
+	throw new Error("Function not implemented.");
 	return (
 		<DialogContent
 			className="min-w-250"
@@ -332,7 +333,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 				<div className="text-sm w-1/2 justify-center flex items-center gap-2">
 					{/* <Checkbox checked={fileMode} onCheckedChange={(checked) => setFileMode(!!checked)} />{" "}
 				{textData._RightSideBar._components._ModPreferences.ShowVars} */}
-					View Mode
+					{textData.Others.view}
 					<Tabs
 						value={configMode ? "config" : fileMode ? "file" : "general"}
 						onValueChange={(value) => {
@@ -349,16 +350,16 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 						}}
 					>
 						<TabsList className="bg-background/50 button-like rounded-md grid w-full grid-cols-3">
-							<TabsTrigger value="general">Hotkey Only</TabsTrigger>
-							<TabsTrigger value="file">All Vars</TabsTrigger>
-							<TabsTrigger value="config">IMM Config</TabsTrigger>
+							<TabsTrigger value="general">{textData.Others.hkOnly}</TabsTrigger>
+							<TabsTrigger value="file">{textData.Others.allVars}</TabsTrigger>
+							<TabsTrigger value="config">{textData.Others.immConf}</TabsTrigger>
 						</TabsList>
 					</Tabs>
 				</div>
 				<div className="text-sm flex  w-1/2 justify-center items-center gap-2">
 					{/* <Checkbox checked={fileMode} onCheckedChange={(checked) => setFileMode(!!checked)} />{" "}
 				{textData._RightSideBar._components._ModPreferences.ShowVars} */}
-					Columns
+					{textData.Others.columns}
 					<div className="text-sm grid grid-cols-4 items-center gap-2">
 						{columns.map((key) => (
 							<Toggle
@@ -612,7 +613,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 											placeholder={
 												keyConfig.state
 													? `${textData._RightSideBar._components._ModPreferences.AutoSaved} ${keyConfig.state}`
-													: "None"
+													: textData.Others.none
 											}
 										/>
 
@@ -694,7 +695,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 														const comp = encodeToVK(vkToDisplay(keyConfig.key));
 														hotKeyBlur(keyConfig.file, keyConfig.target, val, comp, keyConfig.keyReset);
 													}}
-													placeholder={"None"}
+													placeholder={textData.Others.none}
 												/>
 
 												<DropdownMenu>
@@ -726,7 +727,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 															}}
 														>
 															<IterationCcwIcon className="rotate-180" />
-															Reset
+															{textData._RightSideBar._components._ManageCategories.Reset}
 														</DropdownMenuItem>
 														<DropdownMenuItem
 															disabled={!displayKey}
@@ -746,7 +747,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 															}}
 														>
 															<BanIcon />
-															Disable
+															{textData._LeftSideBar._components._Settings._AutoReload.Disable}
 														</DropdownMenuItem>
 													</DropdownMenuContent>
 												</DropdownMenu>
@@ -808,7 +809,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 			)}
 			<div className="flex w-full sticky bottom-0 justify-end -my-2 -mr-2px-2">
 				<Button onClick={applyQueuedChanges} disabled={!queuedChangeCount || applyingChanges} variant="destructive">
-					{applyingChanges ? "Applying..." : `Apply${queuedChangeCount ? ` (${queuedChangeCount})` : ""}`}
+					{applyingChanges ? textData.Others.applying : `${textData.Others.apply}${queuedChangeCount ? ` (${queuedChangeCount})` : ""}`}
 				</Button>
 			</div>
 		</DialogContent>

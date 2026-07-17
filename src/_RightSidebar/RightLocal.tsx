@@ -461,7 +461,7 @@ function RightLocal() {
 									next.style.opacity = "1";
 									let nextChild = next.firstElementChild as HTMLButtonElement;
 									if (nextChild) {
-										nextChild.innerText = "Set Preview Image";
+										nextChild.innerText = textData.Others.setPreview;
 									}
 								}
 							}}
@@ -477,7 +477,7 @@ function RightLocal() {
 									onClick={async (e) => {
 										const current = e.currentTarget;
 										// const parent = current.parentElement as HTMLDivElement;
-										if (current.innerText == "Set Preview Image") {
+										if (current.innerText == textData.Others.setPreview) {
 											setDialogType("preview-blank");
 											// const success = await savePreviewImage(item.path);
 											// if (!success) {
@@ -489,13 +489,13 @@ function RightLocal() {
 										setDialogOpen(true);
 									}}
 								>
-									Edit Preview Image
+									{textData.Others.editPreview}
 								</Button>
 							</div>
 						)}
 						{isPreviewDragActive && item?.path && (
 							<div className="absolute inset-0 z-20 flex items-center justify-center border-2 border-dashed border-accent bg-background/70 text-sm text-accent pointer-events-none">
-								Drop image to set preview
+								{textData.Others.dropImage}
 							</div>
 						)}
 					</SidebarGroup>
