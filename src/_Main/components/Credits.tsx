@@ -15,7 +15,7 @@ function Credits() {
 						if (timer) clearTimeout(timer);
 						timer = setTimeout(() => {
 							(document.getElementById("cancel-alert") as HTMLButtonElement)?.click();
-						}, 50000);
+						}, 55000);
 					}}
 				>
 					{textData.Credits.creds}
@@ -93,7 +93,7 @@ function Credits() {
 						<div className="text-xl mb-2">{textData.Credits.user}</div>
 
 						<div className="text-4xl font-bold mt-16 textaccent text-accent mb-8">{textData.Credits.may}</div>
-						<div className="text-xl mt-12 mb-2">{textData.Credits.thanks}</div>
+						<div className="text-xl mt-12 mb-2">{textData.Credits.thanks.replace("<imm/>","").trim()}</div>
 						<div className="text-foreground text-2xl">Integrated</div>
 						<div className=" text-accent textaccent text-lg">Mod Manager</div>
 

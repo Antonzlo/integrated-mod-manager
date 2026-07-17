@@ -638,8 +638,9 @@ export async function main(useGame = "" as Games) {
 		const timeoutPromise = new Promise<never>((_, reject) =>
 			setTimeout(() => reject(new Error("Update check timeout")), 2000)
 		);
-		update = await Promise.race([check(), timeoutPromise]);
+		update = await Promise.race([check({target:"windows-x86_64"}), timeoutPromise]);
 	} catch (error) {
+		console.error("[IMM] Update check failed:", error);
 		update = null;
 	}
 	if (update) {
@@ -656,7 +657,7 @@ export async function main(useGame = "" as Games) {
 		const notice = parsedBody.notice || {};
 		const lastConfig = config.notice || 0;
 		let noticeOpen = false;
-		if (notice.id > 0 && notice.ver > VERSION) {
+		if ((notice.id > 0 && notice.ver > VERSION) ||  ((notice.id > lastConfig || notice.ignoreable === 0) && notice.ver == VERSION)) {
 			store.set(NOTICE, (prev: any) => ({ ...prev, ...notice }));
 			if (notice.id !== lastConfig || notice.ignoreable == 0) {
 				noticeOpen = true;

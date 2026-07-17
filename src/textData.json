@@ -204,7 +204,7 @@
 			"RemoveIMM": {
 				"title": "Removing IMM",
 				"content": [
-					"You can find the 'Remove IMM' in the Restore Menu.",
+					"You can find the 'Remove IMM' in the Settings menu under 'Misc.' .",
 					"Choose how you want your mods and data to be handled, and click 'Confirm & Remove'.",
 					"Follow the steps and complete the removal process by clicking 'Move'."
 				]
@@ -215,7 +215,7 @@
 			"CreateRestore": "Create a restore point before applying changes",
 			"WillBeOrg": "Files and folders will be organized/moved as displayed in the previous menu",
 			"WhatIfRem": "What if I want to remove IMM later?",
-			"RemIMM": "You will be able to remove IMM and move your mods back out using the 'Remove IMM' option in the Restore menu."
+			"RemIMM": "You will be able to remove IMM and move your mods back out using the 'Remove IMM' option in the Settings menu."
 		},
 		"_Checklist": {
 			"Greeting": "Hello, ",
@@ -923,7 +923,7 @@
 			"RemoveIMM": {
 				"title": "删除 IMM",
 				"content": [
-					"您可以在恢复菜单中找到“删除 IMM”。",
+					"您可以在设置菜单的“杂项”下找到“删除 IMM”。",
 					"选择如何处理您的模组和数据，然后点击“确认并删除”。",
 					"按照步骤完成删除过程，点击“移动”。"
 				]
@@ -934,7 +934,7 @@
 			"CreateRestore": "应用更改前创建备份点",
 			"WillBeOrg": "文件和文件夹将按照上一个菜单中显示的方式进行组织/移动",
 			"WhatIfRem": "如果我后面想删除 IMM 怎么办？",
-			"RemIMM": "您将能够使用恢夏菜单中的“删除 IMM”选项删除 IMM 并将您的模组移回出去。"
+			"RemIMM": "您可以使用设置菜单中的“删除 IMM”选项删除 IMM，并将您的模组移回原处。"
 		},
 		"_Checklist": {
 			"Greeting": "你好，",
@@ -1671,7 +1671,7 @@
 			"RemoveIMM": {
 				"title": "Удаление IMM",
 				"content": [
-					"Вы можете найти 'Удалить IMM' в меню восстановления.",
+					"Вы можете найти 'Удалить IMM' в разделе 'Разное' меню настроек.",
 					"Выберите, как вы хотите обработать ваши моды и данные, и нажмите 'Подтвердить и удалить'.",
 					"Следуйте инструкциям и завершите процесс удаления, нажав 'Переместить'."
 				]
@@ -1682,7 +1682,7 @@
 			"CreateRestore": "Создайте точку восстановления перед применением изменений",
 			"WillBeOrg": "Файлы и папки будут организованы/перемещены так, как показано в предыдущем меню",
 			"WhatIfRem": "Что, если я захочу удалить IMM позже?",
-			"RemIMM": "Вы сможете удалить IMM и переместить ваши моды обратно с помощью опции 'Удалить IMM' в меню восстановления."
+			"RemIMM": "Вы сможете удалить IMM и переместить ваши моды обратно с помощью опции 'Удалить IMM' в меню настроек."
 		},
 		"_Checklist": {
 			"Greeting": "Привет, ",
@@ -2409,7 +2409,7 @@
 			"RemoveIMM": {
 				"title": "IMMの削除",
 				"content": [
-					"復元メニューに「IMMを削除」があります。",
+					"設定メニューの「その他」に「IMMを削除」があります。",
 					"Modとデータの処理方法を選択し、「確認して削除」をクリックします。",
 					"手順に従って「移動」をクリックして削除プロセスを完了します。"
 				]
@@ -2420,7 +2420,7 @@
 			"CreateRestore": "変更を適用する前に復元ポイントを作成",
 			"WillBeOrg": "ファイルとフォルダは前のメニューで表示された通りに整理/移動されます",
 			"WhatIfRem": "後でIMMを削除したい場合は？",
-			"RemIMM": "復元メニューの「IMMを削除」オプションを使用して、IMMを削除しModを戻すことができます。"
+			"RemIMM": "設定メニューの「IMMを削除」オプションを使用して、IMMを削除しModを戻すことができます。"
 		},
 		"_Checklist": {
 			"Greeting": "こんにちは、",
@@ -3145,7 +3145,7 @@
 			"RemoveIMM": {
 				"title": "IMM 제거",
 				"content": [
-					"복원 메뉴에서 'IMM 제거'를 찾을 수 있습니다.",
+					"설정 메뉴의 '기타'에서 'IMM 제거'를 찾을 수 있습니다.",
 					"모드와 데이터를 어떻게 처리할지 선택하고 '확인 및 제거'를 클릭하세요.",
 					"단계를 따르고 '이동'을 클릭하여 제거 프로세스를 완료하세요."
 				]
@@ -3156,7 +3156,7 @@
 			"CreateRestore": "변경 사항을 적용하기 전에 복원 지점 생성",
 			"WillBeOrg": "파일과 폴더는 이전 메뉴에 표시된 대로 정리/이동됩니다",
 			"WhatIfRem": "나중에 IMM을 제거하려면 어떻게 하나요?",
-			"RemIMM": "복원 메뉴의 'IMM 제거' 옵션을 사용하여 IMM을 제거하고 모드를 다시 이동할 수 있습니다."
+			"RemIMM": "설정 메뉴의 'IMM 제거' 옵션을 사용하여 IMM을 제거하고 모드를 다시 이동할 수 있습니다."
 		},
 		"_Checklist": {
 			"Greeting": "안녕하세요, ",
