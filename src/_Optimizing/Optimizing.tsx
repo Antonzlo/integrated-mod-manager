@@ -78,7 +78,7 @@ function Optimizing({
             setIsOptimizing(false);
         }
 		}
-		if (total > 0 && game) {
+		if (game) {
 			optimize();
 		}
 	}, [total, game]);

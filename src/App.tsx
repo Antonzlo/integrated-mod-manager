@@ -132,7 +132,7 @@ function App() {
 				newData[key] = val;
 			});
 			setData(newData);
-			setIsOptimizing(true);
+			if (modList.length > 0) setIsOptimizing(true);
 		}
 		setModList(modList);
 		return Promise.resolve();
@@ -149,9 +149,9 @@ function App() {
 		}
 	}, [err]);
 	useEffect(() => {
-		if (scale){ 
+		if (scale) {
 			scaleHandler(scale);
-		};
+		}
 		if (typeof blur === "number") {
 			document.documentElement.style.setProperty("--blur-xs", `${4 * blur}px`);
 			document.documentElement.style.setProperty("--blur-sm", `${8 * blur}px`);
@@ -296,9 +296,7 @@ function App() {
 					<AlertDialogTitle>Cancel Downloads?</AlertDialogTitle>
 					<AlertDialogDescription className="whitespace-pre-line">{switchConfirm?.message}</AlertDialogDescription>
 					<AlertDialogFooter className="sm:flex-row sm:justify-evenly w-full">
-						<AlertDialogCancel
-						variant="warn"
-						>Keep Downloading</AlertDialogCancel>
+						<AlertDialogCancel variant="warn">Keep Downloading</AlertDialogCancel>
 						<AlertDialogAction
 							variant="destructive"
 							onClick={() => {
