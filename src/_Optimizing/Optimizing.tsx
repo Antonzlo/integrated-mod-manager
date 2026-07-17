@@ -1,7 +1,7 @@
 import { addToast } from "@/_Toaster/ToastProvider";
 import { OPTIMIZE_TARGET } from "@/utils/consts";
 import { saveConfigs, toggleMod, validateModDownload } from "@/utils/filesys";
-import { DATA, GAME, MOD_LIST, OPTIMIZED } from "@/utils/vars";
+import { DATA, GAME, MOD_LIST, OPTIMIZED, TEXT_DATA } from "@/utils/vars";
 import { useAtomValue, useSetAtom } from "jotai";
 import { motion } from "motion/react";
 import { useEffect, useState } from "react";
@@ -15,6 +15,7 @@ function Optimizing({
 }) {
 	const modList = useAtomValue(MOD_LIST);
 	const game = useAtomValue(GAME);
+	const textData = useAtomValue(TEXT_DATA);
 	const setOptimized = useSetAtom(OPTIMIZED);
 	const setData = useSetAtom(DATA);
 	const [completed, setCompleted] = useState({
@@ -88,7 +89,7 @@ function Optimizing({
 			className="fixed top-0 z-999 right-0 w-full h-full backdrop-blur-md bg-background/50 flex flex-col items-center justify-center"
 		>
 			<div className="w-180 h-66 flex flex-col items-center mt-8 gap-4 p-4 overflow-hidden">
-				<div className="text-accent min-h-fit my-6 text-3xl">Optimizing Directory Structure</div>
+				<div className="text-accent min-h-fit my-6 text-3xl">{textData.Others.optDir}</div>
 				<div className="w-120 bg-background/50 button-like h-8 overflow-hidden border rounded-lg">
 					<div
 						className="bg-muted data-zzz:bg-accent bgaccent zzz-rounded h-full duration-100 rounded-lg opacity-75"
@@ -103,7 +104,7 @@ function Optimizing({
 						{completed.count}/{total}
 					</div>
 				</div>
-				<div className="fixed bottom-2 text-destructive">Do not close or reload the app while this is running</div>
+				<div className="fixed bottom-2 text-destructive">{textData.Others.dntClose}</div>
 			</div>
 		</motion.div>
 	);

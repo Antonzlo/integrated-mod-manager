@@ -2,6 +2,8 @@ import { Button } from "@/components/ui/button";
 import { DialogContent } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { savePreviewImageFromData } from "@/utils/filesys";
+import { TEXT_DATA } from "@/utils/vars";
+import { useAtomValue } from "jotai";
 import { UploadIcon } from "lucide-react";
 import { useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
@@ -13,6 +15,7 @@ function ModPreview({
 	setDialogType: (type: string) => void;
 	isBlank: boolean;
 }) {
+	const textData = useAtomValue(TEXT_DATA);
 	const onDrop = useCallback(
 		async (acceptedFiles: File[]) => {
 			if (acceptedFiles.length == 0) return;
@@ -82,7 +85,7 @@ function ModPreview({
 				<TooltipContent className="opacity-0"></TooltipContent>
 			</Tooltip>
 
-			<div className="min-h-fit text-accent mb-4 text-3xl">Set Preview Image</div>
+			<div className="min-h-fit text-accent mb-4 text-3xl">{textData.Others.setPreview}</div>
 
 			<div
 				{...getRootProps({
@@ -105,7 +108,7 @@ function ModPreview({
 								}}
 								type="button"
 							>
-								Select File
+							{textData._RightSideBar._components._ModPreferences.Select}
 							</Button>
 							<label className="text-xs text-gray-400">OR</label>
 							<label className="text-accent">Paste Image/URL from clipboard</label>

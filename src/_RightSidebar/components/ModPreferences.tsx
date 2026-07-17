@@ -54,13 +54,6 @@ let keyslist = [] as any[];
 let keysdown = [] as any[];
 const dataChangeKey = (type: QueuedDataChange["type"], file: string, target: string) => `${type}|${file}|${target}`;
 const iniChangeKey = (file: string, target: string) => `${file}|${target}`;
-const textData2 = {
-	default: "Def.",
-	pref: "Pref.",
-	expected: "Exp.",
-	keys: "HKs",
-} as const;
-const columns = Object.keys(textData2) as (keyof typeof textData2)[];
 function ModPreferences({ item, details }: { item: any; details: any }) {
 	const setData = useSetAtom(DATA);
 	const setModList = useSetAtom(MOD_LIST);
@@ -72,6 +65,13 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 	const [popoverOpen, setPopoverOpen] = useState(false);
 	const [pageNo, setPageNo] = useState(0);
 	const textData = useAtomValue(TEXT_DATA);
+	const textData2 = {
+		default: "Default",
+		pref: textData._RightSideBar._components._ModPreferences.Pref,
+		expected: "Expected",
+		keys: textData._RightSideBar._RightLocal.HotKeys,
+	} as const;
+	const columns = Object.keys(textData2) as (keyof typeof textData2)[];
 	const [forceKeyUpdate, setForceKeyUpdate] = useState(0);
 	const [dataChanges, setDataChanges] = useState<Record<string, QueuedDataChange>>({});
 	const [iniChanges, setIniChanges] = useState<Record<string, QueuedIniChange>>({});
@@ -286,8 +286,7 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		<Tooltip>
 			<TooltipTrigger className="text-accent  flex items-center justify-center w-full gap-2">
 				<InfoIcon className="text-accent/70 cursor-help inline-block w-4 h-4" />
-				{/* {textData._RightSideBar._components._ModPreferences.Pref} */}
-				Hot Keys
+				{textData._RightSideBar._RightLocal.HotKeys}
 			</TooltipTrigger>
 			<TooltipContent className="w-48 px-1 text-center">
 				{textData._RightSideBar._components._ModPreferences.PrefTip}
@@ -637,10 +636,12 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 										</Button>
 									</div>,
 									<div className="text-muted-foreground flex items-center justify-center w-full">
-										{keyConfig.key?(keyConfig.values.toSorted().join(" , ") || "unknown").replace(
-											"unknown",
-											textData._RightSideBar._components._ModPreferences.Unknown
-										):"---"}
+										{keyConfig.key
+											? (keyConfig.values.toSorted().join(" , ") || "unknown").replace(
+													"unknown",
+													textData._RightSideBar._components._ModPreferences.Unknown
+												)
+											: "---"}
 									</div>,
 									<div className="w-full flex items-center">
 										{keyConfig.key ? (
