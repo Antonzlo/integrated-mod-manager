@@ -325,12 +325,12 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 								{
 									value: "0",
 									icon: XIcon,
-									label: "Off",
+									label: textData._LeftSideBar._components._Settings._AutoReload.Disable,
 								},
 								{
 									value: "1",
 									icon: CheckIcon,
-									label: "On",
+									label: textData._LeftSideBar._components._Settings._AutoReload.Enable,
 								},
 							]}
 						/>
@@ -408,12 +408,12 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 								{
 									value: "0",
 									icon: XIcon,
-									label: "Off",
+									label:textData._LeftSideBar._components._Settings._AutoReload.Disable,
 								},
 								{
 									value: "1",
 									icon: CheckIcon,
-									label: "On",
+									label: textData._LeftSideBar._components._Settings._AutoReload.Enable,
 								},
 							]}
 						/>
@@ -428,12 +428,12 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 								{
 									value: "0",
 									icon: XIcon,
-									label: "Off",
+									label: textData._LeftSideBar._components._Settings._AutoReload.Disable,
 								},
 								{
 									value: "1",
 									icon: CheckIcon,
-									label: "On",
+									label: textData._LeftSideBar._components._Settings._AutoReload.Enable,
 								},
 							]}
 						/>
