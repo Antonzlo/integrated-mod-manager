@@ -110,7 +110,7 @@ export default class ErrorBoundary extends React.Component<React.PropsWithChildr
 
 	override render() {
 		if (!this.state.hasError) return this.props.children as React.ReactElement;
-		const lang = localStorage.getItem("imm-lang") || "en";
+		const lang = JSON.parse(localStorage.getItem("imm-lang") || '"en"');
 		const textData = Text[lang as keyof typeof Text] || Text["en"];
 		const { error, info } = this.state;
 

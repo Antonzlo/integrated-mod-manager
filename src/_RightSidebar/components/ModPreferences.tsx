@@ -309,7 +309,6 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 		},
 		[queueDataChange, queueIniChange]
 	);
-	throw new Error("Function not implemented.");
 	return (
 		<DialogContent
 			className="min-w-250"

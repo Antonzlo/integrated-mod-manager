@@ -292,17 +292,17 @@ function RightOnline({ open }: { open: boolean }) {
 				<div className="flex items-center gap-1">
 					{file._sDescription && file._sDescription.length > 0 && (
 						<Tooltip>
-							<TooltipTrigger>
+							<TooltipTrigger className="flex items-center gap-1">
 								<InfoIcon />
+								<p className="max-w-52 w-fit text-ellipsis text-start brightness-75 wrap-break-word overflow-hidden text-xs resize-none">
+									{file._sDescription}
+								</p>
 							</TooltipTrigger>
-							<TooltipContent className="max-w-64 w-fit text-center">
-								<p className="max-w-64 text-center break-words">{file._sDescription}</p>
+							<TooltipContent className="max-w-61 px-2 min-w-0 w-fit text-justify" sideOffset={-8}>
+								<p className="max-w-61  text-background text-center wrap-break-word">{file._sDescription}</p>
 							</TooltipContent>
 						</Tooltip>
 					)}
-					<p className="w-52 text-ellipsis brightness-75 wrap-break-word overflow-hidden text-xs resize-none">
-						{file._sDescription}
-					</p>
 				</div>
 			</div>
 			<div className="min-w-24 flex flex-col items-center">

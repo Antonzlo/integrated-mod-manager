@@ -55,12 +55,12 @@ function Credits() {
 
 						<div className="text-3xl font-bold textaccent text-accent mb-2">{textData.Credits.contri}</div>
 						<div className="text-xl mb-2">Antonzlo</div>
-						<div className="text-xl mb-8">EgoMaw</div>
+						<div className="text-xl mb-2">EgoMaw</div>
 						<div className="text-xl mb-8">EvilNick2</div>
 
 						<div className="text-3xl font-bold textaccent text-accent mb-2">{textData.Credits.translation}</div>
 						<div className="text-xl mb-2">Antonzlo ( {textData.Languages.ru} )</div>
-						<div className="text-xl mb-2">118ununoctium ( {textData.Languages.cn} )</div>
+						<div className="text-xl mb-8">118ununoctium ( {textData.Languages.cn} )</div>
 
 						<div className="text-3xl font-bold textaccent text-accent mb-2">{textData.Credits.EMERG}</div>
 						<div className="text-xl mb-8">{textData.Credits.paimon}</div>
