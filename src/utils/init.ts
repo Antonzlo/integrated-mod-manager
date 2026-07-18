@@ -636,9 +636,9 @@ export async function main(useGame = "" as Games) {
 	let update: Update | null = null;
 	try {
 		const timeoutPromise = new Promise<never>((_, reject) =>
-			setTimeout(() => reject(new Error("Update check timeout")), 2000)
+			setTimeout(() => reject(new Error("Update check timeout")), 10000)
 		);
-		update = await Promise.race([check({target:"windows-x86_64"}), timeoutPromise]);
+		update = await Promise.race([check(), timeoutPromise]);
 	} catch (error) {
 		console.error("[IMM] Update check failed:", error);
 		update = null;
