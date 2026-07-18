@@ -633,6 +633,8 @@ export async function main(useGame = "" as Games) {
 		game: { ...prev.game, ...configXX.settings },
 	}));
 	initHelpers();
+	isInitialized = true;
+	store.set(MAIN_FUNC_STATUS, "fin");
 	let update: Update | null = null;
 	try {
 		const timeoutPromise = new Promise<never>((_, reject) =>
@@ -685,6 +687,4 @@ export async function main(useGame = "" as Games) {
 			},
 		}));
 	}
-	isInitialized = true;
-	store.set(MAIN_FUNC_STATUS, "fin");
 }
