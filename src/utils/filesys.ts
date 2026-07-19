@@ -44,6 +44,7 @@ import { openPath } from "@tauri-apps/plugin-opener";
 import { error, info, warn } from "@/lib/logger";
 import { addToExtracts } from "@/_LeftSidebar/components/Downloads";
 import { isVersionOlderThan } from "./semver";
+let staleCache = false;
 export async function setGame(game: string) {
 	try {
 		const config = await readTextFile(`config.json`);
@@ -1194,16 +1195,16 @@ async function detectHotkeys(
 			}
 			if (entry.isDir && entry.children.length && entry.name !== INI_BACKUP) {
 				try {
-					if (
-						depth == 1 &&
-						entry.children.slice(-1)?.pop()?.name === ".imm-cache.json" &&
-						cache % 2 == 1 &&
-						(await exists(join(src, entry.path, ".imm-cache.json")))
-					) {
+					if (depth == 1 && entry.children.slice(-1)?.pop()?.name === ".imm-cache.json" && cache % 2 == 1) {
 						cacheUsed = true;
+						const cache = JSON.parse(await readTextFile(join(src, entry.path, ".imm-cache.json")));
+						if (!cache.version || cache.version < VERSION) {
+							staleCache = true;
+							await remove(join(src, entry.path, ".imm-cache.json"));
+						}
 						entry = {
 							...entry,
-							...JSON.parse(await readTextFile(join(src, entry.path, ".imm-cache.json"))),
+							...cache,
 							...modData,
 							path: entry.path,
 							parent: entry.parent,
@@ -1231,23 +1232,28 @@ async function detectHotkeys(
 					if (childHK.length > 0 && depth > 0) {
 						hkData = [...hkData, ...childHK];
 					}
-					if (depth == 1 && cache > 1 && !cacheUsed) {
-						await writeTextFile(
-							join(src, entry.path, ".imm-cache.json"),
-							JSON.stringify(
-								{ ...entry, keys: hkData, hashes: Array.from(hashes), namespaces: Array.from(namespaces) },
-								null,
-								2
-							)
-						);
-					}
 					namespaces = new Set([...Array.from(namespaces), ...Array.from(newNamespaces)]);
+					if (depth == 1) {
+						entry.keys = hkData;
+						entry.hashes = Array.from(hashes);
+						entry.namespaces = namespaces;
+						if (cache > 1 && !cacheUsed)
+							await writeTextFile(
+								join(src, entry.path, ".imm-cache.json"),
+								JSON.stringify(
+									{
+										...entry,
+										keys: hkData,
+										hashes: Array.from(hashes),
+										namespaces: Array.from(namespaces),
+										version: VERSION,
+									},
+									null,
+									2
+								)
+							);
+					}
 				}
-			}
-			if (depth == 1) {
-				entry.keys = hkData;
-				entry.hashes = Array.from(hashes);
-				entry.namespaces = namespaces;
 			}
 		} catch (entryError) {}
 		return { entry, hkData, hashes, namespaces };
@@ -1335,7 +1341,11 @@ export async function refreshModList(maxed = false) {
 		}
 		if (!maxed) await categorizeDir(modSrc);
 		if (curId !== deepRefreshId && maxed) return [];
-		const ret = await detectHotkeys(await readDirRecr(modSrc, "", 9, 0, true), data, modSrc, 0, maxed ? 3 : 1);
+		let ret = await detectHotkeys(await readDirRecr(modSrc, "", 9, 0, true), data, modSrc, 0, maxed ? 3 : 1);
+		if (staleCache) {
+			console.log("[IMM] Stale cache detected, performing deep refresh...");
+			ret = await detectHotkeys(await readDirRecr(modSrc, "", 9, 0, false), data, modSrc, 0, maxed ? 3 : 1);
+		}
 		console.log(
 			"[IMM] Mod list refresh complete. Entries:",
 			ret[0].length,
@@ -1680,14 +1690,14 @@ async function updateDataFromD3DXIni(modPaths: string | string[]) {
 		const path = `mods\\${managedTGT}\\${modPath}\\`.toLowerCase();
 		const namespaces = Array.from(modMap[modPath]?.namespaces || new Set()) as string[];
 		for (let line of lines) {
-			const namespaceMatch = namespaces.find((n) => line.includes(n)) || "";
+			const namespaceMatch = namespaces.find((n) => line.startsWith(`$\\${n}`)) || "";
 			const mode = line.includes(path) ? 0 : namespaceMatch ? 1 : -1;
 			if (mode == -1) continue;
 			const lineKey = mode ? namespaceMatch : path;
 			const [KeyVar, Val] = line
 				.split("=")
 				.map((part: string, i: number) => (i ? part.trim() : part.trim().split(lineKey)[1]));
-			const Var = (mode ? KeyVar : KeyVar.split("\\").pop() || "").toLowerCase().trim();
+			const Var = (KeyVar.split("\\").pop() || "").toLowerCase().trim();
 			const Key = mode ? lineKey : KeyVar.split("\\").slice(0, -1).join("\\").toLowerCase().trim();
 			if (Key && Var && Val) {
 				if (!data[modPath].vars.hasOwnProperty(Key)) data[modPath].vars[Key] = {};
