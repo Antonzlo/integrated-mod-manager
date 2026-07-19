@@ -940,7 +940,20 @@ async function readDirRecr(
 	} catch {
 		return [];
 	}
-	if (cached && depth == 2 && entries.find((entry) => entry.name == ".imm-cache.json")) return [];
+	if (cached && depth == 2 && entries.find((entry) => entry.name == ".imm-cache.json"))
+		return [
+			{
+				isDir: false,
+				name: ".imm-cache.json",
+				parent: join(path),
+				path: join(path, ".imm-cache.json"),
+				keys: [],
+				enabled: false,
+				children: [],
+				depth,
+				maxed: maxDepth == 9,
+			},
+		];
 	const filePromises = entries.map(async (entry) => {
 		if ((entry.name == RESTORE || entry.name == IGNORE || entry.name == PREFS) && cached && depth == 0) return null;
 		let children: Mod[] = [];
@@ -1179,9 +1192,14 @@ async function detectHotkeys(
 					console.log("Error reading/parsing ini file:", join(src, entry.path), iniError);
 				}
 			}
-			if (entry.isDir && entry.children.length > 0 && entry.name !== INI_BACKUP) {
+			if (entry.isDir && entry.children.length && entry.name !== INI_BACKUP) {
 				try {
-					if (depth == 1 && cache % 2 == 1 && (await exists(join(src, entry.path, ".imm-cache.json")))) {
+					if (
+						depth == 1 &&
+						entry.children.slice(-1)?.pop()?.name === ".imm-cache.json" &&
+						cache % 2 == 1 &&
+						(await exists(join(src, entry.path, ".imm-cache.json")))
+					) {
 						cacheUsed = true;
 						entry = {
 							...entry,
@@ -1417,10 +1435,7 @@ export async function refreshModList(maxed = false) {
 				.filter((entry) => recentlyDownloaded.includes(entry.path))
 				.concat(entries.filter((entry) => !recentlyDownloaded.includes(entry.path)));
 		}
-		info(
-			"[IMM] Mod list refreshed:",
-			entries.map((e) => ({ path: e.path, enabled: e.enabled }))
-		);
+		info("[IMM] Mod list refreshed:", entries);
 		info("[IMM] Mod list refresh took", Date.now() - before, "ms");
 		return entries
 			.filter((entry) => recentlyDownloaded.includes(entry.path))
@@ -1719,7 +1734,6 @@ async function updatePrefsIniFromData(modPath: string, oldPath = "") {
 				const line =
 					`$\\${key.endsWith(".ini") ? `mods\\${managedTGT}\\${modPath}\\` : ""}${key}\\${Var}`.toLowerCase();
 				const value = x.pref ?? x.state;
-				//lines[line] = x.pref ?? x.state;
 				lines[line] = value === undefined || value === null ? "" : String(value);
 				if (lines[line] === undefined || lines[line] === null || lines[line] === "") delete lines[line];
 				else info(`[IMM] Updating Mod: ${modPath} | File: ${key} | Added Line: ${line}`);
