@@ -1344,6 +1344,7 @@ export async function refreshModList(maxed = false) {
 		let ret = await detectHotkeys(await readDirRecr(modSrc, "", 9, 0, true), data, modSrc, 0, maxed ? 3 : 1);
 		if (staleCache) {
 			console.log("[IMM] Stale cache detected, performing deep refresh...");
+			staleCache = false;
 			ret = await detectHotkeys(await readDirRecr(modSrc, "", 9, 0, false), data, modSrc, 0, maxed ? 3 : 1);
 		}
 		console.log(
