@@ -296,7 +296,6 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 	const hotKeyBlur = useCallback(
 		(file: string, target: string, val: string, comp: string, reset: string) => {
 			queueIniChange("hk", file, target, val, comp);
-			// console.log("val", val, "comp", comp, "keyConfig.keyReset", keyConfig.keyReset);
 			if (val === reset) {
 				queueDataChange("keyReset", file, target, null, reset);
 			} else if (val == comp || (!val && !comp)) {
@@ -548,7 +547,6 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 								const prefDefault = displayPref === null || displayPref === undefined || displayPref === "";
 								const defDefault = displayDefaultReset === null || displayDefaultReset === undefined;
 								const keyDefault = displayKeyReset === null || displayKeyReset === undefined || displayKeyReset === "";
-								console.log("keydef", keyConfig);
 								const elements = [
 									<div className="w-full flex items-center">
 										<Input
@@ -683,7 +681,6 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 														if (keyIndex > -1) keysdown.splice(keyIndex, 1);
 														if (keysdown.length == 0) {
 															keyslist = [];
-															// console.log(encodeToVK(e.currentTarget.value));
 															e.currentTarget.blur();
 														}
 													}}
@@ -710,7 +707,6 @@ function ModPreferences({ item, details }: { item: any; details: any }) {
 																const input = document.getElementById(
 																	`mod-hotkey-${encodeURIComponent(`${keyConfig.file}-${keyConfig.target}`)}`
 																) as HTMLInputElement | null;
-																console.log("input", input);
 																if (!input) return;
 																input.value =
 																	(keyConfig.keyReset ?? keyConfig.key)

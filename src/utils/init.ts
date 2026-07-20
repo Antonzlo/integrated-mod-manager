@@ -166,6 +166,23 @@ export const window = getCurrentWebviewWindow();
 export function changeWindowTitle(title: string) {
 	window.setTitle(title);
 }
+export async function focusWindow() {
+	try {
+		if (window) {
+			const isMinimized = await window.isMinimized();
+			const maximized = sessionStorage.getItem("isMaximized") === "true";
+			if (isMinimized) {
+				await window.maximize();
+				if (!maximized) await window.unmaximize();
+			}
+			await window.setAlwaysOnTop(true);
+			await window.setAlwaysOnTop(false);
+			await window.setFocus();
+		}
+	} catch (e) {
+		console.log("[IMM] Failed to focus window:", e);
+	}
+}
 export async function setWindowType(type: number) {
 	if (type == 0) {
 		// if (await window.isMaximized())
@@ -330,7 +347,7 @@ export async function initGame(game: Games, status = true) {
 	const normalizedData = {} as any;
 	Object.keys(configXX.data || {}).forEach((key) => {
 		const normalizedKey = key.replace(/[/\\]+/g, "\\").replace(/^\\+/, "");
-		normalizedData[normalizedKey] = {...normalizedData[normalizedKey], ...(configXX.data as any)[key] };
+		normalizedData[normalizedKey] = { ...normalizedData[normalizedKey], ...(configXX.data as any)[key] };
 	});
 	configXX.data = normalizedData;
 
@@ -429,7 +446,11 @@ export async function setCategories(game = prevGame, status = true) {
 		for (let key of Object.keys(customCats)) {
 			catObj[key] = { ...catObj[key], _sName: key, ...customCats[key] };
 		}
-		categories = Object.values(catObj).map((cat) => ({ ...cat, _sIconUrl: cat._sIconUrl || "/who.jpg", _sName: sanitizeFileName(cat._sName) }));
+		categories = Object.values(catObj).map((cat) => ({
+			...cat,
+			_sIconUrl: cat._sIconUrl || "/who.jpg",
+			_sName: sanitizeFileName(cat._sName),
+		}));
 		store.set(CATEGORIES, categories);
 	}
 }
@@ -659,7 +680,10 @@ export async function main(useGame = "" as Games) {
 		const notice = parsedBody.notice || {};
 		const lastConfig = config.notice || 0;
 		let noticeOpen = false;
-		if ((notice.id > 0 && notice.ver > VERSION) ||  ((notice.id > lastConfig || notice.ignoreable === 0) && notice.ver == VERSION)) {
+		if (
+			(notice.id > 0 && notice.ver > VERSION) ||
+			((notice.id > lastConfig || notice.ignoreable === 0) && notice.ver == VERSION)
+		) {
 			store.set(NOTICE, (prev: any) => ({ ...prev, ...notice }));
 			if (notice.id !== lastConfig || notice.ignoreable == 0) {
 				noticeOpen = true;

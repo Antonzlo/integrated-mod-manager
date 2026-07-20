@@ -101,7 +101,6 @@ export function encodeHotkeyForStorage(displayString: string): string {
 		.replaceAll("xxplusxx", "+");
 }
 export function sortHotkeys(keys: string[]): string[] {
-	console.log("Sorting hotkeys:", keys);
 	const prioritySet = new Set<string>(PRIORITY_KEYS);
 	const regularKeys = keys.filter((key) => !prioritySet.has(key));
 

@@ -1797,7 +1797,6 @@ export async function updateIniVars(relPath: string, keyVals: Record<string, { d
 			if (section !== "constants") {
 				if (counter === 0 && ln.startsWith("key=")) {
 					keyLine = i;
-					console.log("yo")
 					counter++;
 				} else if (counter === 1 && ln.startsWith("type=")) {
 					counter++;

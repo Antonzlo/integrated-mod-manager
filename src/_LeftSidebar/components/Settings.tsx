@@ -752,7 +752,6 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 												keys.push(key);
 												next = sortHotkeys(keys);
 											}
-											// console.log(formatKeysToDisplay(next.join(" ﹢ ")))
 											e.currentTarget.value = next.join(" ﹢ ");
 										}
 									}}

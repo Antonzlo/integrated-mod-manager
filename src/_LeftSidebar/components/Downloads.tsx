@@ -153,7 +153,6 @@ function Downloads() {
 		});
 		if (Object.keys(dataReq).length > 0 && item.path) {
 			const details = await getModDetails(item.path, dataReq as any as ModDataObj);
-			// console.log("in", details)
 			let modData = dataReq.vars || {};
 			const applyModData = (key: any) => {
 				const nextKey = { ...key };

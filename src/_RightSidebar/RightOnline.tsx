@@ -56,6 +56,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { apiClient } from "@/utils/api";
 import { sanitizeRemoteHtml } from "@/utils/safeHtml";
+import { focusWindow } from "@/utils/init";
 let now = Date.now() / 1000;
 const typeToBg = {
 	positive: "bg-success",
@@ -235,6 +236,7 @@ function RightOnline({ open }: { open: boolean }) {
 	useEffect(() => {
 		if (item?._aFiles && gameMatched && fileToDl) {
 			const file = item._aFiles.find((f: any) => f._idRow == fileToDl);
+			focusWindow();
 			if (file) {
 				addToDownloadQueue(file);
 				setFileToDl("");
