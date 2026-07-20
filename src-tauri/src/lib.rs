@@ -854,6 +854,21 @@ async fn set_window_icon(app_handle: tauri::AppHandle, game: String) -> Result<(
     Ok(())
 }
 
+#[tauri::command]
+async fn get_platform(_app: tauri::AppHandle) -> Result<String, String> {
+    println!("Detected platform: {:?}", tauri::utils::platform::bundle_type());    
+    Ok(std::env::consts::OS.to_string())
+}
+#[tauri::command]
+async fn get_target(_app: tauri::AppHandle) -> Result<String, String> {
+    let res = tauri::utils::platform::bundle_type();
+    if let Some(bundle_type) = res {
+        Ok(format!("{:?}", bundle_type))
+    } else {
+        Ok("Unknown".to_string())
+    }
+}
+
 use tauri_plugin_window_state::{Builder, StateFlags};
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -969,6 +984,8 @@ pub fn run() {
             create_symlink,
             extract_archive,
             set_window_icon,
+            get_platform,
+            get_target,
             logger_utils::open_logs_folder,
             hotreload::set_hotreload,
             hotreload::start_window_monitoring,

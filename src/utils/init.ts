@@ -1,6 +1,7 @@
 import {
 	CATEGORIES,
 	DATA,
+	DATA_PATH,
 	ERR,
 	FIRST_LOAD,
 	GAME,
@@ -67,7 +68,8 @@ let isInPrePostLaunch = {
 	EF: false,
 	"": false,
 };
-
+let target = "unknown";
+let platform = "windows";
 export function getPaths() {
 	return paths;
 }
@@ -185,28 +187,33 @@ export async function focusWindow() {
 }
 export async function setWindowType(type: number) {
 	if (type == 0) {
-		// if (await window.isMaximized())
 		window.unmaximize();
-		// window.setFullscreen(false);
-		// window.setDecorations(true);
-		// currentMonitor().then((x) => {
-		// 	if (x?.size) window.setSize(new PhysicalSize(x.size.width * 0.8, x.size.height * 0.8));
-		// });
 	} else if (type == 1) {
 		window.unmaximize();
-		// window.setFullscreen(false);
-		// window.setDecorations(false);
-		// currentMonitor().then((x) => {
-		// 	if (x?.size) window.setSize(new PhysicalSize(x.size.width * 0.8, x.size.height * 0.8));
-		// });
 	} else if (type == 2) {
 		window.maximize();
-		// window.setFullscreen(true);
 	}
 }
 invoke<string>("get_image_server_url").then((url) => {
 	setImageServer(url + "/preview");
 });
+export async function setDataPath() {
+	try {
+		const res: string = await invoke("get_platform");
+		if (res == "linux") {
+			platform = "linux";
+			target = await invoke("get_target");
+			console.log("[IMM] Platform:", platform, "Target:", target);
+			const dataDir = await path.appDataDir();
+			if (!(await exists(dataDir))) {
+				await mkdir(dataDir, { recursive: true });
+			}
+			store.set(DATA_PATH, dataDir);
+		} else store.set(DATA_PATH, "");
+	} catch (e) {
+		store.set(DATA_PATH, "");
+	}
+}
 export async function updateConfig(oconfig = null as any) {
 	if (!oconfig) oconfig = JSON.parse(await readTextFile("config.json"));
 	info("[IMM] Updating config from:", oconfig);
@@ -417,6 +424,10 @@ store.sub(SAVED_LANG, () => {
 	}
 });
 export async function setCategories(game = prevGame, status = true) {
+	console.log("[IMM] Waiting to setup data path");
+	while (store.get(DATA_PATH) == null) {
+		await new Promise((resolve) => setTimeout(resolve, 10));
+	}
 	info("[IMM] Setting categories...");
 
 	// await new Promise((resolve) => setTimeout(resolve, 10000));
@@ -577,6 +588,9 @@ export async function maintainBackups(): Promise<boolean> {
 }
 let cwd = "";
 export function getCwd() {
+	if(store.get(DATA_PATH) && platform == "linux") {
+	return cwd
+	}
 	return cwd;
 }
 export async function main(useGame = "" as Games) {
@@ -587,7 +601,10 @@ export async function main(useGame = "" as Games) {
 	resetAtoms();
 	removeHelpers();
 	appData = toInternal(await path.dataDir());
-	cwd = join(await path.localDataDir(), "Integrated Mod Manager (IMM)");
+	if(store.get(DATA_PATH) && platform == "linux") 
+		cwd = store.get(DATA_PATH) || join(await path.localDataDir(), "Integrated Mod Manager (IMM)");
+	else
+		cwd = join(await path.localDataDir(), "Integrated Mod Manager (IMM)");
 	const XXMI = `${appData}\\XXMI Launcher`;
 	if (!(await exists("config.json"))) {
 		store.set(MAIN_FUNC_STATUS, "Creating default config.json");
@@ -661,7 +678,7 @@ export async function main(useGame = "" as Games) {
 		const timeoutPromise = new Promise<never>((_, reject) =>
 			setTimeout(() => reject(new Error("Update check timeout")), 10000)
 		);
-		update = await Promise.race([check(), timeoutPromise]);
+		update = await Promise.race([check(platform == "linux" ? { target: platform + "-" + target } : {}), timeoutPromise]);
 	} catch (error) {
 		console.error("[IMM] Update check failed:", error);
 		update = null;

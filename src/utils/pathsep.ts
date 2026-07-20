@@ -14,6 +14,8 @@
 //     no-op and Windows behaviour is byte-identical; on Linux it produces
 //     forward-slash paths.
 
+import { DATA_PATH, store } from "./vars";
+
 const NATIVE_SEP = typeof navigator !== "undefined" && /windows/i.test(navigator.userAgent) ? "\\" : "/";
 
 /** Join path/key segments using the internal "\\" separator. */
@@ -26,7 +28,10 @@ export function join(...parts: (string | null | undefined)[]) {
 	if (result.endsWith("\\")) result = result.slice(0, -1);
 	return result;
 }
-
+let dataPath: string | null = null;
+store.sub(DATA_PATH, () => {
+	dataPath = store.get(DATA_PATH);
+});
 /** Convert an OS-native path into the internal "\\" form. */
 export function toInternal<T extends string | null | undefined>(p: T): T {
 	return (typeof p === "string" ? p.replaceAll("/", "\\") : p) as T;
@@ -34,5 +39,8 @@ export function toInternal<T extends string | null | undefined>(p: T): T {
 
 /** Convert an internal "\\" path into the OS-native form. */
 export function toFs<T extends string | null | undefined>(p: T): T {
+
+	if (dataPath && p && typeof p === "string" && /^[a-zA-Z]/.test(p) && !p.startsWith('home'))
+		p = join(dataPath, p) as T;
 	return (typeof p === "string" ? p.replaceAll("\\", NATIVE_SEP) : p) as T;
 }
