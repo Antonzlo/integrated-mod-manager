@@ -89,8 +89,8 @@ def bundle():
     bin_dir = root / ".bundle" / version / "bin"
     sig_dir = root / ".bundle" / version / "sig"
 
-    bin_dir.mkdir(exist_ok=True)
-    sig_dir.mkdir(exist_ok=True)
+    bin_dir.mkdir(exist_ok=True, parents=True)
+    sig_dir.mkdir(exist_ok=True, parents=True)
 
     platform = "windows" if sys.platform == "win32" else "linux"
     frm = []
