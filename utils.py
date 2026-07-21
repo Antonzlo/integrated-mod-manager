@@ -136,7 +136,7 @@ def bundle():
     if platform == "linux":
         #zip the .bundle directory
         bundle_dir = root / ".bundle" / version
-        zip_path = root / ".bundle" / f"IMM_{version}_bundle.zip"
+        zip_path = root / ".bundle" / f"{version}.zip"
         try:
             shutil.make_archive(str(zip_path).replace('.zip', ''), 'zip', bundle_dir)
             print(f"✓ Zipped {bundle_dir} to {zip_path}")
