@@ -12,7 +12,7 @@ dist
 dist-ssr
 *.local
 
-bundle.zip
+bundle_*
 .bundle*
 
 # Flatpak local build output

@@ -9,23 +9,22 @@ ver=$(jq -r '.version' package.json)
 
 # Create destination directories if they don't exist
 
-mkdir -p ./.bundle/deb/
-mkdir -p ./.bundle/appimage/
-mkdir -p ./.bundle/rpm/
+mkdir -p ./.bundle/${ver}/bin/
+mkdir -p ./.bundle/${ver}/sig/
 
 # Copy .deb files
-cp "./src-tauri/target/release/bundle/deb/Integrated Mod Manager (IMM)_${ver}_amd64.deb" "./.bundle/deb/"
-cp "./src-tauri/target/release/bundle/deb/Integrated Mod Manager (IMM)_${ver}_amd64.deb.sig" "./.bundle/deb/"
+cp "./src-tauri/target/release/bundle/deb/Integrated Mod Manager (IMM)_${ver}_amd64.deb" "./.bundle/${ver}/bin/"
+cp "./src-tauri/target/release/bundle/deb/Integrated Mod Manager (IMM)_${ver}_amd64.deb.sig" "./.bundle/${ver}/sig/"
 
 # Copy .AppImage files
-cp "./src-tauri/target/release/bundle/appimage/Integrated Mod Manager (IMM)_${ver}_amd64.AppImage" "./.bundle/appimage/"
-cp "./src-tauri/target/release/bundle/appimage/Integrated Mod Manager (IMM)_${ver}_amd64.AppImage.sig" "./.bundle/appimage/"
+cp "./src-tauri/target/release/bundle/appimage/Integrated Mod Manager (IMM)_${ver}_amd64.AppImage" "./.bundle/${ver}/bin/"
+cp "./src-tauri/target/release/bundle/appimage/Integrated Mod Manager (IMM)_${ver}_amd64.AppImage.sig" "./.bundle/${ver}/sig/"
 
 # Copy .rpm files
-cp "./src-tauri/target/release/bundle/rpm/Integrated Mod Manager (IMM)-${ver}-1.x86_64.rpm" "./.bundle/rpm/"
-cp "./src-tauri/target/release/bundle/rpm/Integrated Mod Manager (IMM)-${ver}-1.x86_64.rpm.sig" "./.bundle/rpm/"
+cp "./src-tauri/target/release/bundle/rpm/Integrated Mod Manager (IMM)-${ver}-1.x86_64.rpm" "./.bundle/${ver}/bin/"
+cp "./src-tauri/target/release/bundle/rpm/Integrated Mod Manager (IMM)-${ver}-1.x86_64.rpm.sig" "./.bundle/${ver}/sig/"
 
 echo "Files copied successfully for version ${ver}."
 
 #compress the .bundle directory into a zip file
-7z  a -tzip "bundle.zip" ./.bundle/
+7z  a -tzip "bundle_${ver}.zip" ./.bundle/${ver}/
