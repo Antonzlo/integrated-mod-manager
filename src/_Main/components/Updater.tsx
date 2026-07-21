@@ -37,12 +37,9 @@ function Updater() {
 					);
 				counter--;
 				if (counter < 0) {
-					update.raw?.install().then(() => {
-						if (dataPath) {
-							confirm("Update complete. The app will close now. Please reopen it to complete the update.");
-							getCurrentWindow().destroy();
-						}
-					});
+					if (dataPath) confirm("Update complete. The app will close now. Please reopen it to complete the update.");
+					update.raw?.install();
+					if (dataPath) getCurrentWindow().destroy();
 					clearInterval(interval);
 				}
 			}, 100);
@@ -269,12 +266,10 @@ function Updater() {
 										}
 									});
 								} else if (counter > 0) {
-									update.raw?.install().then(() => {
-										if (dataPath) {
-											confirm("Update complete. The app will close now. Please reopen it to complete the update.");
-											getCurrentWindow().destroy();
-										}
-									});
+									if (dataPath)
+										confirm("Update complete. The app will close now. Please reopen it to complete the update.");
+									update.raw?.install();
+									if (dataPath) getCurrentWindow().destroy();
 								}
 							}}
 						>

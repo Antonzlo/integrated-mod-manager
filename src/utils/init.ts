@@ -203,6 +203,8 @@ export async function setDataPath() {
 		if (res == "linux") {
 			platform = "linux";
 			target = await invoke("get_target");
+			if(typeof target !== "string") target = "unknown";
+			else target = target.toLowerCase();
 			console.log("[IMM] Platform:", platform, "Target:", target);
 			const dataDir = await path.appDataDir();
 			if (!(await exists(dataDir))) {
@@ -402,19 +404,6 @@ store.sub(SETTINGS, async () => {
 		configXX = { ...configXX, settings: { ...configXX.settings, ...settings.game } };
 	}
 	if (settings.global.game != store.get(GAME)) store.set(GAME, settings.global.game);
-	// const compare = {
-	// 	src: [settings.global.game, settings.global.lang],
-	// 	to: [GAME, LANG],
-	// 	names: ["game", "lang"],
-	// };
-	// for (let i = 0; i < compare.src.length; i++) {
-	// 	if (compare.src[i] !== store.get(compare.to[i])) {
-	// 		if (compare.names[i] === "lang" && compare.src[i])
-	// 			store.set(TEXT_DATA, TEXT[compare.src[i] as "en"] || TEXT["en"]);
-	// 		// else if (compare.names[i] === "game" && compare.src[i]) await initGame(compare.src[i]);
-	// 		store.set(compare.to[i] as any, compare.src[i]);
-	// 	}
-	// }
 });
 store.sub(SAVED_LANG, () => {
 	const lang = store.get(SAVED_LANG);
@@ -430,13 +419,11 @@ export async function setCategories(game = prevGame, status = true) {
 	}
 	info("[IMM] Setting categories...");
 
-	// await new Promise((resolve) => setTimeout(resolve, 10000));
 	if (!game) return;
 	prevGame = game;
 	try {
 		status && store.set(MAIN_FUNC_STATUS, "Fetching game categories from Gamebanana");
 		categories = await apiClient.categories();
-		//info("Fetched categories:", categories);
 		if (!categories || categories.length == 0) throw "No categories found, please verify the directories again";
 	} catch (e) {
 		status && store.set(MAIN_FUNC_STATUS, "Unable to reach Gamebanana");
@@ -446,9 +433,7 @@ export async function setCategories(game = prevGame, status = true) {
 				? configXX.categories
 				: [...apiClient.categoryList, ...apiClient.generic.categories];
 	} finally {
-		//info("Using categories:", categories,apiClient.categoryList,configXX.categories);
 		if (!categories || categories.length == 0) return;
-		// info("[IMM] Finalized categories:", categories);
 		const catObj: { [key: string]: Category } = {};
 		categories.forEach((cat) => {
 			catObj[cat._sName] = cat;
@@ -588,9 +573,6 @@ export async function maintainBackups(): Promise<boolean> {
 }
 let cwd = "";
 export function getCwd() {
-	if(store.get(DATA_PATH) && platform == "linux") {
-	return cwd
-	}
 	return cwd;
 }
 export async function main(useGame = "" as Games) {
