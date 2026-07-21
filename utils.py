@@ -111,8 +111,8 @@ def bundle():
             root / "src-tauri" / "target" / "release" / "bundle" / "appimage" / f"Integrated Mod Manager (IMM)_{version}_amd64.AppImage.sig",
             root / "src-tauri" / "target" / "release" / "bundle" / "deb" / f"Integrated Mod Manager (IMM)_{version}_amd64.deb",
             root / "src-tauri" / "target" / "release" / "bundle" / "deb" / f"Integrated Mod Manager (IMM)_{version}_amd64.deb.sig",
-            root / "src-tauri" / "target" / "release" / "bundle" / "rpm" / f"Integrated Mod Manager (IMM)-${version}-1.x86_64.rpm",
-            root / "src-tauri" / "target" / "release" / "bundle" / "rpm" / f"Integrated Mod Manager (IMM)-${version}-1.x86_64.rpm.sig"
+            root / "src-tauri" / "target" / "release" / "bundle" / "rpm" / f"Integrated Mod Manager (IMM)-{version}-1.x86_64.rpm",
+            root / "src-tauri" / "target" / "release" / "bundle" / "rpm" / f"Integrated Mod Manager (IMM)-{version}-1.x86_64.rpm.sig"
         ]
         to =[
             bin_dir / f"Linux_AppImage_Integrated.Mod.Manager.IMM._{version}_amd64.AppImage",
