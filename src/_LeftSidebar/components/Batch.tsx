@@ -457,6 +457,7 @@ function BatchOperations({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 				</Button>
 			</DialogTrigger>
 			<DialogContent
+				title={textData._LeftSideBar._components._Batch.BatchOperations}
 				onFocus={(e) => {
 					e.currentTarget.blur();
 				}}

@@ -39,7 +39,7 @@ function ModPreviewCrop({ item, setDialogType }: { item: any, setDialogType: (ty
 		setMouseDownPos({ x: e.clientX, y: e.clientY });
 	}
 	return (
-		<DialogContent className="min-w-250 select-none">
+		<DialogContent title="Edit Preview Image" className="min-w-250 select-none">
 			<Tooltip>
 				<TooltipTrigger></TooltipTrigger>
 				<TooltipContent className="opacity-0"></TooltipContent>

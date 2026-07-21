@@ -122,6 +122,7 @@ function Remove() {
 	return (
 		<Dialog open={removeOpen || progress.started} onOpenChange={setRemoveOpen}>
 			<DialogContent
+				title={textData._LeftSideBar._components._RemoveIMM.RemoveIMM}
 				className=""
 				style={{
 					minHeight: progress.started ? "calc(100vh - 2rem)" : "",

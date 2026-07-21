@@ -1,5 +1,6 @@
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import { XIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 function Dialog({
@@ -41,8 +42,9 @@ function DialogContent({
   className,
   children,
   hideClose = false,
+  title,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Content> & { hideClose?: boolean }) {
+}: React.ComponentProps<typeof DialogPrimitive.Content> & { hideClose?: boolean; title?: string }) {
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />
@@ -54,6 +56,9 @@ function DialogContent({
         )}
         {...props}
       >
+        <VisuallyHidden asChild>
+          <DialogPrimitive.Title>{title ?? "Dialog"}</DialogPrimitive.Title>
+        </VisuallyHidden>
         {children}
         <DialogPrimitive.Close className="ring-offset-background data-[state=open]:bg-accent   data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4" hidden={hideClose} >
           <XIcon />

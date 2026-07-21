@@ -881,7 +881,7 @@ function Settings({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 					{leftSidebarOpen && textData.Settings}
 				</Button>
 			</DialogTrigger>
-			<DialogContent className="max-h-128 min-w-210 h-full">
+			<DialogContent title={textData.Settings} className="max-h-128 min-w-210 h-full">
 				<AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
 					<AlertDialogContent
 						className="game-font bg-background/50 backdrop-blur-xs border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg"

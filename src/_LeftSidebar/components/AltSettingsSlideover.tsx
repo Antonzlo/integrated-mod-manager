@@ -610,7 +610,7 @@ function SettingsSlideover({ leftSidebarOpen }: { leftSidebarOpen: boolean }) {
 					{leftSidebarOpen && textData.Settings}
 				</Button>
 			</DialogTrigger>
-			<DialogContent hideClose className="max-h-[calc(100vh-1rem)] pb-0 left-104 min-w-210 h-full data-[state=closed]:slide-out-to-left-25 data-[state=open]:slide-in-from-left-25  data-[state=closed]:zoom-out-100 data-[state=open]:zoom-in-100">
+			<DialogContent title={textData.Settings} hideClose className="max-h-[calc(100vh-1rem)] pb-0 left-104 min-w-210 h-full data-[state=closed]:slide-out-to-left-25 data-[state=open]:slide-in-from-left-25  data-[state=closed]:zoom-out-100 data-[state=open]:zoom-in-100">
 				<AlertDialog open={alertOpen} onOpenChange={setAlertOpen}>
 					<AlertDialogContent
 						className="game-font bg-background/50 backdrop-blur-xs border-border flex flex-col items-center gap-4 p-4 overflow-hidden border-2 rounded-lg"

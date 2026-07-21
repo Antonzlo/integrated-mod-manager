@@ -56,7 +56,7 @@ function ManageCategories() {
 		});
 	}, 400);
 	return (
-		<DialogContent>
+		<DialogContent title={textData._RightSideBar._components._ManageCategories.ManageCat}>
 			<Tooltip>
 				<TooltipTrigger></TooltipTrigger>
 				<TooltipContent className="opacity-0"></TooltipContent>
