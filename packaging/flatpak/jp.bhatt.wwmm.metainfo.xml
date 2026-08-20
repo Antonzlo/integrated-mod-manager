@@ -43,6 +43,8 @@
     </screenshot>
   </screenshots>
   <url type="homepage">https://github.com/Antonzlo/integrated-mod-manager</url>
+  <url type="vcs-browser">https://github.com/Antonzlo/integrated-mod-manager</url>
+  <url type="bugtracker">https://github.com/Antonzlo/integrated-mod-manager/issues</url>
   <content_rating type="oars-1.1" />
   <releases>
     <release version="4.1.0-rc1" date="2026-08-20" />
