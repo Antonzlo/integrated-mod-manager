@@ -39,7 +39,7 @@ import { switchGameTheme } from "./theme";
 import { executeXXMI, isGameProcessRunning } from "./autolaunch";
 // import { updateIni } from "./iniUpdater";
 import { join, setHotreload, stopWindowMonitoring } from "./hotreload";
-import { toInternal, toFs } from "./pathsep";
+import { toInternal, toFs, IS_WINDOWS } from "./pathsep";
 import { registerGlobalHotkeys } from "./hotkeyUtils";
 import TEXT from "@/textData.json";
 import { unregisterAll } from "@tauri-apps/plugin-global-shortcut";
@@ -456,6 +456,14 @@ function removeHelpers() {
 	resetPageCounts();
 }
 export async function launchGame() {
+	if (!IS_WINDOWS) {
+		addToast({
+			type: "info",
+			message: "Auto-launch isn't supported on Linux yet, please start XXMI Launcher manually.",
+			duration: 5000,
+		});
+		return;
+	}
 	if (await exists(config.XXMI))
 		isGameProcessRunning(config.game).then((running) => {
 			if (!running) {

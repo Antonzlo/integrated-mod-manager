@@ -739,45 +739,7 @@ fn execute_with_args(exe_path: String, args: Vec<String>) -> Result<String, Stri
         return Err(format!("Executable not found: {}", exe_path));
     }
 
-    let mut command;
-    // Windows executables can't be exec'd natively on Linux, so run them
-    // through Wine (the game itself already runs under Wine/Proton).
-    #[cfg(target_os = "linux")]
-    {
-        let is_exe = Path::new(&exe_path)
-            .extension()
-            .map(|e| e.eq_ignore_ascii_case("exe"))
-            .unwrap_or(false);
-        let parent = Path::new(&exe_path)
-            .parent()
-            .and_then(|p| p.to_str())
-            .map(|s| s.to_string());
-        if is_exe {
-            if Path::new("/.flatpak-info").exists() {
-                // Inside a flatpak sandbox there is no Wine; run it on the host
-                // (where Wine and the game's Wine prefix actually live) via the
-                // spawn portal.
-                command = Command::new("flatpak-spawn");
-                command.arg("--host");
-                if let Some(ref dir) = parent {
-                    command.arg(format!("--directory={}", dir));
-                }
-                command.arg("wine").arg(&exe_path);
-            } else {
-                command = Command::new("wine");
-                command.arg(&exe_path);
-                if let Some(ref dir) = parent {
-                    command.current_dir(dir);
-                }
-            }
-        } else {
-            command = Command::new(&exe_path);
-        }
-    }
-    #[cfg(not(target_os = "linux"))]
-    {
-        command = Command::new(&exe_path);
-    }
+    let mut command = Command::new(&exe_path);
 
     for arg in &args {
         command.arg(arg);
