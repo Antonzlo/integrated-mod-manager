@@ -1,9 +1,9 @@
 id: jp.bhatt.wwmm
 runtime: org.gnome.Platform
-runtime-version: '49'
+runtime-version: '50'
 sdk: org.gnome.Sdk
-# GNOME Sdk//49 is built on org.freedesktop.Sdk//25.08 (confirmed via
-# `flatpak info --show-metadata org.gnome.Sdk//49 | grep freedesktop`), so
+# GNOME Sdk//50 is still built on org.freedesktop.Sdk//25.08 (confirmed via
+# `flatpak info --show-metadata org.gnome.Sdk//50 | grep freedesktop`), so
 # the SDK extension branch below must match 25.08, not the GNOME version.
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.rust-stable
