@@ -16,7 +16,8 @@
 
 import { DATA_PATH, store } from "./vars";
 
-const NATIVE_SEP = typeof navigator !== "undefined" && /windows/i.test(navigator.userAgent) ? "\\" : "/";
+export const IS_WINDOWS = typeof navigator !== "undefined" && /windows/i.test(navigator.userAgent);
+const NATIVE_SEP = IS_WINDOWS ? "\\" : "/";
 
 /** Join path/key segments using the internal "\\" separator. */
 export function join(...parts: (string | null | undefined)[]) {
