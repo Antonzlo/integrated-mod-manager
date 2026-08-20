@@ -44,6 +44,18 @@ Use `package-lock.json` (npm), not `pnpm-lock.yaml` — the frontend build
 breaks under pnpm's strict `node_modules` layout (undeclared transitive dep
 on `embla-carousel`), so the flatpak module also builds with `npm ci`.
 
+## Bumping the pinned commit
+
+The `imm` module's source is `type: git` pinned to a specific commit on
+`Antonzlo/integrated-mod-manager`, not a local `type: dir` copy. This
+matters beyond reproducibility: store frontends that check whether a
+flatpak's source is actually public and auditable (e.g. Bazaar) show a
+"Proprietary Code" warning for `type: dir`/`type: file` sources, since
+there's nothing external to verify against. Update the `commit:` field to
+the commit you want released, then rebuild — don't switch it back to
+`type: dir` for convenience during local iteration without switching it
+back before shipping.
+
 ## Gotchas (all still apply, from the pre-source-build manifest)
 
 - **7-Zip binaries**: `imm` module downloads official 7-zip.org release
