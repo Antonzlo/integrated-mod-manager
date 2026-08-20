@@ -1,4 +1,5 @@
 import TEXT from "@/textData.json";
+import packageJson from "../../package.json";
 import {
 	Category,
 	ChangeInfo,
@@ -27,7 +28,7 @@ export const OLD_managedTGT = "Mods (Managed by IMM)";
 export const managedSRC = "DISABLED - ALL MODS ARE STORED HERE (Managed by IMM)";
 export const managedTGT = "DO NOT MODIFY (Managed by IMM)";
 export const INI_BACKUP = "DISABLED_IMM_INI_BACKUP"; //If changed, also update in src-tauri/src/lib.rs
-export const VERSION = "4.0.0";
+export const VERSION = packageJson.version;
 export const GAMES: Games[] = ["WW", "ZZ", "GI", "SR", "EF"];
 export const GAME_GB_IDS: { [key: number]: Games } = {
 	20357: "WW",
