@@ -2076,7 +2076,7 @@ dependencies = [
 
 [[package]]
 name = "integrated-mod-manager"
-version = "4.0.0"
+version = "4.1.0-rc1"
 dependencies = [
  "futures-util",
  "log",

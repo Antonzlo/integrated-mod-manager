@@ -1,6 +1,6 @@
 [package]
 name = "integrated-mod-manager"
-version = "4.0.0"
+version = "4.1.0-rc1"
 description = "A desktop mod manager for xxmi built with Tauri"
 authors = ["YourBadLuck"]
 edition = "2021"

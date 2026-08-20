@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>jp.bhatt.wwmm</id>
+  <name>Integrated Mod Manager</name>
+  <summary>A desktop mod manager for XXMI-supported games</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <!-- No LICENSE file or license field in the upstream repo as of 2026-08-20; project_license
+       is left unset rather than guessed. Fill this in if/when upstream declares one. -->
+  <project_license>LicenseRef-proprietary</project_license>
+  <description>
+    <p>
+      Integrated Mod Manager (IMM) is a desktop application that streamlines
+      mod management for Wuthering Waves, Genshin Impact, Zenless Zone Zero,
+      Honkai Star Rail and Arknights Endfield. It offers one-click toggles,
+      customizable presets, built-in previews, and conflict detection and
+      resolution, making applying, organizing, and managing mods effortless.
+    </p>
+    <p>
+      It also features an integrated online mod browser, letting you
+      discover and install mods directly from Gamebanana without leaving the
+      app. IMM is only a mod manager and does not include or load mods
+      itself; using XXMI as a mod loader is recommended, but any loader that
+      supports the game will work.
+    </p>
+  </description>
+  <launchable type="desktop-id">jp.bhatt.wwmm.desktop</launchable>
+  <screenshots>
+    <screenshot type="default">
+      <caption>Mod organization view</caption>
+      <image>https://raw.githubusercontent.com/Antonzlo/integrated-mod-manager/main/preview/WWorg.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Local mod management</caption>
+      <image>https://raw.githubusercontent.com/Antonzlo/integrated-mod-manager/main/preview/ZZLocal.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Online mod browsing via Gamebanana</caption>
+      <image>https://raw.githubusercontent.com/Antonzlo/integrated-mod-manager/main/preview/ZZOnline.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Download manager</caption>
+      <image>https://raw.githubusercontent.com/Antonzlo/integrated-mod-manager/main/preview/ZZDownload.png</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">https://github.com/Antonzlo/integrated-mod-manager</url>
+  <content_rating type="oars-1.1" />
+  <releases>
+    <release version="4.0.0" date="2026-08-20" />
+  </releases>
+</component>

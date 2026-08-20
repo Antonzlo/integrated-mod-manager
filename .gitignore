@@ -19,6 +19,7 @@ bundle_*
 .flatpak-builder/
 flatpak-build-dir/
 flatpak-tmp/
+packaging/flatpak/build-dir/
 .extra
 *._*
 # Editor directories and files
