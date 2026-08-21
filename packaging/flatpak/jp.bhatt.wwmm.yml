@@ -16,7 +16,7 @@ finish-args:
   - --share=ipc
   - --share=network
   - --talk-name=org.kde.StatusNotifierWatcher
-  - --filesystem=home
+  - --filesystem=host
   - --env=WEBKIT_DISABLE_DMABUF_RENDERER=1
 modules:
   - shared-modules/libappindicator/libappindicator-gtk3-12.10.json
