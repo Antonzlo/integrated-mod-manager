@@ -156,29 +156,19 @@ fn is_flatpak() -> bool {
 
 #[cfg(target_os = "linux")]
 fn hotreload_command(program: &str) -> std::process::Command {
-    if is_flatpak() {
-        let mut command = std::process::Command::new("flatpak-spawn");
-        command.arg("--host").arg(program);
-        command
-    } else {
-        std::process::Command::new(program)
-    }
+    // xdotool/ydotool are bundled into /app/bin by the flatpak build (see
+    // packaging/flatpak/jp.bhatt.wwmm.yml), so they run directly inside the
+    // sandbox against --socket=fallback-x11 / --device=input, same as outside it.
+    std::process::Command::new(program)
 }
 
 #[cfg(target_os = "linux")]
 fn command_exists(program: &str) -> bool {
-    let output = if is_flatpak() {
-        std::process::Command::new("flatpak-spawn")
-            .arg("--host")
-            .arg("sh")
-            .arg("-c")
-            .arg(format!("command -v {program} >/dev/null 2>&1"))
-            .output()
-    } else {
-        std::process::Command::new("which").arg(program).output()
-    };
-
-    output.map(|o| o.status.success()).unwrap_or(false)
+    std::process::Command::new("which")
+        .arg(program)
+        .output()
+        .map(|o| o.status.success())
+        .unwrap_or(false)
 }
 
 #[cfg(target_os = "linux")]

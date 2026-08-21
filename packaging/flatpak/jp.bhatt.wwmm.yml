@@ -17,6 +17,7 @@ finish-args:
   - --share=network
   - --talk-name=org.kde.StatusNotifierWatcher
   - --filesystem=host
+  - --device=input
   - --env=WEBKIT_DISABLE_DMABUF_RENDERER=1
 modules:
   - shared-modules/libappindicator/libappindicator-gtk3-12.10.json
@@ -34,6 +35,29 @@ modules:
       - install -Dm755 xdg-mime /app/bin/xdg-mime
       - install -Dm755 xdg-open /app/bin/xdg-open
       - install -Dm755 xdg-settings /app/bin/xdg-settings
+
+  # xdotool/ydotool run inside the sandbox for hotreload window automation
+  # (X11 socket + input device are already granted above), instead of
+  # `flatpak-spawn --host` which would need a broad host-command permission.
+  - name: xdotool
+    buildsystem: simple
+    build-commands:
+      - make PREFIX=/app
+      - make install PREFIX=/app
+    sources:
+      - type: git
+        url: https://github.com/jordansissel/xdotool.git
+        commit: 5c27b117c91bdc4d0f56a71ac4e78c04e4e60dba
+
+  - name: ydotool
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DBUILD_DOCS=OFF
+      - -DSYSTEMD_USER_SERVICE=OFF
+    sources:
+      - type: git
+        url: https://github.com/ReimuNotMoe/ydotool.git
+        commit: 708e96ff27e381a8c549418a9d34cdde12305317
 
   - name: imm
     buildsystem: simple
