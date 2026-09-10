@@ -197,24 +197,29 @@ export async function setWindowType(type: number) {
 invoke<string>("get_image_server_url").then((url) => {
 	setImageServer(url + "/preview");
 });
+let dataPathPromise: Promise<void> | null = null;
 export async function setDataPath() {
-	try {
-		const res: string = await invoke("get_platform");
-		if (res == "linux") {
-			platform = "linux";
-			target = await invoke("get_target");
-			if(typeof target !== "string") target = "unknown";
-			else target = target.toLowerCase();
-			console.log("[IMM] Platform:", platform, "Target:", target);
-			const dataDir = await path.appDataDir();
-			if (!(await exists(dataDir))) {
-				await mkdir(dataDir, { recursive: true });
-			}
-			store.set(DATA_PATH, dataDir);
-		} else store.set(DATA_PATH, "");
-	} catch (e) {
-		store.set(DATA_PATH, "");
-	}
+	if (dataPathPromise) return dataPathPromise;
+	dataPathPromise = (async () => {
+		try {
+			const res: string = await invoke("get_platform");
+			if (res == "linux") {
+				platform = "linux";
+				target = await invoke("get_target");
+				if(typeof target !== "string") target = "unknown";
+				else target = target.toLowerCase();
+				console.log("[IMM] Platform:", platform, "Target:", target);
+				const dataDir = await path.appDataDir();
+				if (!(await exists(dataDir))) {
+					await mkdir(dataDir, { recursive: true });
+				}
+				store.set(DATA_PATH, dataDir);
+			} else store.set(DATA_PATH, "");
+		} catch (e) {
+			store.set(DATA_PATH, "");
+		}
+	})();
+	return dataPathPromise;
 }
 export async function updateConfig(oconfig = null as any) {
 	if (!oconfig) oconfig = JSON.parse(await readTextFile("config.json"));
@@ -588,6 +593,7 @@ export async function main(useGame = "" as Games) {
 	isInitialized = false;
 	info("[IMM] Initializing application...");
 	await invoke("get_username");
+	await setDataPath();
 	resetAtoms();
 	removeHelpers();
 	appData = toInternal(await path.dataDir());
