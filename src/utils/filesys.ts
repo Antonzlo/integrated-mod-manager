@@ -35,7 +35,7 @@ import {
 import { open } from "@tauri-apps/plugin-dialog";
 import { invoke } from "@tauri-apps/api/core";
 import { join, iniPath, getModData } from "./hotreload";
-import { toFs, toInternal } from "./pathsep";
+import { parentDir, toFs, toInternal } from "./pathsep";
 import { main, updateConfig } from "./init";
 import { addToast } from "@/_Toaster/ToastProvider";
 import MiniSearch from "minisearch";
@@ -511,11 +511,11 @@ export async function checkOldVerDirs(src: string) {
 }
 export async function categorizeDir(src: string, modifyIni = false) {
 	info("[IMM] Categorizing directory:", src, "Skip restore:", modifyIni);
-	const d3dx_path = join(...tgt.split(/[/\\]/).slice(0, -1), "d3dx_user.ini");
+	const d3dx_path = join(parentDir(tgt), "d3dx_user.ini");
 	let d3dx = "" as any;
 	try {
 		info("[IMM] Reading d3dx_user.ini...", await exists(d3dx_path));
-		const backupPath = join(...tgt.split(/[/\\]/).slice(0, -1), `d3dx_user_pre_imm.ini.bak`);
+		const backupPath = join(parentDir(tgt), `d3dx_user_pre_imm.ini.bak`);
 		if (!(await exists(backupPath))) {
 			await copyFile(d3dx_path, backupPath);
 		}
@@ -640,8 +640,7 @@ export async function verifyDirStruct() {
 			if (await exists(oldTgtPath)) {
 				await rename(oldTgtPath, newTgtPath);
 				//add code to read the file d3dx_user.ini in the parent folder of oldTgtPath, and replace all instances of OLD_managedTGT with managedTGT
-				const parentDir = join(...tgt.split(/[/\\]/).slice(0, -1));
-				const iniFilePath = join(parentDir, "d3dx_user.ini");
+				const iniFilePath = join(parentDir(tgt), "d3dx_user.ini");
 				info("[IMM] Updating d3dx_user.ini at:", iniFilePath);
 
 				try {
@@ -1043,7 +1042,7 @@ export async function remMoveMods(categoryMode = true, enable = 0) {
 	});
 	await Promise.all(movePromises);
 	// console.log("All entries moved. Updating d3dx_user.ini if needed...", iniChanges);
-	const d3dxPath = join(...tgt.split(/[/\\]/).slice(0, -1), "d3dx_user.ini");
+	const d3dxPath = join(parentDir(tgt), "d3dx_user.ini");
 	try {
 		if (await exists(d3dxPath)) {
 			let d3dx = await readTextFile(d3dxPath);
@@ -1669,7 +1668,7 @@ async function updateDataFromD3DXIni(modPaths: string | string[]) {
 	} else {
 		mods = [modPaths];
 	}
-	const root = join(...tgt.split(/[/\\]/).slice(0, -1), "d3dx_user.ini");
+	const root = join(parentDir(tgt), "d3dx_user.ini");
 	const lines = [] as string[];
 	if (await exists(root)) {
 		lines.push(

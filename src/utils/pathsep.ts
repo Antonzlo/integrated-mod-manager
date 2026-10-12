@@ -29,6 +29,17 @@ export function join(...parts: (string | null | undefined)[]) {
 	if (result.endsWith("\\")) result = result.slice(0, -1);
 	return result;
 }
+/**
+ * Parent directory of an internal path: "\\run\\media\\Mods\\x" gives "\\run\\media\\Mods".
+ * Keeps the leading "\\" of absolute Linux paths. join() drops it, and toFs() then resolves
+ * the path against the app data dir.
+ */
+export function parentDir(p: string) {
+	// Remove trailing separators: "\\a\\b\\" becomes "\\a\\b".
+	const trimmed = p.replace(/[\\/]+$/, "");
+	// Remove the last separator and everything after it: "\\a\\b" becomes "\\a".
+	return trimmed.replace(/[\\/][^\\/]*$/, "");
+}
 let dataPath: string | null = null;
 store.sub(DATA_PATH, () => {
 	dataPath = store.get(DATA_PATH);
