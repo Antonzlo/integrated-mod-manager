@@ -2731,7 +2731,7 @@
 					"_nItemCount": 63,
 					"_nCategoryCount": 0,
 					"_sUrl": "https://gamebanana.com/mods/cats/26229",
-					"_sIconUrl": "https://api.hakush.in/gi/UI/WEAPON_BOW.webp"
+					"_sIconUrl": "/icons/weapons/bow.png"
 				},
 				{
 					"_idRow": 26228,
@@ -2739,7 +2739,7 @@
 					"_nItemCount": 69,
 					"_nCategoryCount": 0,
 					"_sUrl": "https://gamebanana.com/mods/cats/26228",
-					"_sIconUrl": "https://api.hakush.in/gi/UI/WEAPON_CATALYST.webp"
+					"_sIconUrl": "/icons/weapons/catalyst.png"
 				},
 				{
 					"_idRow": 26227,
@@ -2747,7 +2747,7 @@
 					"_nItemCount": 108,
 					"_nCategoryCount": 0,
 					"_sUrl": "https://gamebanana.com/mods/cats/26227",
-					"_sIconUrl": "https://api.hakush.in/gi/UI/WEAPON_CLAYMORE.webp"
+					"_sIconUrl": "/icons/weapons/claymore.png"
 				},
 				{
 					"_idRow": 26225,
@@ -2755,7 +2755,7 @@
 					"_nItemCount": 121,
 					"_nCategoryCount": 0,
 					"_sUrl": "https://gamebanana.com/mods/cats/26225",
-					"_sIconUrl": "https://api.hakush.in/gi/UI/WEAPON_POLE.webp"
+					"_sIconUrl": "/icons/weapons/polearm.png"
 				},
 				{
 					"_idRow": 26226,
@@ -2763,7 +2763,7 @@
 					"_nItemCount": 200,
 					"_nCategoryCount": 0,
 					"_sUrl": "https://gamebanana.com/mods/cats/26226",
-					"_sIconUrl": "https://api.hakush.in/gi/UI/WEAPON_SWORD_ONE_HAND.webp"
+					"_sIconUrl": "/icons/weapons/sword.png"
 				},
 				{
 					"_idRow": 12526,
