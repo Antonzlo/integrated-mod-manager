@@ -1846,8 +1846,13 @@ export async function toggleMod(path: string, enabled: boolean, forced = false):
 			try {
 				await remove(modTgt);
 			} catch (err) {
-				error("[IMM] Error removing mod:", err);
-				return false;
+				// A link that is already gone means the mod is already disabled: treat as success.
+				if (/os error [23]\b/.test(String(err))) {
+					info("[IMM] Mod link already absent, treating as disabled:", path);
+				} else {
+					error("[IMM] Error removing mod:", err);
+					return false;
+				}
 			}
 		}
 	} catch (err) {
