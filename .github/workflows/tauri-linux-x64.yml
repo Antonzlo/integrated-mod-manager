@@ -2,14 +2,25 @@ name: Tauri Linux x64
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish the bundles as a test pre-release
+        type: boolean
+        default: false
   push:
     tags:
       - "v*"
+
+permissions:
+  contents: write
 
 jobs:
   build-linux-x64:
     name: Build Linux x64
     runs-on: ubuntu-latest
+    env:
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
 
     steps:
       - name: Checkout
@@ -55,7 +66,14 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        run: npm run tauri -- build --target x86_64-unknown-linux-gnu
+        run: |
+          # Forks have no updater signing key; skip updater artifacts so the
+          # build still produces testable bundles.
+          args=()
+          if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            args=(--config '{"bundle":{"createUpdaterArtifacts":false}}')
+          fi
+          npm run tauri -- build --target x86_64-unknown-linux-gnu "${args[@]}"
 
       - name: Verify AppImage
         run: |
@@ -80,13 +98,33 @@ jobs:
           python3 utils.py -b
           cp ".bundle/$(jq -r .version latest.json).zip" bundle.zip
 
-      - name: Send bundle to Telegram
+      - name: Upload Linux artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: integrated-mod-manager-linux-x64
+          path: |
+            src-tauri/target/release/bundle/appimage/*.AppImage
+            src-tauri/target/release/bundle/appimage/*.sig
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/rpm/*.rpm
+          if-no-files-found: error
+
+      - name: Publish test pre-release
+        if: github.event_name == 'workflow_dispatch' && inputs.publish
         env:
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          : "${TELEGRAM_BOT_TOKEN:?Missing TELEGRAM_BOT_TOKEN secret}"
-          : "${TELEGRAM_CHAT_ID:?Missing TELEGRAM_CHAT_ID secret}"
+          tag="linux-test-${GITHUB_RUN_NUMBER}"
+          gh release create "$tag" --prerelease --target "$GITHUB_SHA" \
+            --title "Linux test build ${GITHUB_RUN_NUMBER} (${GITHUB_SHA::7})" \
+            --notes "Unsigned test build of ${GITHUB_SHA} for testing only. In-app updates do not work with it." \
+            src-tauri/target/release/bundle/appimage/*.AppImage \
+            src-tauri/target/release/bundle/deb/*.deb \
+            src-tauri/target/release/bundle/rpm/*.rpm
+
+      - name: Send bundle to Telegram
+        if: env.TELEGRAM_BOT_TOKEN != '' && env.TELEGRAM_CHAT_ID != ''
+        run: |
           curl --fail-with-body --silent --show-error \
             "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendDocument" \
             -F "chat_id=${TELEGRAM_CHAT_ID}" \
