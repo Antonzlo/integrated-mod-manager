@@ -39,7 +39,7 @@ const Online = React.memo((data: CardOnlineProps) => {
 					onError={(e) => handleImageError(e,true)}
 					style={{
 						filter:
-							data._sInitialVisibility === "hide" && data.blur === true ? "brightness(0.5) blur(4px)" : "brightness(1)",
+							data._sInitialVisibility === "hide" && data.blur === true ? "brightness(0.5) blur(4px)" : "none",
 					}}
 				/>
 				<img
@@ -48,7 +48,7 @@ const Online = React.memo((data: CardOnlineProps) => {
 					onError={(e) => handleImageError(e)}
 					style={{
 						filter:
-							data._sInitialVisibility === "hide" && data.blur === true ? "brightness(0.5) blur(4px)" : "brightness(1)",
+							data._sInitialVisibility === "hide" && data.blur === true ? "brightness(0.5) blur(4px)" : "none",
 					}}
 				/>
 			</div>
