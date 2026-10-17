@@ -39,19 +39,21 @@
   const A = ".card-online,.card-online *{animation:none!important;transition:none!important}";
   const I = ".card-online img:nth-of-type(2){display:none!important}";
   sc.setAttribute("data-bench", "1");
-  const V = {
-    baseline: "",
-    onlyScroller: "#background>:not(:has([data-bench])){visibility:hidden!important}",
-    noBgLayer: ".bg-bgg{display:none!important}",
-    noSidebars: "[data-slot^=sidebar],[data-sidebar]{visibility:hidden!important}",
-    noRightPanel: ".bgpattern.fixed{visibility:hidden!important}",
-    noTitleBar: ".z-2000{visibility:hidden!important}",
-    noOverlays: ".pointer-events-none.fixed{display:none!important}",
-    noBgNoCards: ".bg-bgg{display:none!important}.card-online,.card-online *{visibility:hidden!important}",
-    baseline2: "",
-  };
+  const V = { baseline: "", thumb530: "", thumb220: "", baseline2: "" };
+  async function swap(prefix) {
+    const imgs = [...document.querySelectorAll(".card-online img")];
+    await Promise.all(imgs.map((im) => new Promise((res) => {
+      const m = im.src.match(/^(.*\/)(?:\d+-90_)?([^\/]+)$/);
+      if (!m) return res();
+      im.onload = im.onerror = () => res();
+      im.src = m[1] + prefix + m[2];
+    })));
+    await sleep(1500);
+  }
   async function run(name) {
     style.textContent = V[name];
+    if (name === "thumb530") await swap("530-90_");
+    if (name === "thumb220") await swap("220-90_");
     sc.scrollTop = 0;
     await sleep(800);
     const d = [];
