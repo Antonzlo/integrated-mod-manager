@@ -11,6 +11,10 @@ on:
         description: Fast test build (no LTO, parallel codegen). Tag builds always use the full release profile.
         type: boolean
         default: true
+      devtools:
+        description: Enable the WebKit inspector (right-click, Inspect Element) for profiling
+        type: boolean
+        default: false
   push:
     tags:
       - "v*"
@@ -88,12 +92,16 @@ jobs:
           # makes release builds slow. Only manual runs may trade that away.
           CARGO_PROFILE_RELEASE_LTO: ${{ inputs.fast && 'off' || 'true' }}
           CARGO_PROFILE_RELEASE_CODEGEN_UNITS: ${{ inputs.fast && '16' || '1' }}
+          DEVTOOLS: ${{ inputs.devtools }}
         run: |
           # Forks have no updater signing key; skip updater artifacts so the
           # build still produces testable bundles.
           args=()
           if [ -z "$TAURI_SIGNING_PRIVATE_KEY" ]; then
             args=(--config '{"bundle":{"createUpdaterArtifacts":false}}')
+          fi
+          if [ "$DEVTOOLS" = "true" ]; then
+            args+=(--features tauri/devtools)
           fi
           npm run tauri -- build "${args[@]}"
 
