@@ -38,9 +38,16 @@
   const F = ".card-online img{filter:none!important}";
   const A = ".card-online,.card-online *{animation:none!important;transition:none!important}";
   const I = ".card-online img:nth-of-type(2){display:none!important}";
-  const FIX = "*,*::before,*::after{background-attachment:scroll!important}";
-  const BD = "*{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}";
-  const V = { baseline: "", noFixedBg: FIX, noBackdropAll: BD, fixedAndBackdrop: FIX + BD, everything: FIX + BD + B + F + A + I, baseline2: "" };
+  sc.setAttribute("data-bench", "1");
+  const V = {
+    baseline: "",
+    hideCards: ".card-online,.card-online *{visibility:hidden!important}",
+    hideScrollerContent: "[data-bench]>*{visibility:hidden!important}",
+    hideFixedLayers: ".fixed{display:none!important}",
+    containCards: ".card-generic{contain:strict!important}",
+    containGrid: ".card-grid{contain:layout paint!important}",
+    baseline2: "",
+  };
   async function run(name) {
     style.textContent = V[name];
     sc.scrollTop = 0;
@@ -49,6 +56,7 @@
     let last = performance.now();
     const t0 = last;
     let up = false;
+    let sync = 0, nscroll = 0;
     await new Promise((res) => {
       function f(t) {
         d.push(t - last);
@@ -56,7 +64,11 @@
         const ph = (t - t0) % 500; // 350ms scroll burst, 150ms pause (lets the 50ms debounce fire)
         if (ph < 350) {
           const max = sc.scrollHeight - sc.clientHeight;
+          const a = performance.now();
           sc.scrollTop += up ? -14 : 14;
+          void sc.scrollHeight;
+          sync += performance.now() - a;
+          nscroll++;
           if (sc.scrollTop >= max - 5) up = true;
           if (sc.scrollTop <= 0) up = false;
         }
@@ -68,7 +80,7 @@
     d.sort((a, b) => a - b);
     const q = (p) => d[Math.floor(p * (d.length - 1))].toFixed(1);
     const bad = d.filter((x) => x > 25).length;
-    log(name, "frames", d.length, "p50", q(0.5), "p95", q(0.95), "p99", q(0.99), "max", d[d.length - 1].toFixed(0), ">25ms", bad);
+    log(name, "frames", d.length, "p50", q(0.5), "p95", q(0.95), "p99", q(0.99), "max", d[d.length - 1].toFixed(0), ">25ms", bad, "syncLayoutMsPerScrollFrame", (sync / Math.max(1, nscroll)).toFixed(1));
   }
   for (const n of Object.keys(V)) await run(n);
   log("done");
