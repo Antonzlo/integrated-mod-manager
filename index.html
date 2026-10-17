@@ -21,10 +21,13 @@
     }
     return null;
   };
+  log("bench script loaded");
   let sc = null;
-  for (;;) {
+  for (let i = 0; ; i++) {
     await sleep(1000);
-    if (document.querySelectorAll(".card-online img").length >= 16 && (sc = findScroller())) break;
+    const n = document.querySelectorAll(".card-online img").length;
+    if (i % 5 === 0) log("waiting; card-online", document.querySelectorAll(".card-online").length, "imgs", n);
+    if (n >= 4 && (sc = findScroller())) break;
   }
   await sleep(4000);
   const ua = navigator.userAgent.match(/AppleWebKit\/[\d.]+/);
