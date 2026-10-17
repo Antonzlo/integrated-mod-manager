@@ -156,6 +156,8 @@ function App() {
 			document.documentElement.style.setProperty("--blur-xs", `${4 * blur}px`);
 			document.documentElement.style.setProperty("--blur-sm", `${8 * blur}px`);
 			document.documentElement.style.setProperty("--blur-md", `${12 * blur}px`);
+			document.documentElement.style.setProperty("--blur-lg", `${16 * blur}px`);
+			document.documentElement.classList.toggle("no-blur", blur === 0);
 			document.documentElement.style.setProperty("--blur-2xl", `${40 * blur}px`);
 		}
 		if (!animations) {

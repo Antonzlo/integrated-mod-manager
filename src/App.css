@@ -666,21 +666,30 @@ a {
 */
 
 .backdrop-blur-sm{
-	-webkit-backdrop-filter: blur(8px) !important;
-	backdrop-filter: blur(8px) !important;
+	-webkit-backdrop-filter: blur(var(--blur-sm, 8px)) !important;
+	backdrop-filter: blur(var(--blur-sm, 8px)) !important;
 	transform: translateZ(0);
 }
 
 .backdrop-blur-md {
-	-webkit-backdrop-filter: blur(12px) !important;
-	backdrop-filter: blur(12px) !important;
+	-webkit-backdrop-filter: blur(var(--blur-md, 12px)) !important;
+	backdrop-filter: blur(var(--blur-md, 12px)) !important;
 	transform: translateZ(0);
 }
 
 .backdrop-blur-lg {
-	-webkit-backdrop-filter: blur(16px) !important;
-	backdrop-filter: blur(16px) !important;
+	-webkit-backdrop-filter: blur(var(--blur-lg, 16px)) !important;
+	backdrop-filter: blur(var(--blur-lg, 16px)) !important;
 	transform: translateZ(0);
+}
+
+/* Blur slider at 0: skip the backdrop filter pass entirely, blur(0px) still costs a render pass. */
+.no-blur .backdrop-blur-sm,
+.no-blur .backdrop-blur-md,
+.no-blur .backdrop-blur-lg {
+	-webkit-backdrop-filter: none !important;
+	backdrop-filter: none !important;
+	transform: none;
 }
 
 .bgx-flash {
