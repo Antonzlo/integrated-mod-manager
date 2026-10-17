@@ -12,7 +12,7 @@
 		<script type="module" src="/src/main.tsx"></script>
 	<script>(async () => {
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-  const log = (...a) => console.log("[PERF]", ...a);
+  const log = (...a) => console.info("[PERF]", ...a);
   const findScroller = () => {
     const c = document.querySelector(".card-online");
     for (let e = c && c.parentElement; e; e = e.parentElement) {
