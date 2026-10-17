@@ -45,7 +45,7 @@ const CardLocal = React.memo(({ item, selected, lastUpdated, hasUpdate, updateAv
 			<div className="relative w-full fadein h-[calc(100%-2.5rem)] flex items-center justify-center -mt-[calc(var(--card-height)-0.125rem)] duration-200 rounded-t-lg data-gi:rounded-none pointer-events-none overflow-hidden">
 				<img
 					style={{
-						filter: item.enabled ? "brightness(1)" : "brightness(0.5) saturate(0.5)",
+						filter: item.enabled ? "none" : "brightness(0.5) saturate(0.5)",
 						left: `${-(item.crop?.x || 0)}px`,
 						top: `${-(item.crop?.y || 0)}px`,
 						scale: item.crop?.scale || 1,
@@ -90,7 +90,7 @@ const CardLocal = React.memo(({ item, selected, lastUpdated, hasUpdate, updateAv
 				)}
 				<Label
 					className="text-ellipsis w-56 overflow-hidden border-0 text-xs pointer-events-none select-none"
-					style={{ backgroundColor: "#fff0", filter: item.enabled ? "brightness(1)" : "brightness(0.5) saturate(0.5)" }}
+					style={{ backgroundColor: "#fff0", filter: item.enabled ? "none" : "brightness(0.5) saturate(0.5)" }}
 				>
 					{item.name}
 				</Label>
