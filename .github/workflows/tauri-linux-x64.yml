@@ -7,6 +7,10 @@ on:
         description: Publish the bundles as a test pre-release
         type: boolean
         default: false
+      fast:
+        description: Fast test build (no LTO, parallel codegen). Tag builds always use the full release profile.
+        type: boolean
+        default: true
   push:
     tags:
       - "v*"
@@ -80,6 +84,10 @@ jobs:
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          # src-tauri/Cargo.toml sets lto = true and codegen-units = 1, which
+          # makes release builds slow. Only manual runs may trade that away.
+          CARGO_PROFILE_RELEASE_LTO: ${{ inputs.fast && 'off' || 'true' }}
+          CARGO_PROFILE_RELEASE_CODEGEN_UNITS: ${{ inputs.fast && '16' || '1' }}
         run: |
           # Forks have no updater signing key; skip updater artifacts so the
           # build still produces testable bundles.
