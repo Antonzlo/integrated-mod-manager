@@ -38,7 +38,9 @@
   const F = ".card-online img{filter:none!important}";
   const A = ".card-online,.card-online *{animation:none!important;transition:none!important}";
   const I = ".card-online img:nth-of-type(2){display:none!important}";
-  const V = { baseline: "", noBlur: B, noImgFilter: F, noAnim: A, oneImg: I, all: B + F + A + I, baseline2: "" };
+  const FIX = "*,*::before,*::after{background-attachment:scroll!important}";
+  const BD = "*{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}";
+  const V = { baseline: "", noFixedBg: FIX, noBackdropAll: BD, fixedAndBackdrop: FIX + BD, everything: FIX + BD + B + F + A + I, baseline2: "" };
   async function run(name) {
     style.textContent = V[name];
     sc.scrollTop = 0;
