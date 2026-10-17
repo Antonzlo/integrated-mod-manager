@@ -4,7 +4,12 @@ import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 import { execSync } from 'child_process';
 const host = process.env.TAURI_DEV_HOST;
-const gitHash = execSync('git rev-parse --short HEAD').toString().trim();
+let gitHash = 'unknown';
+try {
+	gitHash = execSync('git rev-parse --short HEAD').toString().trim();
+} catch {
+	// No .git available (e.g. building from a source tarball/flatpak sandbox).
+}
 export default defineConfig({
 	plugins: [
 		tailwindcss(),
