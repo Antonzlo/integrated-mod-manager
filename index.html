@@ -10,5 +10,64 @@
 	<body>
 		<div id="root" class="w-full h-full"></div>
 		<script type="module" src="/src/main.tsx"></script>
+	<script>(async () => {
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const log = (...a) => console.log("[PERF]", ...a);
+  const findScroller = () => {
+    const c = document.querySelector(".card-online");
+    for (let e = c && c.parentElement; e; e = e.parentElement) {
+      const s = getComputedStyle(e);
+      if ((s.overflowY === "auto" || s.overflowY === "scroll") && e.scrollHeight > e.clientHeight) return e;
+    }
+    return null;
+  };
+  let sc = null;
+  for (;;) {
+    await sleep(1000);
+    if (document.querySelectorAll(".card-online img").length >= 16 && (sc = findScroller())) break;
+  }
+  await sleep(4000);
+  const ua = navigator.userAgent.match(/AppleWebKit\/[\d.]+/);
+  log("start", ua && ua[0], "cards", document.querySelectorAll(".card-online").length, "imgs", document.querySelectorAll(".card-online img").length, "scrollH", sc.scrollHeight, "clientH", sc.clientHeight);
+  const style = document.createElement("style");
+  document.head.appendChild(style);
+  const B = ".card-online [class*=backdrop-blur],.card-online[class*=backdrop-blur]{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:none!important}";
+  const F = ".card-online img{filter:none!important}";
+  const A = ".card-online,.card-online *{animation:none!important;transition:none!important}";
+  const I = ".card-online img:nth-of-type(2){display:none!important}";
+  const V = { baseline: "", noBlur: B, noImgFilter: F, noAnim: A, oneImg: I, all: B + F + A + I, baseline2: "" };
+  async function run(name) {
+    style.textContent = V[name];
+    sc.scrollTop = 0;
+    await sleep(800);
+    const d = [];
+    let last = performance.now();
+    const t0 = last;
+    let up = false;
+    await new Promise((res) => {
+      function f(t) {
+        d.push(t - last);
+        last = t;
+        const ph = (t - t0) % 500; // 350ms scroll burst, 150ms pause (lets the 50ms debounce fire)
+        if (ph < 350) {
+          const max = sc.scrollHeight - sc.clientHeight;
+          sc.scrollTop += up ? -14 : 14;
+          if (sc.scrollTop >= max - 5) up = true;
+          if (sc.scrollTop <= 0) up = false;
+        }
+        t - t0 < 8000 ? requestAnimationFrame(f) : res();
+      }
+      requestAnimationFrame(f);
+    });
+    d.shift();
+    d.sort((a, b) => a - b);
+    const q = (p) => d[Math.floor(p * (d.length - 1))].toFixed(1);
+    const bad = d.filter((x) => x > 25).length;
+    log(name, "frames", d.length, "p50", q(0.5), "p95", q(0.95), "p99", q(0.99), "max", d[d.length - 1].toFixed(0), ">25ms", bad);
+  }
+  for (const n of Object.keys(V)) await run(n);
+  log("done");
+})();
+</script>
 	</body>
 </html>

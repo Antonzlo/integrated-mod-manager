@@ -104,9 +104,6 @@ jobs:
           name: integrated-mod-manager-linux-x64
           path: |
             src-tauri/target/release/bundle/appimage/*.AppImage
-            src-tauri/target/release/bundle/appimage/*.sig
-            src-tauri/target/release/bundle/deb/*.deb
-            src-tauri/target/release/bundle/rpm/*.rpm
           if-no-files-found: error
 
       - name: Publish test pre-release
