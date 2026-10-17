@@ -41,11 +41,13 @@
   sc.setAttribute("data-bench", "1");
   const V = {
     baseline: "",
-    hideCards: ".card-online,.card-online *{visibility:hidden!important}",
-    hideScrollerContent: "[data-bench]>*{visibility:hidden!important}",
-    hideFixedLayers: ".fixed{display:none!important}",
-    containCards: ".card-generic{contain:strict!important}",
-    containGrid: ".card-grid{contain:layout paint!important}",
+    onlyScroller: "#background>:not(:has([data-bench])){visibility:hidden!important}",
+    noBgLayer: ".bg-bgg{display:none!important}",
+    noSidebars: "[data-slot^=sidebar],[data-sidebar]{visibility:hidden!important}",
+    noRightPanel: ".bgpattern.fixed{visibility:hidden!important}",
+    noTitleBar: ".z-2000{visibility:hidden!important}",
+    noOverlays: ".pointer-events-none.fixed{display:none!important}",
+    noBgNoCards: ".bg-bgg{display:none!important}.card-online,.card-online *{visibility:hidden!important}",
     baseline2: "",
   };
   async function run(name) {
