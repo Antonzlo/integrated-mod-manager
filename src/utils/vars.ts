@@ -31,7 +31,10 @@ interface UpdateInfo {
 const OPTIMIZED = atomWithStorage("imm-optimized", {} as Record<string, string>);
 const DEV_HIDE_PREVIEWS = atomWithStorage("imm-dev-hide-previews", false);
 const SCALE = atomWithStorage("imm-scale", 0);
-const BLUR = atomWithStorage("imm-blur", 1);
+// WebKitGTK paints backdrop-filter on the CPU on many Linux GPU/driver setups,
+// which makes scrolling the mod grids lag, so blur is off by default there.
+const DEFAULT_BLUR = typeof navigator !== "undefined" && /linux/i.test(navigator.userAgent) ? 0 : 1;
+const BLUR = atomWithStorage("imm-blur", DEFAULT_BLUR);
 const ANIMATIONS = atomWithStorage("imm-animations", true);
 const BACKUP_INI = atomWithStorage("imm-backup-ini", false);
 const INIT_DONE = atom(false);
