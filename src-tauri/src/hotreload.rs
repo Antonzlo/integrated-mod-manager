@@ -25,8 +25,13 @@ static CHANGE: AtomicBool = AtomicBool::new(false);
 
 static MOD_MANAGER_TITLE: &str = "Integrated Mod Manager";
 static WINDOW_TARGET: RwLock<String> = RwLock::new(String::new());
-static WW_TITLE: &str = "wuthering waves  ";
+static WW_TITLE: &str = "wuthering waves";
+// Windows window/process names have no spaces ("ZenlessZoneZero"); Wine/Proton
+// window titles do ("Zenless Zone Zero").
+#[cfg(windows)]
 static ZZ_TITLE: &str = "zenlesszonezero";
+#[cfg(not(windows))]
+static ZZ_TITLE: &str = "zenless zone zero";
 static GI_TITLE: &str = "genshin impact";
 static SR_TITLE: &str = "honkai: star rail";
 static EF_TITLE: &str = "Endfield";
@@ -632,6 +637,9 @@ mod linux_utils {
         };
 
         if window_target == MOD_MANAGER_TITLE {
+            // xdotool only sees IMM's own window when it renders through
+            // Xwayland (GDK_BACKEND=x11, the AppImage default). A native
+            // Wayland window has no X11 presence, so this search finds nothing.
             let output = hotreload_command("xdotool")
                 .arg("search")
                 .arg("--name")
