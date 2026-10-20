@@ -19,8 +19,18 @@ fn main() {
     }
     #[cfg(target_os = "linux")]
     unsafe {
-        std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-        std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+        // IMM_ENABLE_GPU=1 opts into GPU compositing and DMA-BUF: smoother, but not safe on every driver stack.
+        if std::env::var("IMM_ENABLE_GPU").is_ok_and(|v| v == "1") {
+            std::env::set_var("WEBKIT_FORCE_COMPOSITING_MODE", "1");
+            // NVIDIA on Wayland crashes with DMA-BUF (Gdk "Error 71 (Protocol error)") unless explicit sync is off.
+            // Only NVIDIA's driver reads this; Mesa ignores it.
+            if std::env::var("__NV_DISABLE_EXPLICIT_SYNC").is_err() {
+                std::env::set_var("__NV_DISABLE_EXPLICIT_SYNC", "1");
+            }
+        } else {
+            std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+            std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+        }
     }
     wuwa_mod_manager_lib::run()
 }
