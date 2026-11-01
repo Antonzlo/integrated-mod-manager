@@ -787,7 +787,7 @@ function RightOnline({ open }: { open: boolean }) {
 											>
 												<div
 													key={item._sName + "pix"}
-													className="min-h-fit flex flex-col items-center w-full max-h-full gap-1 px-2 mt-2 mb-3 overflow-hidden pointer-events-none"
+													className="min-h-fit shrink-0 flex flex-col items-center w-full max-h-full gap-1 px-2 mt-2 mb-3 overflow-hidden pointer-events-none"
 												>
 													{item._aPreviewMedia &&
 														item._aPreviewMedia._aImages &&
