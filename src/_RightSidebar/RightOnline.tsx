@@ -255,7 +255,7 @@ function RightOnline({ open }: { open: boolean }) {
 	}, [selected, loadingComments]);
 	const popoverContent = item?._aFiles?.map((file: any) => (
 		<Button
-			className="min-h-fit data-wuwa:p-2 flex items-center justify-center min-w-full gap-1 p-4 overflow-hidden"
+			className="h-auto min-h-fit data-wuwa:p-2 flex items-center justify-center min-w-full gap-1 p-4 overflow-hidden"
 			style={{
 				borderRadius: "0.25rem",
 			}}
@@ -787,7 +787,7 @@ function RightOnline({ open }: { open: boolean }) {
 											>
 												<div
 													key={item._sName + "pix"}
-													className="min-h-fit flex flex-col items-center w-full max-h-full gap-1 px-2 mt-2 mb-3 overflow-hidden pointer-events-none"
+													className="min-h-fit shrink-0 flex flex-col items-center w-full max-h-full gap-1 px-2 mt-2 mb-3 overflow-hidden pointer-events-none"
 												>
 													{item._aPreviewMedia &&
 														item._aPreviewMedia._aImages &&

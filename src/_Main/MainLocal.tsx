@@ -266,7 +266,7 @@ function MainLocal() {
 				setModList((prev) => {
 					return prev.map((m) => {
 						if (m.path == mod.path) {
-							return { ...m, enabled: !m.enabled };
+							return { ...m, enabled: !mod.enabled };
 						}
 						return m;
 					});

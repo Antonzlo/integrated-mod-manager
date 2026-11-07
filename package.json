@@ -70,7 +70,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
-		"@tauri-apps/cli": "^2.10.0",
+		"@tauri-apps/cli": "^2.12.2",
 		"@types/node": "^25.2.1",
 		"@types/react": "^19.2.13",
 		"@types/react-dom": "^19.2.3",

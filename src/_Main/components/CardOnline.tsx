@@ -70,12 +70,12 @@ const Online = React.memo((data: CardOnlineProps) => {
 				</div>
 			)}
 			<div
-				className={`w-fit fadein bg-background/50 text-accent  backdrop-blur-sm -mt-68 flex flex-col items-center px-4 py-1 mb-44 rounded-br-lg pointer-events-none`}
+				className={`relative w-fit bg-background/50 text-accent -mt-68 flex flex-col items-center px-4 py-1 mb-44 rounded-br-lg pointer-events-none`}
 			>
 				{data._sModelName}
 			</div>
 
-			<div className={`bg-background/50 fadein backdrop-blur-sm flex flex-col items-center w-full px-4 py-1`}>
+			<div className={`relative bg-background/50 flex flex-col items-center w-full px-4 py-1`}>
 				<Input
 					readOnly
 					type="text"

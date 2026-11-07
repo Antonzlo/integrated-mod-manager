@@ -61,9 +61,14 @@ function MainOnline() {
 		if (!res.ok) throw new Error(`Request failed with ${res.status}`);
 		const data = await res.json();
 		setOnlineData((prev) => {
+			const existing = (prev[onlinePath] as OnlineMod[]) || [];
+			// Pages overlap when new mods are posted between requests; skip records already listed
+			// (same key as the card grid: model name + id).
+			const seen = new Set(existing.map((m) => `${m._sModelName}-${m._idRow}`));
+			const added = (data._aRecords as OnlineMod[]).filter((m) => !seen.has(`${m._sModelName}-${m._idRow}`));
 			return {
 				...prev,
-				[onlinePath]: [...((prev[onlinePath] as OnlineMod[]) || []), ...data._aRecords],
+				[onlinePath]: [...existing, ...added],
 			};
 		});
 		loadingRef.current = false;
